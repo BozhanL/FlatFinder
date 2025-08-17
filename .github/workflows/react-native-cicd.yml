@@ -38,12 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🏗 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'yarn'
 
       - name: 📦 Get yarn cache directory path
@@ -51,7 +51,7 @@ jobs:
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - name: 📦 Setup yarn cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -85,12 +85,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🏗 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'yarn'
 
       - name: 📦 Get yarn cache directory path
@@ -98,7 +98,7 @@ jobs:
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - name: 📦 Setup yarn cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -111,7 +111,7 @@ jobs:
           yarn global add eas-cli@latest
 
       - name: 📱 Setup EAS build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.eas-build-local
           key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/package.json') }}
