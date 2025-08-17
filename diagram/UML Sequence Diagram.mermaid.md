@@ -13,8 +13,8 @@ sequenceDiagram
     activate User A
         App view->>+Chat controller: Get chat information
         Chat controller->>+Firebase Realtime Database: Get message since last read
-        Firebase Realtime Database-->>-Chat controller: Message since last read
-        Chat controller-->>-App view: List of previous message
+        Firebase Realtime Database-->>-Chat controller: Messages since last read
+        Chat controller-->>-App view: List of previous messages
         App view-->>-User A: Show Chat page
     deactivate User A
     
@@ -57,7 +57,7 @@ sequenceDiagram
         deactivate Firebase Realtime Database
         Chat controller-->>+App view: Push the message to User B
         deactivate Chat controller
-        App view-->>+User B:Send a push notification
+        App view-->>+User B: Send push notification
         deactivate App view
         User B->>+App view: Open the notification
         App view-->>-User B: Show the message
