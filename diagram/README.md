@@ -2,7 +2,7 @@
 
 ## Component Diagram (By Bozhan)
 
-![UML Component diagram](UML%20Component%20diagram.svg)
+![UML Component Diagram](UML%20Component%20Diagram.svg)
 
 ## Class Diagram (By Jason)
 
