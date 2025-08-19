@@ -17,7 +17,7 @@ sequenceDiagram
         Chat controller-->>-App view: List of previous messages
         App view-->>-User A: Show Chat page
     deactivate User A
-    
+
 %% Open a chat from list
     User A->>+App view: Select a chat
     activate User A
