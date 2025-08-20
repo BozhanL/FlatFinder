@@ -40,7 +40,7 @@ export default function TabsLayout() {
               <MaterialCommunityIcons
                 name="home-variant"
                 size={24}
-                color="{color}"
+                color={color}
               />
             ) : (
               <MaterialCommunityIcons
