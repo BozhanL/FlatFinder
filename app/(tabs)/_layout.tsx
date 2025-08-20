@@ -45,7 +45,13 @@ export default function TabsLayout() {
               <MaterialCommunityIcons
                 name="home-variant-outline"
                 size={24}
-                color="{color}"
+                color={color}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="home-variant-outline"
+                size={24}
+                color={color}
               />
             );
           },
