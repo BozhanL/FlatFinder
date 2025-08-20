@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useState } from "react";
+import { useFonts, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 
 type Props = {
   options: string[];
