@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "flat-finder",
-    "slug": "flat-finder",
+    "name": "FlatFinder",
+    "slug": "FlatFinder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
