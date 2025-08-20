@@ -32,7 +32,7 @@ module.exports = ({ config }: { config: ExpoConfig }) => ({
       [
         "./plugins/withAbiFilters.ts",
         {
-          abiFilters: ["arm64-v8a", "x86-64"],
+          abiFilters: ["arm64-v8a", "x86_64"],
         },
       ],
       [
