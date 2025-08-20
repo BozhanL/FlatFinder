@@ -59,7 +59,7 @@ jobs:
 
       - name: 🧪 Run Jest Tests
         run: npm run test
-      
+
       - name: 🧪 Run Jest Coverage
         uses: ArtiomTr/jest-coverage-report-action@v2
 
