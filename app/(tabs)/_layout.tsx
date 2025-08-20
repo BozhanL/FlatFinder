@@ -2,7 +2,6 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts, Poppins_500Medium } from '@expo-google-fonts/poppins';
-
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   return (
