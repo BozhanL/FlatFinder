@@ -1,7 +1,8 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
+import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFonts, Poppins_500Medium } from '@expo-google-fonts/poppins';
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   return (
@@ -36,9 +37,17 @@ export default function TabsLayout() {
           title: "Home",
           tabBarIcon: ({ color, focused }) => {
             return focused ? (
-              <MaterialCommunityIcons name="home-variant" size={24} color={color} />
+              <MaterialCommunityIcons
+                name="home-variant"
+                size={24}
+                color={color}
+              />
             ) : (
-              <MaterialCommunityIcons name="home-variant-outline" size={24} color={color} />
+              <MaterialCommunityIcons
+                name="home-variant-outline"
+                size={24}
+                color={color}
+              />
             );
           },
         }}
@@ -49,9 +58,17 @@ export default function TabsLayout() {
           title: "Message",
           tabBarIcon: ({ color, focused }) => {
             return focused ? (
-              <MaterialCommunityIcons name="message-processing" size={24} color="black" />
+              <MaterialCommunityIcons
+                name="message-processing"
+                size={24}
+                color="black"
+              />
             ) : (
-              <MaterialCommunityIcons name="message-processing-outline" size={24} color="black" />
+              <MaterialCommunityIcons
+                name="message-processing-outline"
+                size={24}
+                color="black"
+              />
             );
           },
         }}
@@ -64,7 +81,11 @@ export default function TabsLayout() {
             return focused ? (
               <MaterialCommunityIcons name="account" size={24} color="black" />
             ) : (
-              <MaterialCommunityIcons name="account-outline" size={24} color="black" />
+              <MaterialCommunityIcons
+                name="account-outline"
+                size={24}
+                color="black"
+              />
             );
           },
         }}

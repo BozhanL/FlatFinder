@@ -1,8 +1,15 @@
 // https://gist.github.com/Randall71/695f5ced1123dcce484b985484a2a167
-import { ConfigPlugin, withAppBuildGradle, withGradleProperties } from "expo/config-plugins";
+import {
+  ConfigPlugin,
+  withAppBuildGradle,
+  withGradleProperties,
+} from "expo/config-plugins";
 
 type AbiFiltersProps = { abiFilters?: string[] };
-const withAbiFilters: ConfigPlugin<AbiFiltersProps> = (config, { abiFilters = ["arm64-v8a"] } = {}) => {
+const withAbiFilters: ConfigPlugin<AbiFiltersProps> = (
+  config,
+  { abiFilters = ["arm64-v8a"] } = {},
+) => {
   console.log("🔧 ABI Filter plugin is running!", abiFilters);
 
   // Set gradle.properties
@@ -14,7 +21,9 @@ const withAbiFilters: ConfigPlugin<AbiFiltersProps> = (config, { abiFilters = ["
     config.modResults = config.modResults.filter(
       (item) =>
         item.type !== "property" ||
-        (item.type === "property" && "key" in item && item.key !== "reactNativeArchitectures"),
+        (item.type === "property" &&
+          "key" in item &&
+          item.key !== "reactNativeArchitectures"),
     );
 
     config.modResults.push({

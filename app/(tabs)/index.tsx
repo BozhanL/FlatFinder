@@ -1,7 +1,7 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import Segmented from "@/components/Segmented";
 import { router } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {

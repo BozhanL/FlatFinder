@@ -1,6 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useState } from "react";
-import { useFonts, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 type Props = {
   options: string[];
   onChange?: (value: string) => void;
