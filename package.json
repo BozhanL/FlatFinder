@@ -10,7 +10,7 @@
     "test": "jest --passWithNoTests",
     "format:check": "prettier -c .",
     "format:fix": "prettier -w .",
-    "tsc": "tsc",
+    "check-ts": "tsc --noEmit",
     "lint": "expo lint"
   },
   "jest": {
