@@ -55,6 +55,32 @@ jobs:
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build:
+          [
+            {
+              name: "debug-apk",
+              command: "assembleDebug",
+              location: "./android/app/build/outputs/apk/debug/*.apk",
+            },
+            {
+              name: "release-apk",
+              command: "assembleRelease",
+              location: "./android/app/build/outputs/apk/release/*.apk",
+            },
+            {
+              name: "debug-aab",
+              command: "bundleDebug",
+              location: "./android/app/build/outputs/bundle/debug/*.aab",
+            },
+            {
+              name: "release-aab",
+              command: "bundleRelease",
+              location: "./android/app/build/outputs/bundle/release/*.aab",
+            },
+          ]
+
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v5
@@ -75,37 +101,14 @@ jobs:
       - name: 📱 Setup index.android.bundle
         run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
-      - name: 📱 Build Development APK
+      - name: 📱 Build
         working-directory: ./android
-        run: ./gradlew assembleDebug
-
-      # - name: 📱 Build Development APK
-      #   working-directory: ./android
-      #   run: ./gradlew assembleRelease
+        run: ./gradlew ${{ matrix.build.command }}
 
       - name: 📦 Upload build artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
+          name: ${{ matrix.build.name }}
           if-no-files-found: error
-          path: |
-            ./android/app/build/outputs/apk/debug/*.apk
-          retention-days: 7
-
-      - name: 📦 Upload build artifacts to GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          if-no-files-found: ignore
-          path: |
-            ./android/app/build/outputs/apk/release/*.apk
-          retention-days: 7
-
-      - name: 📦 Upload build artifacts to GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-aab
-          if-no-files-found: ignore
-          path: |
-            ./android/app/build/outputs/bundle/release/*.aab
+          path: ${{ matrix.build.location }}
           retention-days: 7
