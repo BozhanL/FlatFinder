@@ -10,6 +10,7 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_700Bold,
   });
+
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -17,6 +18,7 @@ export default function RootLayout() {
       </View>
     );
   }
+
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
