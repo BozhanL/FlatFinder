@@ -92,11 +92,27 @@ jobs:
         run: npm install
 
       - name: 📱 Prebuild
-        run: npx expo prebuild --clean --platform android
+        run: npx expo prebuild --platform android
+
+      - name: 📱 Setup index.android.bundle
+        run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
       - name: 📱 Build Development APK
         working-directory: ./android
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleDebug
+
+      # - name: 📱 Build Development APK
+      #   working-directory: ./android
+      #   run: ./gradlew assembleRelease
+
+      - name: 📦 Upload build artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          if-no-files-found: error
+          path: |
+            ./android/app/build/outputs/apk/debug/*.apk
+          retention-days: 7
 
       - name: 📦 Upload build artifacts to GitHub
         uses: actions/upload-artifact@v4
