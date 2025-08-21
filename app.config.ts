@@ -1,53 +1,52 @@
-import { ExpoConfig } from "expo/config";
+import { ConfigContext, ExpoConfig } from "expo/config";
 import "tsx/cjs";
 
-module.exports = ({ config }: { config: ExpoConfig }) => ({
-  expo: {
-    name: "FlatFinder",
-    slug: "FlatFinder",
-    version: "1.0.0",
-    orientation: "portrait",
-    icon: "./assets/images/icon.png",
-    scheme: "flatfinder",
-    userInterfaceStyle: "automatic",
-    newArchEnabled: true,
-    ios: {
-      supportsTablet: true,
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
+  name: "FlatFinder",
+  slug: "FlatFinder",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/images/icon.png",
+  scheme: "flatfinder",
+  userInterfaceStyle: "automatic",
+  newArchEnabled: true,
+  ios: {
+    supportsTablet: true,
+  },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: "./assets/images/adaptive-icon.png",
+      backgroundColor: "#ffffff",
     },
-    android: {
-      adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+    edgeToEdgeEnabled: true,
+    package: "com.flatfinder",
+  },
+  web: {
+    bundler: "metro",
+    output: "static",
+    favicon: "./assets/images/favicon.png",
+  },
+  plugins: [
+    "expo-router",
+    [
+      "./plugins/withAbiFilters.ts",
+      {
+        abiFilters: ["arm64-v8a", "x86_64"],
+      },
+    ],
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/images/splash-icon.png",
+        imageWidth: 200,
+        resizeMode: "contain",
         backgroundColor: "#ffffff",
       },
-      edgeToEdgeEnabled: true,
-      package: "com.flatfinder",
-    },
-    web: {
-      bundler: "metro",
-      output: "static",
-      favicon: "./assets/images/favicon.png",
-    },
-    plugins: [
-      "expo-router",
-      [
-        "./plugins/withAbiFilters.ts",
-        {
-          abiFilters: ["arm64-v8a", "x86_64"],
-        },
-      ],
-      [
-        "expo-splash-screen",
-        {
-          image: "./assets/images/splash-icon.png",
-          imageWidth: 200,
-          resizeMode: "contain",
-          backgroundColor: "#ffffff",
-        },
-      ],
-      "expo-font",
     ],
-    experiments: {
-      typedRoutes: true,
-    },
+    "expo-font",
+  ],
+  experiments: {
+    typedRoutes: true,
   },
 });
