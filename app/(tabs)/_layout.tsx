@@ -1,3 +1,4 @@
+import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -5,6 +6,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+
+  const [fontsLoaded] = useFonts({
+    Poppins_500Medium,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <Tabs
       screenOptions={{

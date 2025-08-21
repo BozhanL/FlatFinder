@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "test": "jest --passWithNoTests",
     "format:check": "prettier -c .",
+    "format:fix": "prettier -w .",
     "tsc": "tsc",
     "lint": "expo lint"
   },
