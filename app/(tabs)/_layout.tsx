@@ -2,14 +2,9 @@ import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
 import React from "react";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
-  const insets = useSafeAreaInsets();
-
   const [fontsLoaded] = useFonts({
     Poppins_500Medium,
   });
@@ -19,14 +14,20 @@ export default function TabsLayout() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#ECEBEC",
+      }}
+    >
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            height: 70 + insets.bottom,
-            paddingVertical: 8,
+            paddingBottom: 0,
+            height: "8%",
             backgroundColor: "#ECEBEC",
+            shadowColor: "transparent",
           },
           tabBarLabelStyle: {
             fontFamily: "Poppins_500Medium",
