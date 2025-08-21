@@ -30,11 +30,12 @@ jobs:
       - name: 🏗 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version-file: "package.json"
           cache: "npm"
+          check-latest: true
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: 🧪 Run TypeScript check
         run: npm run tsc
@@ -61,11 +62,12 @@ jobs:
       - name: 🏗 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version-file: "package.json"
           cache: "npm"
+          check-latest: true
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: 📱 Prebuild
         run: npx expo prebuild --platform android
