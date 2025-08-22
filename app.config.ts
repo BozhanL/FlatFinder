@@ -44,7 +44,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         backgroundColor: "#ffffff",
       },
     ],
-    "expo-font",
+    [
+      "expo-font",
+      {
+        fonts: [
+          "node_modules/@expo-google-fonts/playfair-display/700Bold/PlayfairDisplay_700Bold.ttf",
+          "node_modules/@expo-google-fonts/poppins/500Medium/Poppins_500Medium.ttf",
+          "node_modules/@expo-google-fonts/poppins/600SemiBold/Poppins_600SemiBold.ttf",
+        ],
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
