@@ -117,6 +117,8 @@ jobs:
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "36.0.0"
 
       - name: 📦 Upload build artifacts to GitHub
         uses: actions/upload-artifact@v4
