@@ -108,8 +108,8 @@ jobs:
       - name: 📱 Prebuild
         run: npx expo prebuild --platform android
 
-      - name: 📱 Setup index.android.bundle
-        run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+      # - name: 📱 Setup index.android.bundle
+      #   run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
       - name: 📱 Build
         working-directory: ./android
