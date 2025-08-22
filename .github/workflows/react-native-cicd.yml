@@ -19,7 +19,7 @@ on:
 jobs:
   check-skip:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Skip CI check
         run: echo "Proceeding with workflow"
@@ -98,6 +98,12 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
+
+      - name: Retrieve GOOGLE_SERVICES
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+        run: |
+          echo $GOOGLE_SERVICES > ./google-services.json
 
       - name: 📱 Prebuild
         run: npx expo prebuild --platform android
