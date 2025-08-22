@@ -1,9 +1,20 @@
+import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
+import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFonts, Poppins_500Medium } from '@expo-google-fonts/poppins';
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+
+  const [fontsLoaded] = useFonts({
+    Poppins_500Medium,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -38,12 +49,6 @@ export default function TabsLayout() {
             return focused ? (
               <MaterialCommunityIcons
                 name="home-variant"
-                size={24}
-                color={color}
-              />
-            ) : (
-              <MaterialCommunityIcons
-                name="home-variant-outline"
                 size={24}
                 color={color}
               />

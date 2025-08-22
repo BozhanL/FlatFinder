@@ -3,7 +3,8 @@ import {
   useFonts,
 } from "@expo-google-fonts/playfair-display";
 import { Stack } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
+import React from "react";
+import { ActivityIndicator, View } from "react-native";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
