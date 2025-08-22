@@ -99,7 +99,7 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Retrieve GOOGLE_SERVICES
+      - name: ✍️ Retrieve GOOGLE_SERVICES
         env:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
         run: |
