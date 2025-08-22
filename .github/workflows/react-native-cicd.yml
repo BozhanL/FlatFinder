@@ -66,22 +66,22 @@ jobs:
             {
               name: "debug-apk",
               command: "assembleDebug",
-              location: "./android/app/build/outputs/apk/debug/*.apk",
+              location: "./android/app/build/outputs/apk/debug/",
             },
             {
               name: "release-apk",
               command: "assembleRelease",
-              location: "./android/app/build/outputs/apk/release/*.apk",
+              location: "./android/app/build/outputs/apk/release/",
             },
             {
               name: "debug-aab",
               command: "bundleDebug",
-              location: "./android/app/build/outputs/bundle/debug/*.aab",
+              location: "./android/app/build/outputs/bundle/debug/",
             },
             {
               name: "release-aab",
               command: "bundleRelease",
-              location: "./android/app/build/outputs/bundle/release/*.aab",
+              location: "./android/app/build/outputs/bundle/release/",
             },
           ]
 
