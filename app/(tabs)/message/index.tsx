@@ -1,3 +1,4 @@
+import HeaderLogo from "@/components/HeaderLogo";
 import {
   FirebaseAuthTypes,
   getAuth,
@@ -8,7 +9,16 @@ import {
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Button, Text, TextInput, View } from "react-native";
 
-export default function Message() {
+export default function MessageView() {
+  return (
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <HeaderLogo />
+      <Message />
+    </View>
+  );
+}
+
+function Message() {
   // Set an initializing state whilst Firebase connects
   const [user, setUser] = useState<FirebaseAuthTypes.User | null | undefined>(
     undefined,
