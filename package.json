@@ -28,6 +28,10 @@
       "text",
       "html"
     ],
+    "collectCoverageFrom": [
+      "./app/**/*.{ts,tsx,js,jsx}",
+      "./components/**/*.{ts,tsx,js,jsx}"
+    ],
     "coverageDirectory": "coverage"
   },
   "engines": {
