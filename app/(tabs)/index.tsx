@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
-  const [mode, setMode] = useState("Flatmate");
+  const [mode, setMode] = useState(TabMode.Flatmates);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -25,8 +25,8 @@ export default function Index() {
         {/* Segmented */}
         <View style={{ flex: 1 }}>
           <Segmented
-            options={["Flatmates", "Properties"]}
-            onChange={(val) => setMode(val)}
+            options={[TabMode.Flatmates, TabMode.Properties]}
+            onChange={(val) => setMode(val as TabMode)}
           />
         </View>
 
@@ -49,7 +49,7 @@ export default function Index() {
 
       {/* Main contents to be added*/}
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        {mode === "Flatmate" ? (
+        {mode === TabMode.Flatmates ? (
           <View>
             <Text>Flatmate list </Text>
           </View>
@@ -61,4 +61,9 @@ export default function Index() {
       </View>
     </View>
   );
+}
+
+const enum TabMode {
+  Flatmates = "Flatmates",
+  Properties = "Properties",
 }

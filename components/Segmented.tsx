@@ -1,4 +1,3 @@
-import { Poppins_600SemiBold, useFonts } from "@expo-google-fonts/poppins";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -9,14 +8,6 @@ type Props = {
 
 export default function Segmented({ options, onChange }: Props) {
   const [selected, setSelected] = useState(options[0]);
-
-  const [fontsLoaded] = useFonts({
-    Poppins_600SemiBold,
-  });
-
-  if (!fontsLoaded) {
-    return <View style={styles.container} />; // Or a loading indicator
-  }
 
   return (
     <View style={styles.container}>
