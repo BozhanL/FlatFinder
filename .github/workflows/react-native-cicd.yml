@@ -74,7 +74,7 @@ jobs:
           coverage-path: ./coverage.txt
           create-new-comment: false
 
-      - name: Dynamic Badges
+      - name: 🪪 Dynamic Badges
         if: github.ref == 'refs/heads/main'
         uses: Schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -172,10 +172,10 @@ jobs:
       - test
       - build
     steps:
-      - name: Install jq
+      - name: 📦 Install jq
         run: "sudo apt-get update && sudo apt-get install jq"
 
-      - name: Fail job if any of the previous jobs failed
+      - name: ✔️ Fail job if any of the previous jobs failed
         env:
           NEEDS: ${{ toJSON(needs) }}
         run: "for i in `echo ${NEEDS} | jq -r '.[].result'`; do if [[ $i == 'failure' ]]; then echo ${NEEDS}; exit 1; fi; done;"
