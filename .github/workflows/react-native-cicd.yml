@@ -53,8 +53,10 @@ jobs:
       - name: 🧪 Run Jest Tests
         run: npm run test
 
-      # - name: 🧪 Run Jest Coverage
-      #   uses: ArtiomTr/jest-coverage-report-action@v2
+      - name: 🧪 Run Jest Coverage
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        with:
+          package-manager: npm
 
   build:
     needs: test
@@ -141,10 +143,11 @@ jobs:
     needs:
       - test
       - build
-    env:
-      NEEDS: ${{ toJSON(needs) }}
     steps:
       - name: Install jq
         run: "sudo apt-get update && sudo apt-get install jq"
+
       - name: Fail job if any of the previous jobs failed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         run: "for i in `echo ${NEEDS} | jq -r '.[].result'`; do if [[ $i == 'failure' ]]; then echo ${NEEDS}; exit 1; fi; done;"

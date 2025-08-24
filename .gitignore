@@ -40,5 +40,9 @@ yarn-error.*
 # Firebase
 google-services.json
 
+# Test
+coverage/
+report.json
+
 android/
 ios/

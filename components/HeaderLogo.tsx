@@ -1,13 +1,11 @@
 import React from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function HeaderLogo() {
   return (
-    <SafeAreaView style={{ backgroundColor: "#fff" }}>
-      <View style={styles.wrap}>
-        <Text style={styles.logo}>FlatFinder</Text>
-      </View>
-    </SafeAreaView>
+    <View style={styles.wrap}>
+      <Text style={styles.logo}>FlatFinder</Text>
+    </View>
   );
 }
 const styles = StyleSheet.create({
