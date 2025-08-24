@@ -15,6 +15,10 @@ on:
       - "LICENSE"
       - "docs/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   check-skip:
     runs-on: ubuntu-latest
@@ -76,7 +80,7 @@ jobs:
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 8fcf597ef6922a83da15d24d7aff8fe8
-          filename: FlatFinderCoverageBadge.svg
+          filename: FlatFinderCoverageBadge.json
           label: Coverage
           message: ${{ steps.coverage.outputs.coverage }}%
           color: ${{ steps.coverage.outputs.color }}
