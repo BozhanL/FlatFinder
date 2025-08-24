@@ -56,7 +56,7 @@ jobs:
         run: npm run format:check
 
       - name: 🧪 Run Jest Tests
-        run: npm run coverage
+        run: npm run coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
       # - name: 🧪 Run Jest Coverage
       #   uses: ArtiomTr/jest-coverage-report-action@v2
@@ -67,6 +67,7 @@ jobs:
         id: coverage
         uses: MishaKav/jest-coverage-comment@v1.0.28
         with:
+          coverage-path: ./coverage.txt
           create-new-comment: false
 
       - name: Dynamic Badges
@@ -79,6 +80,7 @@ jobs:
           label: Coverage
           message: ${{ steps.coverage.outputs.coverage }}%
           color: ${{ steps.coverage.outputs.color }}
+          namedLogo: typescript
 
   build:
     needs: test
