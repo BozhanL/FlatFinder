@@ -10,12 +10,15 @@ on:
       - "docs/**"
   pull_request:
     branches: [main, master]
-  workflow_dispatch:
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - "docs/**"
 
 jobs:
   check-skip:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Skip CI check
         run: echo "Proceeding with workflow"
@@ -23,6 +26,12 @@ jobs:
   test:
     needs: check-skip
     runs-on: ubuntu-latest
+    permissions:
+      # Required to checkout the code
+      contents: write
+      checks: write
+      # Required to put a comment into the pull-request
+      pull-requests: write
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v5
@@ -47,10 +56,31 @@ jobs:
         run: npm run format:check
 
       - name: 🧪 Run Jest Tests
-        run: npm run test
+        run: npm run coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
       # - name: 🧪 Run Jest Coverage
       #   uses: ArtiomTr/jest-coverage-report-action@v2
+      #   with:
+      #     package-manager: npm
+
+      - name: 🧪 Run Jest Coverage Comment
+        id: coverage
+        uses: MishaKav/jest-coverage-comment@v1.0.28
+        with:
+          coverage-path: ./coverage.txt
+          create-new-comment: false
+
+      - name: Dynamic Badges
+        if: github.ref == 'refs/heads/main'
+        uses: Schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 8fcf597ef6922a83da15d24d7aff8fe8
+          filename: FlatFinderCoverageBadge.svg
+          label: Coverage
+          message: ${{ steps.coverage.outputs.coverage }}%
+          color: ${{ steps.coverage.outputs.color }}
+          namedLogo: typescript
 
   build:
     needs: test
@@ -62,22 +92,22 @@ jobs:
             {
               name: "debug-apk",
               command: "assembleDebug",
-              location: "./android/app/build/outputs/apk/debug/*.apk",
+              location: "./android/app/build/outputs/apk/debug/",
             },
             {
               name: "release-apk",
               command: "assembleRelease",
-              location: "./android/app/build/outputs/apk/release/*.apk",
+              location: "./android/app/build/outputs/apk/release/",
             },
             {
               name: "debug-aab",
               command: "bundleDebug",
-              location: "./android/app/build/outputs/bundle/debug/*.aab",
+              location: "./android/app/build/outputs/bundle/debug/",
             },
             {
               name: "release-aab",
               command: "bundleRelease",
-              location: "./android/app/build/outputs/bundle/release/*.aab",
+              location: "./android/app/build/outputs/bundle/release/",
             },
           ]
 
@@ -95,22 +125,39 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
+      - name: ✍️ Retrieve GOOGLE_SERVICES
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+        run: |
+          echo $GOOGLE_SERVICES > ./google-services.json
+
       - name: 📱 Prebuild
         run: npx expo prebuild --platform android
 
-      - name: 📱 Setup index.android.bundle
-        run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+      # - name: 📱 Setup index.android.bundle
+      #   run: npx expo export:embed --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
       - name: 📱 Build
         working-directory: ./android
         run: ./gradlew ${{ matrix.build.command }}
+
+      - name: ✍️ Sign app APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: ${{ matrix.build.location }}
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "36.0.0"
 
       - name: 📦 Upload build artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.name }}
           if-no-files-found: error
-          path: ${{ matrix.build.location }}
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
           retention-days: 7
 
   collect:
@@ -120,10 +167,11 @@ jobs:
     needs:
       - test
       - build
-    env:
-      NEEDS: ${{ toJSON(needs) }}
     steps:
       - name: Install jq
         run: "sudo apt-get update && sudo apt-get install jq"
+
       - name: Fail job if any of the previous jobs failed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         run: "for i in `echo ${NEEDS} | jq -r '.[].result'`; do if [[ $i == 'failure' ]]; then echo ${NEEDS}; exit 1; fi; done;"

@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: "com.flatfinder",
+    googleServicesFile: "./google-services.json",
   },
   web: {
     bundler: "metro",
@@ -29,6 +30,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    "@react-native-firebase/app",
+    "@react-native-firebase/auth",
     [
       "./plugins/withAbiFilters.ts",
       {
