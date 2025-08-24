@@ -14,7 +14,6 @@ on:
       - "**.md"
       - "LICENSE"
       - "docs/**"
-  workflow_dispatch:
 
 jobs:
   check-skip:
@@ -57,12 +56,29 @@ jobs:
         run: npm run format:check
 
       - name: 🧪 Run Jest Tests
-        run: npm run test
+        run: npm run coverage
 
-      - name: 🧪 Run Jest Coverage
-        uses: ArtiomTr/jest-coverage-report-action@v2
+      # - name: 🧪 Run Jest Coverage
+      #   uses: ArtiomTr/jest-coverage-report-action@v2
+      #   with:
+      #     package-manager: npm
+
+      - name: 🧪 Run Jest Coverage Comment
+        id: coverage
+        uses: MishaKav/jest-coverage-comment@v1.0.28
         with:
-          package-manager: npm
+          create-new-comment: false
+
+      - name: Dynamic Badges
+        if: github.ref == 'refs/heads/main'
+        uses: Schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 8fcf597ef6922a83da15d24d7aff8fe8
+          filename: FlatFinderCoverageBadge.svg
+          label: Coverage
+          message: ${{ steps.coverage.outputs.coverage }}%
+          color: ${{ steps.coverage.outputs.color }}
 
   build:
     needs: test
