@@ -135,6 +135,8 @@ jobs:
 
       - name: 📱 Build
         working-directory: ./android
+        env:
+          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
         run: ./gradlew ${{ matrix.build.command }}
 
       - name: ✍️ Sign app APK
