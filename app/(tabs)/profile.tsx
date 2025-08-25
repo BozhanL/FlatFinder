@@ -1,5 +1,4 @@
 import HeaderLogo from "@/components/HeaderLogo";
-import React from "react";
 import { View } from "react-native";
 
 export default function ProfileScreen() {

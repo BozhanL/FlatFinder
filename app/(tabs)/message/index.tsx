@@ -6,7 +6,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Button, Text, TextInput, View } from "react-native";
 
 export default function MessageView() {

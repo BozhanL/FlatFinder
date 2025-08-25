@@ -1,6 +1,5 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
-import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
@@ -62,7 +61,7 @@ export default function TabsLayout() {
           name="message"
           options={{
             title: "Message",
-            tabBarIcon: ({ color, focused }) => {
+            tabBarIcon: ({ focused }) => {
               return focused ? (
                 <MaterialCommunityIcons
                   name="message-processing"
@@ -83,7 +82,7 @@ export default function TabsLayout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color, focused }) => {
+            tabBarIcon: ({ focused }) => {
               return focused ? (
                 <MaterialCommunityIcons
                   name="account"

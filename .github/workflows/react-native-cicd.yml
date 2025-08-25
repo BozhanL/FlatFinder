@@ -15,16 +15,12 @@ on:
       - "LICENSE"
       - "docs/**"
 
-jobs:
-  check-skip:
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-    steps:
-      - name: Skip CI check
-        run: echo "Proceeding with workflow"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
   test:
-    needs: check-skip
     runs-on: ubuntu-latest
     permissions:
       # Required to checkout the code
@@ -70,13 +66,13 @@ jobs:
           coverage-path: ./coverage.txt
           create-new-comment: false
 
-      - name: Dynamic Badges
-        if: github.ref == 'refs/heads/main'
+      - name: 🪪 Dynamic Badges
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: Schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 8fcf597ef6922a83da15d24d7aff8fe8
-          filename: FlatFinderCoverageBadge.svg
+          filename: FlatFinderCoverageBadge.json
           label: Coverage
           message: ${{ steps.coverage.outputs.coverage }}%
           color: ${{ steps.coverage.outputs.color }}
@@ -88,28 +84,21 @@ jobs:
     strategy:
       matrix:
         build:
-          [
-            {
-              name: "debug-apk",
-              command: "assembleDebug",
-              location: "./android/app/build/outputs/apk/debug/",
-            },
-            {
-              name: "release-apk",
-              command: "assembleRelease",
-              location: "./android/app/build/outputs/apk/release/",
-            },
-            {
-              name: "debug-aab",
-              command: "bundleDebug",
-              location: "./android/app/build/outputs/bundle/debug/",
-            },
-            {
-              name: "release-aab",
-              command: "bundleRelease",
-              location: "./android/app/build/outputs/bundle/release/",
-            },
-          ]
+          - name: debug-apk
+            command: assembleDebug
+            location: ./android/app/build/outputs/apk/debug/
+
+          - name: release-apk
+            command: assembleRelease
+            location: ./android/app/build/outputs/apk/release/
+
+          - name: debug-aab
+            command: bundleDebug
+            location: ./android/app/build/outputs/bundle/debug/
+
+          - name: release-aab
+            command: bundleRelease
+            location: ./android/app/build/outputs/bundle/release/
 
     steps:
       - name: 🏗 Checkout repository
@@ -121,6 +110,17 @@ jobs:
           node-version-file: "package.json"
           cache: "npm"
           check-latest: true
+
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "oracle"
+          java-version: 21
+
+      - name: 🏗 Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       - name: 📦 Install dependencies
         run: npm ci
@@ -168,10 +168,10 @@ jobs:
       - test
       - build
     steps:
-      - name: Install jq
+      - name: 📦 Install jq
         run: "sudo apt-get update && sudo apt-get install jq"
 
-      - name: Fail job if any of the previous jobs failed
+      - name: ✔️ Fail job if any of the previous jobs failed
         env:
           NEEDS: ${{ toJSON(needs) }}
         run: "for i in `echo ${NEEDS} | jq -r '.[].result'`; do if [[ $i == 'failure' ]]; then echo ${NEEDS}; exit 1; fi; done;"
