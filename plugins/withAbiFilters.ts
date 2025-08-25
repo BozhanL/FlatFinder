@@ -5,10 +5,16 @@ import {
   withGradleProperties,
 } from "expo/config-plugins";
 
-type AbiFiltersProps = { abiFilters?: string[] };
+const enum ABI {
+  ARM64_V8A = "arm64-v8a",
+  X86 = "x86",
+  X86_64 = "x86_64",
+  ARM_V7A = "armeabi-v7a",
+}
+type AbiFiltersProps = { abiFilters?: ABI[] };
 const withAbiFilters: ConfigPlugin<AbiFiltersProps> = (
   config,
-  { abiFilters = ["arm64-v8a"] } = {},
+  { abiFilters = [ABI.ARM64_V8A] } = {},
 ) => {
   console.log("🔧 ABI Filter plugin is running!", abiFilters);
 
