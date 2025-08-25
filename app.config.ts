@@ -33,18 +33,40 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "@react-native-firebase/app",
     "@react-native-firebase/auth",
     [
-      "./plugins/withAbiFilters.ts",
-      {
-        abiFilters: ["arm64-v8a", "x86_64"],
-      },
-    ],
-    [
       "expo-splash-screen",
       {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
+      },
+    ],
+    [
+      "./plugins/withGradlePropertiesWhenCI",
+      {
+        gradle_properties: [
+          {
+            key: "reactNativeArchitectures",
+            value: "arm64-v8a,x86_64",
+          },
+          {
+            key: "org.gradle.jvmargs",
+            value: "-Xmx14g -XX:MaxMetaspaceSize=512m",
+          },
+          {
+            key: "org.gradle.parallel",
+            value: "true",
+          },
+          {
+            key: "org.gradle.configureondemand",
+            value: "true",
+          },
+          {
+            key: "org.gradle.daemon",
+            value: "false",
+          },
+        ],
+        ci_environment: "CI",
       },
     ],
     [
