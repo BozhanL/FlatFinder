@@ -67,7 +67,7 @@ jobs:
           create-new-comment: false
 
       - name: 🪪 Dynamic Badges
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: Schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -84,28 +84,21 @@ jobs:
     strategy:
       matrix:
         build:
-          [
-            {
-              name: "debug-apk",
-              command: "assembleDebug",
-              location: "./android/app/build/outputs/apk/debug/",
-            },
-            {
-              name: "release-apk",
-              command: "assembleRelease",
-              location: "./android/app/build/outputs/apk/release/",
-            },
-            {
-              name: "debug-aab",
-              command: "bundleDebug",
-              location: "./android/app/build/outputs/bundle/debug/",
-            },
-            {
-              name: "release-aab",
-              command: "bundleRelease",
-              location: "./android/app/build/outputs/bundle/release/",
-            },
-          ]
+          - name: debug-apk
+            command: assembleDebug
+            location: ./android/app/build/outputs/apk/debug/
+
+          - name: release-apk
+            command: assembleRelease
+            location: ./android/app/build/outputs/apk/release/
+
+          - name: debug-aab
+            command: bundleDebug
+            location: ./android/app/build/outputs/bundle/debug/
+
+          - name: release-aab
+            command: bundleRelease
+            location: ./android/app/build/outputs/bundle/release/
 
     steps:
       - name: 🏗 Checkout repository
