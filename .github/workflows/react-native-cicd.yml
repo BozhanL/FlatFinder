@@ -111,6 +111,17 @@ jobs:
           cache: "npm"
           check-latest: true
 
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "oracle"
+          java-version: 21
+
+      - name: 🏗 Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
       - name: 📦 Install dependencies
         run: npm ci
 
@@ -128,8 +139,6 @@ jobs:
 
       - name: 📱 Build
         working-directory: ./android
-        env:
-          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
         run: ./gradlew ${{ matrix.build.command }}
 
       - name: ✍️ Sign app APK
