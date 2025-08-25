@@ -61,7 +61,7 @@ export default function TabsLayout() {
           name="message"
           options={{
             title: "Message",
-            tabBarIcon: ({ color, focused }) => {
+            tabBarIcon: ({ focused }) => {
               return focused ? (
                 <MaterialCommunityIcons
                   name="message-processing"
@@ -82,7 +82,7 @@ export default function TabsLayout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color, focused }) => {
+            tabBarIcon: ({ focused }) => {
               return focused ? (
                 <MaterialCommunityIcons
                   name="account"
