@@ -119,8 +119,6 @@ jobs:
 
       - name: 🏗 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
 
       - name: 📦 Install dependencies
         run: npm ci
