@@ -30,3 +30,13 @@ jest.mock("@react-native-firebase/auth", () => {
     signOut: jest.fn(() => Promise.resolve()),
   };
 });
+
+jest.mock("@react-native-firebase/app", () => {
+  return {
+    getApp: () => ({}),
+  };
+});
+
+jest.mock("@react-native-firebase/database", () => {
+  return {};
+});
