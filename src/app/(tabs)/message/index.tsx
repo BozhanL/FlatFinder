@@ -1,4 +1,5 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import { getApp } from "@react-native-firebase/app";
 import {
   FirebaseAuthTypes,
   getAuth,
@@ -6,8 +7,17 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
+import "@react-native-firebase/database";
+import { getDatabase, onValue, ref } from "@react-native-firebase/database";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Button, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  FlatList,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function MessageView() {
   return (
@@ -43,8 +53,44 @@ function Message() {
 
   return (
     <View>
-      <Text>Welcome {user.email}</Text>
+      <MessageList user={user} />
       <Button title="Logout" onPress={handleLogout} />
+    </View>
+  );
+}
+
+function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
+  const [groups, setGroups] = useState<string[]>([]);
+
+  useEffect(() => {
+    const db = getDatabase(
+      getApp(),
+      "https://flatfinder-5b5c8-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    );
+    const reference = ref(db, `/users/${user.uid}/groups`);
+
+    const unsubscribe = onValue(reference, (snapshot) => {
+      let g: string[] = [];
+      snapshot.forEach((child) => {
+        const key = child.key;
+        if (key === null) {
+          return undefined;
+        }
+        g.push(key);
+        return undefined;
+      });
+      setGroups(g);
+    });
+
+    return unsubscribe;
+  }, [user]);
+
+  return (
+    <View>
+      <FlatList
+        data={groups}
+        renderItem={({ item }) => <Button title={item} onPress={() => {}} />}
+      />
     </View>
   );
 }
