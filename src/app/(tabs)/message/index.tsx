@@ -7,7 +7,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
-import "@react-native-firebase/database";
 import { getDatabase, onValue, ref } from "@react-native-firebase/database";
 import { useEffect, useState } from "react";
 import {
