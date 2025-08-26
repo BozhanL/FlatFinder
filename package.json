@@ -11,7 +11,7 @@
     "coverage": "jest --coverage",
     "format:check": "prettier -c .",
     "format:fix": "prettier -w .",
-    "check-ts": "tsc --noEmit",
+    "check-ts": "tsc",
     "lint": "expo lint"
   },
   "jest": {
