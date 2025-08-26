@@ -1,4 +1,5 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import { REALTIME_DATABASE_URL } from "@/constants/RealtimeDatabase";
 import { getApp } from "@react-native-firebase/app";
 import {
   FirebaseAuthTypes,
@@ -62,10 +63,7 @@ function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
   const [groups, setGroups] = useState<string[]>([]);
 
   useEffect(() => {
-    const db = getDatabase(
-      getApp(),
-      "https://flatfinder-5b5c8-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    );
+    const db = getDatabase(getApp(), REALTIME_DATABASE_URL);
     const reference = ref(db, `/users/${user.uid}/groups`);
 
     const unsubscribe = onValue(reference, (snapshot) => {
