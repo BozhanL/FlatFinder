@@ -17,8 +17,6 @@ const withAbiFilters: ConfigPlugin<AbiFiltersProps> = (
   config,
   { abiFilters = [ABI.ARM64_V8A] } = {},
 ) => {
-  console.log("🔧 ABI Filter plugin is running!", abiFilters);
-
   // Set gradle.properties
   config = withGradleProperties(config, (config) => {
     // Convert array to comma-separated string for gradle.properties
