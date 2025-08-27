@@ -32,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "@react-native-firebase/app",
     "@react-native-firebase/auth",
+    "expo-sqlite",
     [
       "expo-splash-screen",
       {
