@@ -11,7 +11,7 @@ import {
 import { getDatabase, onValue, ref } from "@react-native-firebase/database";
 import { router } from "expo-router";
 import * as SQLite from "expo-sqlite";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Button,
@@ -44,8 +44,8 @@ chats.execSync(
   );
 
   CREATE TABLE IF NOT EXISTS joined_groups (
-    uid TEXT REFERENCES users(id) NOT NULL,
-    group_id TEXT REFERENCES groups(id) NOT NULL
+    uid TEXT,
+    group_id TEXT NOT NULL
   );
   
   CREATE TABLE IF NOT EXISTS messages (
@@ -90,80 +90,43 @@ function Message() {
 }
 
 function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
-  // Listen to global groups and resolve names
-  useEffect(() => {
-    const db = getDatabase(getApp(), REALTIME_DATABASE_URL);
-    return onValue(ref(db, "/groups"), (snap) => {
-      snap.forEach((g) => {
-        const id = g.key;
-        if (!id) return undefined;
-        const name = g.child("name").val() as string | null;
-        const memberUids = g.child("members").val() as string[];
-
-        const f = async () => {
-          await chats.runAsync(
-            `DELETE FROM joined_groups WHERE group_id = ?`,
-            id,
-          );
-          await chats.runAsync(`DELETE FROM groups WHERE id = ?`, id);
-          await chats.runAsync(
-            `
-          INSERT INTO groups (id, name) VALUES (?, ?)
-          `,
-            id,
-            name,
-          );
-          memberUids.forEach(async (uid) => {
-            await chats.runAsync(
-              `
-            INSERT INTO joined_groups (uid, group_id) VALUES (?, ?)
-            `,
-              uid,
-              id,
-            );
-          });
-        };
-        f();
-
-        return undefined;
-      });
-    });
-  }, []);
+  const [groups, setGroups] = useState<{ name: string; id: string }[]>([]);
 
   useEffect(() => {
-    const db = getDatabase(getApp(), REALTIME_DATABASE_URL);
-    return onValue(ref(db, `/users/${user.uid}`), (snap) => {
-      const id = snap.key;
-      if (!id) return undefined;
-      const name = snap.child("name").val() as string;
-      const f = async () => {
-        await chats.runAsync(`DELETE FROM users WHERE id = ?`, id);
-        await chats.runAsync(
-          `
-          INSERT INTO users (id, name) VALUES (?, ?)
-          `,
-          id,
-          name,
-        );
-      };
-      f();
-    });
+    const me = new MessageEvent(user.uid);
+    const update = () => {
+      const g = chats.getAllSync<{ name: string; id: string }>(
+        `
+        SELECT
+          COALESCE(
+        g.name,
+        (
+          SELECT u2.name
+          FROM joined_groups j2
+          JOIN users u2 ON u2.id = j2.uid
+          WHERE j2.group_id = g.id
+            AND u2.id != ?
+        )
+          ) AS name, g.id AS id
+        FROM groups g
+        JOIN joined_groups j ON j.group_id = g.id
+        WHERE j.uid = ?
+        GROUP BY g.id
+        `,
+        user.uid,
+        user.uid,
+      );
+      console.log(chats.getAllSync("SELECT * FROM users"));
+      console.log(chats.getAllSync("SELECT * FROM groups"));
+      console.log(chats.getAllSync("SELECT * FROM joined_groups"));
+      setGroups(g);
+    };
+    const unsubscribe = me.subscribe(update);
+    update();
+    return unsubscribe;
   }, [user.uid]);
 
-  const cachedValue = useMemo(
-    () =>
-      chats.getAllSync<{ name: string }>(
-        `
-        SELECT COALESCE(g.name, u.name) AS name
-        FROM groups g, users u, joined_groups j
-        WHERE g.id = j.group_id AND u.id = j.uid AND u.id = ?
-    `,
-        user.uid,
-      ),
-    [user.uid],
-  );
-
-  if (cachedValue.length === 0) {
+  if (groups.length === 0) {
     return (
       <View style={{ padding: 16 }}>
         <Text>No groups</Text>
@@ -173,14 +136,14 @@ function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
 
   return (
     <FlatList
-      data={cachedValue}
+      data={groups}
       renderItem={({ item }) => (
         <Button
           title={item.name}
           onPress={() => {
             router.push({
               pathname: "/message/chats/[id]",
-              params: { id: item.name },
+              params: { id: item.id },
             });
           }}
         />
@@ -197,25 +160,27 @@ class MessageEvent {
     this.id = id;
     const db = getDatabase(getApp(), REALTIME_DATABASE_URL);
 
-    const f1 = onValue(ref(db, `/users/${id}`), (snap) => {
-      const id = snap.key;
-      if (!id) return undefined;
-      const name = snap.child("name").val() as string;
-      const f = async () => {
-        await chats.runAsync(`DELETE FROM users WHERE id = ?`, id);
-        await chats.runAsync(
-          `
+    const f1 = onValue(ref(db, `/users`), (snap) => {
+      snap.forEach((child) => {
+        const id = child.key;
+        if (!id) return undefined;
+        const name = child.child("name").val() as string;
+        const f = async () => {
+          await chats.runAsync(`DELETE FROM users WHERE id = ?`, id);
+          await chats.runAsync(
+            `
           INSERT INTO users (id, name) VALUES (?, ?)
           `,
-          id,
-          name,
-        );
+            id,
+            name,
+          );
 
-        for (const sub of this.subscription) {
-          sub();
-        }
-      };
-      f();
+          for (const sub of this.subscription) {
+            sub();
+          }
+        };
+        f();
+      });
     });
 
     const f2 = onValue(ref(db, "/groups"), (snap) => {
@@ -232,21 +197,17 @@ class MessageEvent {
           );
           await chats.runAsync(`DELETE FROM groups WHERE id = ?`, id);
           await chats.runAsync(
-            `
-          INSERT INTO groups (id, name) VALUES (?, ?)
-          `,
+            "INSERT INTO groups (id, name) VALUES (?, ?)",
             id,
             name,
           );
-          memberUids.forEach(async (uid) => {
+          for (const uid of memberUids) {
             await chats.runAsync(
-              `
-            INSERT INTO joined_groups (uid, group_id) VALUES (?, ?)
-            `,
+              "INSERT INTO joined_groups (uid, group_id) VALUES (?, ?)",
               uid,
               id,
             );
-          });
+          }
 
           for (const sub of this.subscription) {
             sub();
@@ -265,6 +226,11 @@ class MessageEvent {
       f1();
       f2();
     };
+  }
+
+  subscribe(callback: () => void): () => void {
+    this.subscription.push(callback);
+    return this.destroy;
   }
 }
 
