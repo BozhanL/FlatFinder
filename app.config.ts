@@ -42,13 +42,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      "./plugins/withAbiFilters.ts",
+      {
+        abiFilters: ["arm64-v8a", "x86_64"],
+      },
+    ],
+    [
       "./plugins/withGradlePropertiesWhenCI",
       {
         gradle_properties: [
-          {
-            key: "reactNativeArchitectures",
-            value: "arm64-v8a,x86_64",
-          },
           {
             key: "org.gradle.jvmargs",
             value: "-Xmx14g -XX:MaxMetaspaceSize=512m",
