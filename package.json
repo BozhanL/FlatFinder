@@ -12,7 +12,10 @@
     "format:check": "prettier -c .",
     "format:fix": "prettier -w .",
     "check-ts": "tsc",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "deploy": "firebase deploy",
+    "deploy:database": "firebase deploy --only database",
+    "deploy:firestore": "firebase deploy --only firestore"
   },
   "jest": {
     "preset": "jest-expo",
