@@ -1,6 +1,6 @@
-import { Message } from "@/components/message/Message";
-import { MessageEvent } from "@/components/message/MessageEvent";
-import { MessageStatus } from "@/components/message/MessageStatus";
+import { Message } from "@/modules/message/Message";
+import { MessageEvent } from "@/modules/message/MessageEvent";
+import { MessageStatus } from "@/modules/message/MessageStatus";
 import { getAuth } from "@react-native-firebase/auth";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";

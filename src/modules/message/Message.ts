@@ -1,20 +1,23 @@
+import { Group } from "./Group";
+import { User } from "./User";
+
 export class Message {
-  public group: string;
+  public group: Group;
   public id: string;
-  public uid: string;
+  public sender: User;
   public message: string;
   public timestamp: Date;
 
   constructor(
-    group: string,
+    group: Group,
     id: string,
-    uid: string,
+    sender: User,
     message: string,
     timestamp: Date,
   ) {
     this.group = group;
     this.id = id;
-    this.uid = uid;
+    this.sender = sender;
     this.message = message;
     this.timestamp = timestamp;
   }
