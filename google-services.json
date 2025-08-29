@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "245824951682",
+    "project_id": "flatfinder-5b5c8",
+    "storage_bucket": "flatfinder-5b5c8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:245824951682:android:d67e23d4fab98f04ba6b9b",
+        "android_client_info": {
+          "package_name": "com.flatfinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8JzprO1Cgi8LhSIoCKHJ8xgGGyjw2olI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
