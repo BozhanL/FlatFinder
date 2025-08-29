@@ -1,6 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
-import { MessageEvent } from "@/components/message/MessageEvent";
-import { MessageStatus } from "@/components/message/MessageStatus";
+import { MessageEvent } from "@/modules/message/MessageEvent";
+import { MessageStatus } from "@/modules/message/MessageStatus";
 import {
   FirebaseAuthTypes,
   getAuth,
@@ -61,14 +61,15 @@ function Message() {
 
 function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
   const [message, setMessage] = useState<MessageStatus>(new MessageStatus());
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const me: MessageEvent = new MessageEvent(user.uid);
+    const me: MessageEvent = new MessageEvent(user.uid, setReady);
     me.subscribe(setMessage);
     return () => me.destroy();
   }, [user.uid]);
 
-  if (message.groups.length === 0) {
+  if (message.isEmpty() || !ready) {
     return (
       <View style={{ padding: 16 }}>
         <Text>No groups</Text>
@@ -78,10 +79,10 @@ function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
 
   return (
     <FlatList
-      data={message.getGroupsByUserId(user.uid)}
+      data={message.getGroups()}
       renderItem={({ item }) => (
         <Button
-          title={item.name as string}
+          title={item.name}
           onPress={() => {
             router.push({
               pathname: "/message/chats/[id]",

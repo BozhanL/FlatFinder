@@ -10,14 +10,15 @@ export default function DetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [message, setMessage] = useState<MessageStatus>(new MessageStatus());
   const user = getAuth().currentUser!;
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const me: MessageEvent = new MessageEvent(user.uid);
+    const me: MessageEvent = new MessageEvent(user.uid, setReady);
     me.subscribe(setMessage);
     return () => me.destroy();
   }, [user.uid]);
 
-  if (message.messages.length === 0) {
+  if (message.isEmpty() || !ready) {
     return (
       <View style={{ padding: 16 }}>
         <Text>No messages</Text>
@@ -29,7 +30,7 @@ export default function DetailsScreen() {
     <View style={styles.container}>
       <Text>Chat for {id} </Text>
       <VirtualizedList
-        data={message.getMessagesByGroupId(id)}
+        data={message.getMessages(id)}
         renderItem={({ item }: { item: Message }) => (
           <Text>{item.message}</Text>
         )}
