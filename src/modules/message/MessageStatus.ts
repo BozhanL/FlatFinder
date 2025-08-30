@@ -1,51 +1,38 @@
+import { RedBlackTree } from "data-structure-typed";
 import { Group } from "./Group";
 import { Message } from "./Message";
 
 export class MessageStatus {
-  protected groups: Map<string, Group> = new Map();
-  protected messages: Map<string, Message> = new Map();
+  protected group: Group;
+  protected messages = new RedBlackTree<Message>([], {
+    specifyComparable: (r: Message) => r.timestamp,
+    isReverse: true,
+  });
 
-  constructor();
+  constructor(group: Group);
   constructor(prev: MessageStatus);
-  constructor(prev?: MessageStatus) {
-    if (prev) {
-      this.groups = prev.groups;
-      this.messages = prev.messages;
+  constructor(groupOrPrev: Group | MessageStatus) {
+    if (groupOrPrev instanceof Group) {
+      this.group = groupOrPrev;
+    } else {
+      this.group = groupOrPrev.group;
+      // create a new tree to avoid mutating the previous instance's tree
+      this.messages.addMany(groupOrPrev.messages);
     }
   }
 
-  addGroup(group: Group) {
-    this.groups.set(group.id, group);
-  }
-
-  addGroups(...groups: Group[]) {
-    groups.forEach((group) => this.groups.set(group.id, group));
-  }
-
-  getGroup(id: string): Group | undefined {
-    return this.groups.get(id);
-  }
-
-  removeGroup(id: string): boolean {
-    return this.groups.delete(id);
-  }
-
-  getGroups(): Group[] {
-    return Array.from(this.groups.values());
+  getGroup(): Group {
+    return this.group;
   }
 
   addMessage(message: Message) {
     console.log(message);
-    this.messages.set(message.id, message);
+    this.messages.add(message);
   }
 
   addMessages(...messages: Message[]) {
     console.log(messages);
-    messages.forEach((message) => this.messages.set(message.id, message));
-  }
-
-  getMessage(id: string): Message | undefined {
-    return this.messages.get(id);
+    messages.forEach((message) => this.messages.add(message));
   }
 
   getMessages(groupId: string): Message[] {
@@ -55,11 +42,7 @@ export class MessageStatus {
       .reverse();
   }
 
-  removeMessage(id: string): boolean {
-    return this.messages.delete(id);
-  }
-
   isEmpty(): boolean {
-    return this.groups.size === 0 && this.messages.size === 0;
+    return this.messages.size === 0;
   }
 }

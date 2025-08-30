@@ -1,43 +1,17 @@
 {
-  "users": {
-    "LM02eyCMMYbY6nDAWhhGw5dDpBv1": {
-      "name": "test1"
-    },
-    "HfVofgsvv3XAkkX24l8h8fwdv9I3": {
-      "name": "test"
-    }
-  },
-
-  "groups": {
-    "DSFagfsdga": {
+  "chats": {
+    "RwfbkMYm9fh7WkmRap1x": {
+      "members": [
+        "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
+        "HfVofgsvv3XAkkX24l8h8fwdv9I3"
+      ],
       "name": "Historical Tech Pioneers",
-      "members": [
-        "HfVofgsvv3XAkkX24l8h8fwdv9I3",
-        "LM02eyCMMYbY6nDAWhhGw5dDpBv1"
-      ]
-    },
-    "ausiofdhnfaoid": {
-      "name": null,
-      "members": [
-        "HfVofgsvv3XAkkX24l8h8fwdv9I3",
-        "LM02eyCMMYbY6nDAWhhGw5dDpBv1"
-      ]
-    }
-  },
-
-  "messages": {
-    "DSFagfsdga": {
-      "asdfgasdg": {
-        "uid": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
-        "message": "The relay seems to be malfunctioning.",
-        "timestamp": 1459361875337
-      }
-    },
-    "ausiofdhnfaoid": {
-      "asdfgasdg": {
-        "uid": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
-        "message": "The relay seems to be malfunctioning.",
-        "timestamp": 999999999999999999
+      "messages": {
+        "sPR42jjfCt05lA3o8agi": {
+          "message": "Nicessssssss",
+          "sender": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
+          "timestamp": 123456
+        }
       }
     }
   }

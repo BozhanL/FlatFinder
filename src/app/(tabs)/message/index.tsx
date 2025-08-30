@@ -60,16 +60,15 @@ function Message() {
 }
 
 function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
-  const [message, setMessage] = useState<MessageStatus>(new MessageStatus());
-  const [ready, setReady] = useState(false);
+  const [message, setMessage] = useState<MessageStatus[]>([]);
 
   useEffect(() => {
-    const me: MessageEvent = new MessageEvent(user.uid, setReady);
+    const me: MessageEvent = new MessageEvent(user.uid);
     me.subscribe(setMessage);
     return () => me.destroy();
   }, [user.uid]);
 
-  if (message.isEmpty() || !ready) {
+  if (message.length === 0) {
     return (
       <View style={{ padding: 16 }}>
         <Text>No groups</Text>
