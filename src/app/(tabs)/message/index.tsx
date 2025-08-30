@@ -1,6 +1,5 @@
 import HeaderLogo from "@/components/HeaderLogo";
-import { MessageEvent } from "@/modules/message/MessageEvent";
-import { MessageStatus } from "@/modules/message/MessageStatus";
+import ChatList from "@/components/message/ChatList";
 import {
   FirebaseAuthTypes,
   getAuth,
@@ -8,16 +7,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  FlatList,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Button, Text, TextInput, View } from "react-native";
 
 export default function MessageView() {
   return (
@@ -60,39 +51,7 @@ function Message() {
 }
 
 function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
-  const [message, setMessage] = useState<MessageStatus>(new MessageStatus());
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const me: MessageEvent = new MessageEvent(user.uid, setReady);
-    me.subscribe(setMessage);
-    return () => me.destroy();
-  }, [user.uid]);
-
-  if (message.isEmpty() || !ready) {
-    return (
-      <View style={{ padding: 16 }}>
-        <Text>No groups</Text>
-      </View>
-    );
-  }
-
-  return (
-    <FlatList
-      data={message.getGroups()}
-      renderItem={({ item }) => (
-        <Button
-          title={item.name}
-          onPress={() => {
-            router.push({
-              pathname: "/message/chats/[id]",
-              params: { id: item.id },
-            });
-          }}
-        />
-      )}
-    />
-  );
+  return <ChatList user={user} />;
 }
 
 // Removed old getGroupName helper; logic consolidated inside MessageList effects.

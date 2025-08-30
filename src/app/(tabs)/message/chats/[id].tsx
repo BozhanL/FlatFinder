@@ -1,50 +1,9 @@
-import { Message } from "@/modules/message/Message";
-import { MessageEvent } from "@/modules/message/MessageEvent";
-import { MessageStatus } from "@/modules/message/MessageStatus";
-import { getAuth } from "@react-native-firebase/auth";
+import MessageList from "@/components/message/MessageList";
 import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, VirtualizedList } from "react-native";
+import React from "react";
 
 export default function DetailsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [message, setMessage] = useState<MessageStatus>(new MessageStatus());
-  const user = getAuth().currentUser!;
-  const [ready, setReady] = useState(false);
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
 
-  useEffect(() => {
-    const me: MessageEvent = new MessageEvent(user.uid, setReady);
-    me.subscribe(setMessage);
-    return () => me.destroy();
-  }, [user.uid]);
-
-  if (message.isEmpty() || !ready) {
-    return (
-      <View style={{ padding: 16 }}>
-        <Text>No messages</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text>Chat for {id} </Text>
-      <VirtualizedList
-        data={message.getMessages(id)}
-        renderItem={({ item }: { item: Message }) => (
-          <Text>{item.message}</Text>
-        )}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-      />
-    </View>
-  );
+  return <MessageList id={id} name={name} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

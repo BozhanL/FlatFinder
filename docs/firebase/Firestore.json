@@ -9,14 +9,14 @@
   },
 
   "groups": {
-    "DSFagfsdga": {
+    "25IHKzmndTGQmxvvu5HG": {
       "name": "Historical Tech Pioneers",
       "members": [
         "HfVofgsvv3XAkkX24l8h8fwdv9I3",
         "LM02eyCMMYbY6nDAWhhGw5dDpBv1"
       ]
     },
-    "ausiofdhnfaoid": {
+    "bhW70VbrhNF06KD9ph4M": {
       "name": null,
       "members": [
         "HfVofgsvv3XAkkX24l8h8fwdv9I3",
@@ -26,17 +26,17 @@
   },
 
   "messages": {
-    "DSFagfsdga": {
-      "asdfgasdg": {
-        "uid": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
-        "message": "The relay seems to be malfunctioning.",
+    "25IHKzmndTGQmxvvu5HG": {
+      "0KDchRoXQXywLpbagYXS": {
+        "sender": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
+        "message": "testtttttttt",
         "timestamp": 1459361875337
       }
     },
-    "ausiofdhnfaoid": {
-      "asdfgasdg": {
-        "uid": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
-        "message": "The relay seems to be malfunctioning.",
+    "bhW70VbrhNF06KD9ph4M": {
+      "mTMzH5G1g9lCVQNalCQ0": {
+        "sender": "LM02eyCMMYbY6nDAWhhGw5dDpBv1",
+        "message": "aaaaaaaaaaaaaaaaaaa",
         "timestamp": 999999999999999999
       }
     }

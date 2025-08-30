@@ -1,19 +1,18 @@
+import { Timestamp } from "@react-native-firebase/firestore";
+
 export class Message {
   public id: string;
-  public group: string;
   public sender: string;
   public message: string;
-  public timestamp: Date;
+  public timestamp: Timestamp;
 
   constructor(
     id: string,
-    group: string,
     sender: string,
     message: string,
-    timestamp: Date,
+    timestamp: Timestamp,
   ) {
     this.id = id;
-    this.group = group;
     this.sender = sender;
     this.message = message;
     this.timestamp = timestamp;
