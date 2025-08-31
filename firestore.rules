@@ -2,7 +2,20 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+    match /flatmates/{document=**} {
+      allow read, write: if request.auth != null;
+      
+    }
+
+    match /groups/{document=**} {
+      allow read, write: if request.auth.uid in resource.data.members;
+    }
+
+    match /messages/{group}/{document=**} {
+      allow read, write: if request.auth.uid in get(/databases/$(database)/documents/groups/$(group)).data.members;
+    }
+
+    match /message_test_user {
       allow read, write: if request.auth != null;
     }
   }
