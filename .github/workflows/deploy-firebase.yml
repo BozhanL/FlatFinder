@@ -1,0 +1,37 @@
+name: Firebase Rules CI/CD
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - ".firebaserc"
+      - "database.rules.json"
+      - "firebase.json"
+      - "firestore.indexes.json"
+      - "firestore.rules"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - ".firebaserc"
+      - "database.rules.json"
+      - "firebase.json"
+      - "firestore.indexes.json"
+      - "firestore.rules"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@v2.2.2
+        with:
+          args: deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
