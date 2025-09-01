@@ -1,4 +1,5 @@
-/* import { Stack } from "expo-router";
+//code i need to overwrite in comments
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
@@ -11,7 +12,8 @@ export default function RootLayout() {
     </Stack>
   );
 }
-*/
+
+/*
 
 import auth from '@react-native-firebase/auth';
 import { Slot, SplashScreen } from 'expo-router';
@@ -53,3 +55,4 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
+*/
