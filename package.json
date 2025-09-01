@@ -44,6 +44,7 @@
     "@expo-google-fonts/playfair-display": "^0.4.1",
     "@expo-google-fonts/poppins": "^0.4.0",
     "@expo/vector-icons": "^14.1.0",
+    "@maplibre/maplibre-react-native": "^10.2.1",
     "@react-native-firebase/app": "^23.1.1",
     "@react-native-firebase/auth": "^23.1.1",
     "@react-native-firebase/database": "^23.1.1",
