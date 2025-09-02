@@ -5,7 +5,7 @@ export type Flatmate = {
   name: string;
   age: number;
   bio: string;
-  avatar: string;
+  avatar: number; // need to change to string later if pulling data from firestore
   budget?: number;
 
   location?: {

@@ -1,0 +1,141 @@
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import React, { useMemo, useState } from "react";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
+import SwipeCard from "./SwipeCard";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  interpolate,
+  runOnJS,
+} from "react-native-reanimated";
+import type { Flatmate } from "@/types/flatmate";
+
+const { width: SCREEN_W } = Dimensions.get("window");
+const SWIPE_THRESHOLD = SCREEN_W * 0.25;
+const ROTATE = 15; // degrees
+
+type Props = {
+  data: Flatmate[];
+  onLike?: (user: Flatmate) => void;
+  onPass?: (user: Flatmate) => void;
+};
+
+export default function SwipeDeck({ data, onLike, onPass }: Props) {
+  const [idx, setIdx] = useState(0);
+  const top = data[idx];
+  const next = data[idx + 1];
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .onChange((e) => {
+          translateX.value = e.translationX;
+          translateY.value = e.translationY;
+        })
+        .onEnd(() => {
+          if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
+            const dir = Math.sign(translateX.value);
+            translateX.value = withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
+              runOnJS(commitSwipe)(dir);
+            });
+          } else {
+            translateX.value = withSpring(0);
+            translateY.value = withSpring(0);
+          }
+        }),
+    []
+  );
+
+  function commitSwipe(dir: number) {
+    if (!top) return;
+    if (dir > 0) onLike?.(top);
+    else onPass?.(top);
+    // reset & next card
+    translateX.value = 0;
+    translateY.value = 0;
+    setIdx((v) => v + 1);
+  }
+
+  const topStyle = useAnimatedStyle(() => {
+    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { rotate: `${rotate}deg` },
+      ],
+    };
+  });
+
+  //like animate
+  const likeBadgeStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
+    return { opacity };
+  });
+
+  //unlike animate
+  const nopeBadgeStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(translateX.value, [0, -SWIPE_THRESHOLD], [0, 1]);
+    return { opacity };
+  });
+
+  const nextStyle = useAnimatedStyle(() => {
+    // For the next card at the back
+    const scale = interpolate(Math.abs(translateX.value), [0, SWIPE_THRESHOLD], [0.95, 1]);
+    return { transform: [{ scale }] };
+  });
+
+  if (!top) {
+    return (
+      <View style={styles.center}>
+        <Text>No more candidates</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      {/* next card */}
+      {next && (
+        <Animated.View style={[StyleSheet.absoluteFill, { padding: 16 }, nextStyle]}>
+          <SwipeCard item={next} />
+        </Animated.View>
+      )}
+
+      {/* top card */}
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}>
+          <SwipeCard item={top} />
+
+          {/* LIKE / NOPE tag */}
+          <Animated.View style={[styles.badge, { left: 28, top: 40, borderColor: "#1DB954" }, likeBadgeStyle]}>
+            <Text style={[styles.badgeText, { color: "#1DB954" }]}>LIKE</Text>
+          </Animated.View>
+          <Animated.View style={[styles.badge, { right: 28, top: 40, borderColor: "#FF3B30" }, nopeBadgeStyle]}>
+            <Text style={[styles.badgeText, { color: "#FF3B30" }]}>NOPE</Text>
+          </Animated.View>
+        </Animated.View>
+      </GestureDetector>
+
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  badge: {
+    position: "absolute",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 3,
+    borderRadius: 8,
+    transform: [{ rotate: "-15deg" }],
+    backgroundColor: "transparent",
+  },
+  badgeText: { fontSize: 20, fontWeight: "800", letterSpacing: 2 },
+});

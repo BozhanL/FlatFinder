@@ -1,5 +1,7 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import Segmented from "@/components/Segmented";
+import SwipeDeck from "@/components/SwipeDeck";
+import { FLATMATES } from "@/data/flatmates.mock";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -48,11 +50,20 @@ export default function Index() {
       </View>
 
       {/* Main contents to be added*/}
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ flex: 1, position: "relative" }}>
         {mode === TabMode.Flatmates ? (
-          <View>
-            <Text>Flatmate list </Text>
-          </View>
+          <SwipeDeck
+            data={FLATMATES}
+            onLike={(u) => {
+              // TODO: push to firestore
+              router.push({ pathname: "/profile", params: { id: u.id } });
+            }}
+            onPass={(u) => {
+              // to record unlike so it won't show again
+              console.log("pass", u.id);
+            }}
+          />
+          
         ) : (
           <View>
             <Text>Properties list </Text>
