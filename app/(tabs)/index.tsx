@@ -56,14 +56,13 @@ export default function Index() {
             data={FLATMATES}
             onLike={(u) => {
               // TODO: push to firestore
-              router.push({ pathname: "/profile", params: { id: u.id } });
+              console.log("like", u.id);
             }}
             onPass={(u) => {
               // to record unlike so it won't show again
               console.log("pass", u.id);
             }}
           />
-          
         ) : (
           <View>
             <Text>Properties list </Text>
