@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: "com.flatfinder",
     googleServicesFile: "./google-services.json",
+    permissions: ["android.permission.POST_NOTIFICATIONS"],
   },
   web: {
     bundler: "metro",
