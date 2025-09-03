@@ -9,8 +9,7 @@ import {
   runTransaction,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
-import { RedBlackTree } from "data-structure-typed";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   StyleSheet,
@@ -27,12 +26,7 @@ export default function MessageList({
   id: string;
   name: string;
 }) {
-  const [messages, setMessages] = useState<RedBlackTree<Message>>(
-    new RedBlackTree<Message>([], {
-      specifyComparable: (k) => k.timestamp.toMillis(),
-      isReverse: true,
-    }),
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
 
   useEffect(() => {
@@ -47,15 +41,12 @@ export default function MessageList({
     return onSnapshot(
       messagesRef,
       (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Message>) => {
-        const newMessages = new RedBlackTree<Message>([], {
-          specifyComparable: (k) => k.timestamp.toMillis(),
-          isReverse: true,
-        });
+        const newMessages: Message[] = [];
 
         snapshot.forEach(async (docs) => {
           const data = docs.data();
 
-          newMessages.add(data);
+          newMessages.push(data);
         });
 
         setMessages(newMessages);
@@ -90,16 +81,23 @@ export default function MessageList({
     setText("");
   };
 
+  const sortedMessages = useMemo(() => {
+    return messages.sort((a, b) => {
+      return a.timestamp.toMillis() - b.timestamp.toMillis();
+    });
+  }, [messages]);
+
   return (
     <View style={styles.container}>
       <Text>Chat for {name} </Text>
       <VirtualizedList
-        data={Array.from(messages.keys())}
+        data={sortedMessages}
         renderItem={({ item }: { item: Message }) => (
           <Text>{item.message}</Text>
         )}
         getItemCount={(data) => data.length}
         getItem={(data, index) => data[index]}
+        keyExtractor={(item) => item.id}
       />
       <Text>End of chat</Text>
       <TextInput

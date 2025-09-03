@@ -9,19 +9,12 @@ import {
   query,
   where,
 } from "@react-native-firebase/firestore";
-import { RedBlackTree } from "data-structure-typed";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, VirtualizedList } from "react-native";
 
 export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
-  const [groups, setGroups] = useState<RedBlackTree<Group>>(
-    new RedBlackTree<Group>([], {
-      specifyComparable: (k: Group) =>
-        k.lastTimestamp.toDate().toISOString().concat(k.id),
-      isReverse: true,
-    }),
-  );
+  const [groups, setGroups] = useState<Group[]>([]);
 
   useEffect(() => {
     const db = getFirestore();
@@ -44,24 +37,24 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
           }
 
           setGroups((prev) => {
-            const updated = Array.from(prev.keys()).filter(
-              (g) => g.id !== docs.id,
-            );
+            const updated = prev.filter((g) => g.id !== data.id);
             updated.push(data);
-            return new RedBlackTree<Group>(updated, {
-              specifyComparable: prev.specifyComparable!,
-              isReverse: prev.isReverse,
-            });
+            return updated;
           });
         });
       },
     );
   }, [user]);
 
-  console.log(Array.from(groups.keys()));
+  const sortedGroups = useMemo(() => {
+    return groups.sort((a, b) => {
+      return b.lastTimestamp.toMillis() - a.lastTimestamp.toMillis();
+    });
+  }, [groups]);
+
   return (
     <VirtualizedList
-      data={Array.from(groups.keys())}
+      data={sortedGroups}
       renderItem={({ item }: { item: Group }) => (
         <Button
           title={item.name || ""}
