@@ -11,7 +11,13 @@ import {
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Button, VirtualizedList } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  VirtualizedList,
+} from "react-native";
 
 export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -25,30 +31,30 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
 
     return onSnapshot(
       query(groupsRef, where("members", "array-contains", user.uid)),
-      (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Group>) => {
-        snapshot.forEach(async (docs) => {
-          const data = docs.data();
-
-          if (data.name === null) {
-            const other = data.members.find((m) => m !== user.uid);
-            if (other) {
-              data.name = await getUserNameFromId(other);
+      async (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Group>) => {
+        const groupsData = await Promise.all(
+          snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            if (data.name === null) {
+              const other = data.members.find((m) => m !== user.uid);
+              if (other) {
+                data.name = await getUserNameFromId(other);
+              }
             }
-          }
+            return data;
+          }),
+        );
 
-          setGroups((prev) => {
-            const updated = prev.filter((g) => g.id !== data.id);
-            updated.push(data);
-            return updated;
-          });
-        });
+        setGroups(groupsData);
       },
     );
   }, [user]);
 
   const sortedGroups = useMemo(() => {
     return groups.sort((a, b) => {
-      return b.lastTimestamp.toMillis() - a.lastTimestamp.toMillis();
+      const aTime = a.lastTimestamp?.toMillis?.() ?? 0;
+      const bTime = b.lastTimestamp?.toMillis?.() ?? 0;
+      return bTime - aTime;
     });
   }, [groups]);
 
@@ -56,15 +62,29 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
     <VirtualizedList
       data={sortedGroups}
       renderItem={({ item }: { item: Group }) => (
-        <Button
-          title={item.name || ""}
+        <TouchableOpacity
+          style={{
+            padding: 8,
+            marginVertical: 4,
+            backgroundColor: "transparent",
+            borderRadius: 8,
+          }}
           onPress={() => {
             router.push({
               pathname: "/message/chats/[id]",
               params: { id: item.id, name: item.name || "" },
             });
           }}
-        />
+        >
+          <View style={{ flexDirection: "row" }}>
+            <Image source={require("assets/images/react-logo.png")} />
+            <View>
+              <Text>{item.name || ""}</Text>
+              <Text>{item.lastMessage || ""}</Text>
+            </View>
+            <Text>{item.lastTimestamp?.toDate().toLocaleString() || ""}</Text>
+          </View>
+        </TouchableOpacity>
       )}
       getItemCount={(data) => data.length}
       getItem={(data, index) => data[index]}
