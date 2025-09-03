@@ -14,7 +14,7 @@ service cloud.firestore {
       allow read, write: if request.auth.uid in get(/databases/$(database)/documents/groups/$(group)).data.members;
     }
 
-    match /message_test_user {
+    match /message_test_user/{document=**} {
       allow read, write: if request.auth != null;
     }
   }
