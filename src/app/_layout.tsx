@@ -1,5 +1,6 @@
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
+import { StrictMode } from "react";
 import { Platform } from "react-native";
 
 if (Platform.OS === "web") {
@@ -20,12 +21,14 @@ if (Platform.OS === "web") {
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
+    <StrictMode>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)"
+          options={{ presentation: "modal", headerShown: false }}
+        />
+      </Stack>
+    </StrictMode>
   );
 }
