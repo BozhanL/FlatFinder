@@ -11,6 +11,7 @@ import {
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { GiftedChat, IMessage } from "react-native-gifted-chat";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MessageList({
   id,
@@ -83,10 +84,10 @@ export default function MessageList({
           _id: msg.sender,
         },
       }))
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return m;
   }, [messages, name]);
-
+  const insets = useSafeAreaInsets();
   return (
     <GiftedChat
       messages={sortedMessages}
@@ -99,7 +100,8 @@ export default function MessageList({
       user={{
         _id: getAuth().currentUser?.uid ?? 1,
       }}
-      inverted={false}
+      inverted={true}
+      bottomOffset={-insets.bottom}
     />
   );
 }
