@@ -80,7 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "node_modules/@expo-google-fonts/poppins/500Medium/Poppins_500Medium.ttf",
           "node_modules/@expo-google-fonts/poppins/600SemiBold/Poppins_600SemiBold.ttf",
           "node_modules/@expo-google-fonts/roboto/400Regular/Roboto_400Regular.ttf",
-          "node_modules/@expo-google-fonts/roboto/500Medium/Roboto_500Medium.ttf"
+          "node_modules/@expo-google-fonts/roboto/500Medium/Roboto_500Medium.ttf",
         ],
       },
     ],

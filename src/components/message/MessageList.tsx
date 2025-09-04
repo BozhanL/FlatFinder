@@ -10,14 +10,7 @@ import {
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  VirtualizedList,
-} from "react-native";
+import { GiftedChat, IMessage } from "react-native-gifted-chat";
 
 export default function MessageList({
   id,
@@ -27,7 +20,6 @@ export default function MessageList({
   name: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState("");
 
   useEffect(() => {
     const db = getFirestore();
@@ -54,7 +46,7 @@ export default function MessageList({
     );
   }, [id]);
 
-  const sendMessage = async () => {
+  const sendMessage = async (msg: IMessage) => {
     const db = getFirestore();
     const sender = getAuth().currentUser!.uid;
 
@@ -64,12 +56,12 @@ export default function MessageList({
         const docref = doc(collection(db, "messages", id, "messages"));
         transaction.set(docref, {
           id: docref.id,
-          message: text,
+          message: msg.text,
           sender: sender,
           timestamp: serverTimestamp(),
         });
         transaction.update(groupRef, {
-          lastMessage: text,
+          lastMessage: msg.text,
           lastSender: sender,
           lastTimestamp: serverTimestamp(),
         });
@@ -78,48 +70,36 @@ export default function MessageList({
     } catch (e) {
       console.log("Transaction failed: ", e);
     }
-    setText("");
   };
 
   const sortedMessages = useMemo(() => {
-    return messages.sort((a, b) => {
-      return a.timestamp.toMillis() - b.timestamp.toMillis();
-    });
-  }, [messages]);
+    const m = messages
+      .map((msg) => ({
+        _id: msg.id,
+        text: msg.message,
+        createdAt: msg.timestamp ? msg.timestamp.toDate() : new Date(),
+        name: name,
+        user: {
+          _id: msg.sender,
+        },
+      }))
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return m;
+  }, [messages, name]);
 
   return (
-    <View style={styles.container}>
-      <Text>Chat for {name} </Text>
-      <VirtualizedList
-        data={sortedMessages}
-        renderItem={({ item }: { item: Message }) => (
-          <Text>{item.message}</Text>
-        )}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
-      />
-      <Text>End of chat</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Type here to translate!"
-        onChangeText={(newText) => setText(newText)}
-        defaultValue={text}
-      />
-      <Button onPress={sendMessage} title="Send message" />
-    </View>
+    <GiftedChat
+      messages={sortedMessages}
+      onSend={(msgs) => {
+        const first = msgs[0];
+        if (first) {
+          sendMessage(first);
+        }
+      }}
+      user={{
+        _id: getAuth().currentUser?.uid ?? 1,
+      }}
+      inverted={false}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1,
-    borderColor: "blue", // Sets the border color to blue
-    padding: 10,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
