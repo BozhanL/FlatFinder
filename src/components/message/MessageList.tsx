@@ -1,3 +1,5 @@
+import { Group } from "@/modules/message/Group";
+import { getUserByUidAsync } from "@/modules/message/Helper";
 import { Message } from "@/modules/message/Message";
 import { getAuth } from "@react-native-firebase/auth";
 import {
@@ -10,24 +12,47 @@ import {
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { GiftedChat, IMessage } from "react-native-gifted-chat";
+import { GiftedChat, IMessage, User } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MessageList({
-  id,
-  name,
+  gid,
+  gname,
 }: {
-  id: string;
-  name: string;
+  gid: string;
+  gname: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [usercache, setUserCache] = useState<Map<string, User>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const db = getFirestore();
+    const groupRef = doc(db, "groups", gid);
+    return onSnapshot(
+      groupRef,
+      (doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
+        const data = doc.data() as Group;
+        Promise.all(
+          data.members.map(async (m) => {
+            if (!usercache.has(m)) {
+              const userDoc = await getUserByUidAsync(m);
+              if (userDoc) {
+                setUserCache((prev) => new Map(prev).set(m, userDoc));
+              }
+            }
+          }),
+        ).finally(() => setLoading(false));
+      },
+    );
+  }, [gid]);
 
   useEffect(() => {
     const db = getFirestore();
     const messagesRef = collection(
       db,
       "messages",
-      id,
+      gid,
       "messages",
     ) as FirebaseFirestoreTypes.CollectionReference<Message>;
 
@@ -45,7 +70,7 @@ export default function MessageList({
         setMessages(newMessages);
       },
     );
-  }, [id]);
+  }, [gid]);
 
   const sendMessage = async (msg: IMessage) => {
     const db = getFirestore();
@@ -53,8 +78,8 @@ export default function MessageList({
 
     try {
       await runTransaction(db, async (transaction) => {
-        const groupRef = doc(db, "groups", id);
-        const docref = doc(collection(db, "messages", id, "messages"));
+        const groupRef = doc(db, "groups", gid);
+        const docref = doc(collection(db, "messages", gid, "messages"));
         transaction.set(docref, {
           id: docref.id,
           message: msg.text,
@@ -79,27 +104,28 @@ export default function MessageList({
         _id: msg.id,
         text: msg.message,
         createdAt: msg.timestamp ? msg.timestamp.toDate() : new Date(),
-        name: name,
-        user: {
-          _id: msg.sender,
-        },
+        name: gname,
+        user: usercache.get(msg.sender) || { _id: msg.sender },
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return m;
-  }, [messages, name]);
+  }, [messages, gname, usercache]);
+
   const insets = useSafeAreaInsets();
+  const uid = getAuth().currentUser!.uid;
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <GiftedChat
       messages={sortedMessages}
       onSend={(msgs) => {
-        const first = msgs[0];
-        if (first) {
-          sendMessage(first);
-        }
+        msgs.forEach((m) => sendMessage(m));
       }}
-      user={{
-        _id: getAuth().currentUser?.uid ?? 1,
-      }}
+      renderAvatarOnTop={true}
+      user={usercache.get(uid) || { _id: uid }}
       inverted={true}
       bottomOffset={-insets.bottom}
     />

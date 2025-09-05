@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import React from "react";
 
 export default function DetailsScreen() {
-  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
+  const { gid, gname } = useLocalSearchParams<{ gid: string; gname: string }>();
 
-  return <MessageList id={id} name={name} />;
+  return <MessageList gid={gid} gname={gname} />;
 }

@@ -1,5 +1,5 @@
 import { Group } from "@/modules/message/Group";
-import { getUserNameFromId } from "@/modules/message/Helper";
+import { getUserByUidAsync } from "@/modules/message/Helper";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {
   collection,
@@ -39,7 +39,7 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
             if (data.name === null) {
               const other = data.members.find((m) => m !== user.uid);
               if (other) {
-                data.name = await getUserNameFromId(other);
+                data.name = (await getUserByUidAsync(other))?.name || null;
               }
             }
             return data;
@@ -63,8 +63,8 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
     <TouchableOpacity
       onPress={() => {
         router.push({
-          pathname: "/message/chats/[id]",
-          params: { id: item.id, name: item.name || "" },
+          pathname: "/message/chat",
+          params: { gid: item.id, gname: item.name || "" },
         });
       }}
     >
