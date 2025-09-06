@@ -10,8 +10,10 @@ import {
   SymbolLayer
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { db } from "../../firebaseconfig";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -138,6 +140,23 @@ export default function Index() {
       price: '$650/week'
     }
   ];
+
+  useEffect(() => {
+  const fetchProperties = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "properties"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        console.log("Property title:", data["title"]);
+      });
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    }
+  };
+
+  fetchProperties();
+}, []);
+
 
   // Handle marker press
   const handleMarkerPress = (event: any) => {
