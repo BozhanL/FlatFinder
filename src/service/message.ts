@@ -33,3 +33,20 @@ export async function sendMessage(msg: IMessage, gid: string) {
     console.log("Transaction failed: ", e);
   }
 }
+
+// Create a new group with given user IDs and optional group name
+// Returns the new group's ID
+// If no group name is provided, it will be set to one other member's name when displaying
+export async function createGroup(uids: string[], gname?: string) {
+  const db = getFirestore();
+  const groupRef = doc(collection(db, "groups"));
+  await groupRef.set({
+    id: groupRef.id,
+    name: gname || null,
+    members: uids,
+    lastMessage: `Matched on ${new Date().toLocaleDateString()}`,
+    lastSender: "",
+    lastTimestamp: serverTimestamp(),
+  });
+  return groupRef.id;
+}
