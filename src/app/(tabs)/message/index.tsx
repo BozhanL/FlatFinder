@@ -44,12 +44,11 @@ function Message() {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  const messaging = getMessaging();
-  getToken(messaging).then((token) => {
-    console.log("FCM Token: ", token);
-  });
-
   useEffect(() => {
+    const messaging = getMessaging();
+    getToken(messaging).then((token) => {
+      console.log("FCM Token: ", token);
+    });
     const unsubscribe = onMessage(messaging, async (remoteMessage) => {
       Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
     });

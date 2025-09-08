@@ -51,9 +51,8 @@ export function useMessages(gid: string, gname: string) {
       (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Message>) => {
         const newMessages: Message[] = [];
 
-        snapshot.forEach(async (docs) => {
+        snapshot.forEach((docs) => {
           const data = docs.data();
-
           newMessages.push(data);
         });
 
@@ -75,5 +74,5 @@ export function useMessages(gid: string, gname: string) {
     return m;
   }, [messages, gname, usercache]);
 
-  return { sortedMessages, loading, usercache};
+  return { sortedMessages, loading, usercache };
 }
