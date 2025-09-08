@@ -1,5 +1,5 @@
 import { useMessages } from "@/hooks/useMessages";
-import { sendMessage } from "@/service/message";
+import { sendMessage } from "@/services/message";
 import { getAuth } from "@react-native-firebase/auth";
 import { GiftedChat } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

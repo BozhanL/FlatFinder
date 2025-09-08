@@ -1,6 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import ChatList from "@/components/message/ChatList";
-import { createGroup } from "@/service/message";
+import { createGroup } from "@/services/message";
 import {
   FirebaseAuthTypes,
   getAuth,
