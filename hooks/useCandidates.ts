@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { loadCandidates } from "@/services/firestore";
-import type { Flatmate } from "@/types/flatmate";
+import { loadCandidates } from "services/firestore";
+import type { Flatmate } from "types/flatmate";
 
 export function useCandidates(meUid: string, filters?: { area?: string; maxBudget?: number }) {
   const [items, setItems] = useState<Flatmate[]>([]);

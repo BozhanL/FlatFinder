@@ -1,5 +1,5 @@
 // mock data for development, will use Firebase data later
-import { Flatmate } from "@/types/flatmate";
+import { Flatmate } from "types/flatmate";
 import { GeoPoint } from "firebase/firestore";
 
 export const FLATMATES: Flatmate [] = [

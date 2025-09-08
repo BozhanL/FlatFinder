@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: "com.flatfinder",
+    googleServicesFile: "./google-services.json",
   },
   web: {
     bundler: "metro",
@@ -29,12 +30,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
-    [
-      "./plugins/withAbiFilters.ts",
-      {
-        abiFilters: ["arm64-v8a", "x86_64"],
-      },
-    ],
+    "@react-native-firebase/app",
+    "@react-native-firebase/auth",
     [
       "expo-splash-screen",
       {
@@ -42,6 +39,36 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
+      },
+    ],
+    [
+      "./plugins/withAbiFilters.ts",
+      {
+        abiFilters: ["arm64-v8a", "x86_64"],
+      },
+    ],
+    [
+      "./plugins/withGradlePropertiesWhenCI",
+      {
+        gradle_properties: [
+          {
+            key: "org.gradle.jvmargs",
+            value: "-Xmx14g -XX:MaxMetaspaceSize=512m",
+          },
+          {
+            key: "org.gradle.parallel",
+            value: "true",
+          },
+          {
+            key: "org.gradle.configureondemand",
+            value: "true",
+          },
+          {
+            key: "org.gradle.daemon",
+            value: "false",
+          },
+        ],
+        ci_environment: "CI",
       },
     ],
     [

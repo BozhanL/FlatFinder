@@ -3,7 +3,7 @@ import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/SwipeDeck";
 import { FLATMATES } from "@/data/flatmates.mock";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {

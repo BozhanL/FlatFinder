@@ -56,7 +56,7 @@ export async function ensureMatchIfMutualLike(me: string, target: string) {
     .collection("swipes").doc(me)
     .get();
 
-  if (back.exists() && back.data()?.dir === "like") {
+  if (back.exists() && back.data()?.["dir"] === "like") {
     const id = matchIdFor(me, target);
     await firestore().collection("matches").doc(id).set(
       {
