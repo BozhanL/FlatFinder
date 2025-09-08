@@ -1,8 +1,11 @@
+import { loadCandidates } from "@/services/firestore";
+import type { Flatmate } from "@/types/flatmate";
 import { useEffect, useState } from "react";
-import { loadCandidates } from "services/firestore";
-import type { Flatmate } from "types/flatmate";
 
-export function useCandidates(meUid: string, filters?: { area?: string; maxBudget?: number }) {
+export function useCandidates(
+  meUid: string,
+  filters?: { area?: string; maxBudget?: number }
+) {
   const [items, setItems] = useState<Flatmate[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +20,9 @@ export function useCandidates(meUid: string, filters?: { area?: string; maxBudge
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [meUid, filters?.area, filters?.maxBudget]);
 
   return { items, loading, setItems };

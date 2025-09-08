@@ -1,9 +1,9 @@
 // mock data for development, will use Firebase data later
-import { Flatmate } from "types/flatmate";
+import { Flatmate } from "@/types/flatmate";
 import { GeoPoint } from "firebase/firestore";
 
-export const FLATMATES: Flatmate [] = [
-    {
+export const FLATMATES: Flatmate[] = [
+  {
     id: "1",
     name: "Alice Johnson",
     age: 24,
@@ -59,4 +59,4 @@ export const FLATMATES: Flatmate [] = [
     },
     tags: ["finance", "running", "coffee"],
   },
-]
+];
