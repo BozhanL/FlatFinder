@@ -1,5 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import ChatList from "@/components/message/ChatList";
+import { createGroup } from "@/service/message";
 import {
   FirebaseAuthTypes,
   getAuth,
@@ -36,6 +37,7 @@ function Message() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null | undefined>(
     undefined,
   );
+  const [groupMembers, setGroupMembers] = useState<string>("");
 
   useEffect(() => {
     const subscriber = onAuthStateChanged(getAuth(), (user) => {
@@ -66,10 +68,19 @@ function Message() {
     return <Login />;
   }
 
+  async function handleCreateGroup() {
+    const groupId = await createGroup(groupMembers.split(","));
+    if (groupId) {
+      Alert.alert("Group created!", `Group ID: ${groupId}`);
+    }
+  }
+
   return (
     <View>
       <MessageList user={user} />
       <Button title="Logout" onPress={handleLogout} />
+      <TextInput value={groupMembers} onChangeText={setGroupMembers} />
+      <Button title="Create Group" onPress={handleCreateGroup} />
     </View>
   );
 }
