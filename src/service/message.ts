@@ -1,0 +1,35 @@
+import { getAuth } from "@react-native-firebase/auth";
+import {
+  collection,
+  doc,
+  getFirestore,
+  runTransaction,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
+import { IMessage } from "react-native-gifted-chat";
+
+export async function sendMessage(msg: IMessage, gid: string) {
+  const db = getFirestore();
+  const sender = getAuth().currentUser!.uid;
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const groupRef = doc(db, "groups", gid);
+      const docref = doc(collection(db, "messages", gid, "messages"));
+      transaction.set(docref, {
+        id: docref.id,
+        message: msg.text,
+        sender: sender,
+        timestamp: serverTimestamp(),
+      });
+      transaction.update(groupRef, {
+        lastMessage: msg.text,
+        lastSender: sender,
+        lastTimestamp: serverTimestamp(),
+      });
+    });
+    console.log("Transaction successfully committed!");
+  } catch (e) {
+    console.log("Transaction failed: ", e);
+  }
+}
