@@ -1,5 +1,5 @@
 import HeaderLogo from "@/components/HeaderLogo";
-import ChatList from "@/components/message/ChatList";
+import MessageList from "@/components/message/MessageList";
 import { createGroup } from "@/services/message";
 import {
   FirebaseAuthTypes,
@@ -77,10 +77,10 @@ function Message() {
 
   return (
     <View>
-      <ChatList uid={user.uid} />
       <Button title="Logout" onPress={handleLogout} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
       <Button title="Create Group" onPress={handleCreateGroup} />
+      <MessageList uid={user.uid} />
     </View>
   );
 }

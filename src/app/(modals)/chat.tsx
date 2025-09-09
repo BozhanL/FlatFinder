@@ -1,4 +1,4 @@
-import MessageList from "@/components/message/MessageList";
+import ChatList from "@/components/message/ChatList";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,7 +15,7 @@ export default function DetailsScreen() {
       <Stack.Screen
         options={{ headerShown: true, title: gname, presentation: "modal" }}
       />
-      <MessageList gid={gid} gname={gname} uid={uid} />
+      <ChatList gid={gid} gname={gname} uid={uid} />
     </SafeAreaView>
   );
 }
