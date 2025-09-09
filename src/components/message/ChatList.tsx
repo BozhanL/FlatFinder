@@ -1,6 +1,5 @@
 import useGroups from "@/hooks/useGroups";
 import { Group } from "@/modules/message/Group";
-import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import {
@@ -12,30 +11,15 @@ import {
   VirtualizedList,
 } from "react-native";
 
-export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
-  const sortedGroups = useGroups(user.uid);
+export default function ChatList({ uid }: { uid: string }) {
+  const sortedGroups = useGroups(uid);
 
-  return (
-    <View>
-      <Text style={[styles.section_header]}>Message</Text>
-      <VirtualizedList
-        data={sortedGroups}
-        renderItem={renderItem}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
-  );
-}
-
-function renderItem({ item }: { item: Group }) {
-  return (
+  const renderItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
       onPress={() => {
         router.push({
           pathname: "/chat",
-          params: { gid: item.id, gname: item.name || "" },
+          params: { gid: item.id, gname: item.name || "", uid: uid },
         });
       }}
     >
@@ -60,6 +44,19 @@ function renderItem({ item }: { item: Group }) {
         )}
       </View>
     </TouchableOpacity>
+  );
+
+  return (
+    <View>
+      <Text style={[styles.section_header]}>Message</Text>
+      <VirtualizedList
+        data={sortedGroups}
+        renderItem={renderItem}
+        getItemCount={(data) => data.length}
+        getItem={(data, index) => data[index]}
+        keyExtractor={(item) => item.id}
+      />
+    </View>
   );
 }
 

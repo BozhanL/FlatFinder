@@ -1,20 +1,20 @@
 import { useMessages } from "@/hooks/useMessages";
 import { sendMessage } from "@/services/message";
-import { getAuth } from "@react-native-firebase/auth";
 import { GiftedChat } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MessageList({
   gid,
   gname,
+  uid,
 }: {
   gid: string;
   gname: string;
+  uid: string;
 }) {
   const { sortedMessages, loading, usercache } = useMessages(gid, gname);
 
   const insets = useSafeAreaInsets();
-  const uid = getAuth().currentUser!.uid;
 
   if (loading) {
     return null;

@@ -77,16 +77,12 @@ function Message() {
 
   return (
     <View>
-      <MessageList user={user} />
+      <ChatList uid={user.uid} />
       <Button title="Logout" onPress={handleLogout} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
       <Button title="Create Group" onPress={handleCreateGroup} />
     </View>
   );
-}
-
-function MessageList({ user }: { user: FirebaseAuthTypes.User }) {
-  return <ChatList user={user} />;
 }
 
 // Removed old getGroupName helper; logic consolidated inside MessageList effects.
