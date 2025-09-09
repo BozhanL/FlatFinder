@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
   VirtualizedList,
-} from "react-native";import constStyle from "@/consts/style";
+} from "react-native";
 
 export default function MessageList({ uid }: { uid: string }) {
   const sortedGroups = useGroups(uid);
@@ -47,7 +47,7 @@ export default function MessageList({ uid }: { uid: string }) {
   );
 
   return (
-    <View style={constStyle.container}>
+    <View style={{ flex: 1 }}>
       <Text style={[styles.section_header]}>Message</Text>
       <VirtualizedList
         data={sortedGroups}

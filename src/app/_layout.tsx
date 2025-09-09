@@ -1,6 +1,7 @@
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
 import { Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 if (Platform.OS === "web") {
   const firebaseConfig = {
@@ -20,12 +21,14 @@ if (Platform.OS === "web") {
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)"
+          options={{ presentation: "modal", headerShown: false }}
+        />
+      </Stack>
+    </SafeAreaView>
   );
 }
