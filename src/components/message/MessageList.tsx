@@ -1,7 +1,6 @@
 import useGroups from "@/hooks/useGroups";
 import { Group } from "@/modules/message/Group";
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { router } from "expo-router";
 import {
   Image,
@@ -10,13 +9,10 @@ import {
   TouchableOpacity,
   View,
   VirtualizedList,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from "react-native";import constStyle from "@/consts/style";
 
 export default function MessageList({ uid }: { uid: string }) {
   const sortedGroups = useGroups(uid);
-  const tabBarHeight = useBottomTabBarHeight();
-  const insets = useSafeAreaInsets();
 
   const renderItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
@@ -51,7 +47,7 @@ export default function MessageList({ uid }: { uid: string }) {
   );
 
   return (
-    <View>
+    <View style={constStyle.container}>
       <Text style={[styles.section_header]}>Message</Text>
       <VirtualizedList
         data={sortedGroups}
@@ -59,9 +55,6 @@ export default function MessageList({ uid }: { uid: string }) {
         getItemCount={(data) => data.length}
         getItem={(data, index) => data[index]}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingBottom: tabBarHeight + insets.bottom + 5,
-        }}
       />
     </View>
   );
