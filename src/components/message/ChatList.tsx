@@ -1,4 +1,4 @@
-import { useMessages } from "@/hooks/useMessages";
+import useMessages from "@/hooks/useMessages";
 import { sendMessage } from "@/services/message";
 import {
   Bubble,

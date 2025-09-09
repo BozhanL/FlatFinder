@@ -1,14 +1,6 @@
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { User } from "react-native-gifted-chat";
 
-// export async function getUserNameFromId(id: string): Promise<string> {
-//   const db = getFirestore();
-//   const userDoc = await getDoc(doc(db, "message_test_user", id));
-//   return userDoc.exists()
-//     ? (userDoc.data() as { name: string }).name
-//     : "Unknown";
-// }
-
 export async function getUserByUidAsync(uid: string): Promise<User | null> {
   const db = getFirestore();
   const userDoc = await getDoc(doc(db, "message_test_user", uid));

@@ -11,7 +11,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { User } from "react-native-gifted-chat";
 
-export function useMessages(gid: string, gname: string) {
+export default function useMessages(gid: string, gname: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [usercache, setUserCache] = useState<Map<string, User>>(new Map());
   const [loading, setLoading] = useState(true);
