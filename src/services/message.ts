@@ -44,7 +44,6 @@ export async function createGroup(uids: string[], gname?: string) {
     id: groupRef.id,
     name: gname || null,
     members: uids,
-    lastMessage: `Matched on ${new Date().toLocaleDateString()}`,
     lastSender: "",
     lastTimestamp: serverTimestamp(),
   });

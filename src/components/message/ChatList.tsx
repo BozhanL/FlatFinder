@@ -63,7 +63,7 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
     <TouchableOpacity
       onPress={() => {
         router.push({
-          pathname: "/message/chat",
+          pathname: "/chat",
           params: { gid: item.id, gname: item.name || "" },
         });
       }}
