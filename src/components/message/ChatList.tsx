@@ -1,16 +1,8 @@
+import useGroups from "@/hooks/useGroups";
 import { Group } from "@/modules/message/Group";
-import { getUserByUidAsync } from "@/modules/message/Helper";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import {
-  collection,
-  FirebaseFirestoreTypes,
-  getFirestore,
-  onSnapshot,
-  query,
-  where,
-} from "@react-native-firebase/firestore";
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -21,45 +13,24 @@ import {
 } from "react-native";
 
 export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
-  const [groups, setGroups] = useState<Group[]>([]);
+  const sortedGroups = useGroups(user.uid);
 
-  useEffect(() => {
-    const db = getFirestore();
-    const groupsRef = collection(
-      db,
-      "groups",
-    ) as FirebaseFirestoreTypes.CollectionReference<Group>;
+  return (
+    <View>
+      <Text style={[styles.section_header]}>Message</Text>
+      <VirtualizedList
+        data={sortedGroups}
+        renderItem={renderItem}
+        getItemCount={(data) => data.length}
+        getItem={(data, index) => data[index]}
+        keyExtractor={(item) => item.id}
+      />
+    </View>
+  );
+}
 
-    return onSnapshot(
-      query(groupsRef, where("members", "array-contains", user.uid)),
-      async (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Group>) => {
-        const groupsData = await Promise.all(
-          snapshot.docs.map(async (doc) => {
-            const data = doc.data();
-            if (data.name === null) {
-              const other = data.members.find((m) => m !== user.uid);
-              if (other) {
-                data.name = (await getUserByUidAsync(other))?.name || null;
-              }
-            }
-            return data;
-          }),
-        );
-
-        setGroups(groupsData);
-      },
-    );
-  }, [user]);
-
-  const sortedGroups = useMemo(() => {
-    return groups.sort((a, b) => {
-      const aTime = a.lastTimestamp?.toMillis?.() ?? 0;
-      const bTime = b.lastTimestamp?.toMillis?.() ?? 0;
-      return bTime - aTime;
-    });
-  }, [groups]);
-
-  const renderItem = ({ item }: { item: Group }) => (
+function renderItem({ item }: { item: Group }) {
+  return (
     <TouchableOpacity
       onPress={() => {
         router.push({
@@ -89,19 +60,6 @@ export default function ChatList({ user }: { user: FirebaseAuthTypes.User }) {
         )}
       </View>
     </TouchableOpacity>
-  );
-
-  return (
-    <View>
-      <Text style={[styles.section_header]}>Message</Text>
-      <VirtualizedList
-        data={sortedGroups}
-        renderItem={renderItem}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
   );
 }
 
