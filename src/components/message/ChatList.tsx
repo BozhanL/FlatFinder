@@ -1,6 +1,13 @@
 import { useMessages } from "@/hooks/useMessages";
 import { sendMessage } from "@/services/message";
-import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import {
+  Bubble,
+  BubbleProps,
+  Day,
+  DayProps,
+  GiftedChat,
+  IMessage,
+} from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ChatList({
@@ -20,7 +27,7 @@ export default function ChatList({
     return null;
   }
 
-  const renderBubble = (props: any) => {
+  const renderBubble = (props: BubbleProps<IMessage>) => {
     return (
       <Bubble
         {...props}
@@ -32,6 +39,16 @@ export default function ChatList({
             backgroundColor: "#DADADA",
           },
         }}
+      />
+    );
+  };
+
+  const renderDay = (props: DayProps) => {
+    return (
+      <Day
+        {...props}
+        wrapperStyle={{ backgroundColor: "transparent" }}
+        textStyle={{ color: "#79747E" }}
       />
     );
   };
@@ -48,6 +65,7 @@ export default function ChatList({
       inverted={true}
       bottomOffset={-insets.bottom}
       renderBubble={renderBubble}
+      renderDay={renderDay}
     />
   );
 }
