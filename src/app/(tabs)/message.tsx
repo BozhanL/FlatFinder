@@ -8,11 +8,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-} from "@react-native-firebase/messaging";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -44,18 +39,6 @@ function Message() {
       setUser(user);
     });
     return subscriber; // unsubscribe on unmount
-  }, []);
-
-  useEffect(() => {
-    const messaging = getMessaging();
-    getToken(messaging).then((token) => {
-      console.log("FCM Token: ", token);
-    });
-    const unsubscribe = onMessage(messaging, async (remoteMessage) => {
-      Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
-    });
-
-    return unsubscribe;
   }, []);
 
   if (user === undefined) {
