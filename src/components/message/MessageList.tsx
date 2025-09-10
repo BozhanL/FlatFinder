@@ -14,7 +14,22 @@ import {
 export default function MessageList({ uid }: { uid: string }) {
   const sortedGroups = useGroups(uid);
 
-  const renderItem = ({ item }: { item: Group }) => (
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={[styles.section_header]}>Message</Text>
+      <VirtualizedList
+        data={sortedGroups}
+        renderItem={({ item }: { item: Group }) => renderItem(item, uid)}
+        getItemCount={(data) => data.length}
+        getItem={(data, index) => data[index]}
+        keyExtractor={(item) => item.id}
+      />
+    </View>
+  );
+}
+
+function renderItem(item: Group, uid: string) {
+  return (
     <TouchableOpacity
       onPress={() => {
         router.push({
@@ -45,19 +60,6 @@ export default function MessageList({ uid }: { uid: string }) {
       </View>
     </TouchableOpacity>
   );
-
-  return (
-    <View style={{ flex: 1 }}>
-      <Text style={[styles.section_header]}>Message</Text>
-      <VirtualizedList
-        data={sortedGroups}
-        renderItem={renderItem}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
-  );
 }
 
 function formatTimestamp(timestamp?: FirebaseFirestoreTypes.Timestamp): string {
@@ -74,13 +76,13 @@ function formatTimestamp(timestamp?: FirebaseFirestoreTypes.Timestamp): string {
 
   if (weeks > 4) {
     return d.toLocaleDateString();
-  } else if (weeks) {
+  } else if (weeks > 0) {
     return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-  } else if (days) {
+  } else if (days > 0) {
     return `${days} day${days > 1 ? "s" : ""} ago`;
-  } else if (hours) {
+  } else if (hours > 0) {
     return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  } else if (minutes) {
+  } else if (minutes > 0) {
     return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   } else {
     return "Just now";
@@ -129,3 +131,5 @@ const styles = StyleSheet.create({
     gap: 16,
   },
 });
+
+export const __test__ = { renderItem, formatTimestamp };

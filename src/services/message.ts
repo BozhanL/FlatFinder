@@ -1,4 +1,3 @@
-import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   doc,
@@ -10,7 +9,6 @@ import { IMessage } from "react-native-gifted-chat";
 
 export async function sendMessage(msg: IMessage, gid: string) {
   const db = getFirestore();
-  const sender = getAuth().currentUser!.uid;
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -19,12 +17,12 @@ export async function sendMessage(msg: IMessage, gid: string) {
       transaction.set(docref, {
         id: docref.id,
         message: msg.text,
-        sender: sender,
+        sender: msg.user._id,
         timestamp: serverTimestamp(),
       });
       transaction.update(groupRef, {
         lastMessage: msg.text,
-        lastSender: sender,
+        lastSender: msg.user._id,
         lastTimestamp: serverTimestamp(),
       });
     });
