@@ -9,10 +9,11 @@
     "web": "expo start --web",
     "test": "jest",
     "coverage": "jest --coverage",
-    "format:check": "prettier -c .",
+    "format": "prettier -c .",
     "format:fix": "prettier -w .",
     "check-ts": "tsc",
     "lint": "expo lint",
+    "lint:fix": "expo lint --fix",
     "deploy": "firebase deploy",
     "deploy:database": "firebase deploy --only database",
     "deploy:firestore": "firebase deploy --only firestore"

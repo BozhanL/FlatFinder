@@ -49,7 +49,7 @@ jobs:
         run: npm run lint
 
       - name: 🎨 Run Prettier check
-        run: npm run format:check
+        run: npm run format
 
       - name: 🧪 Run Jest Tests
         run: npm run coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
