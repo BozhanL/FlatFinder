@@ -128,10 +128,10 @@ describe("MessageList.tsx", () => {
       "uid1",
     );
 
-    const { getByText } = render(MessageListPrivate.renderItem(item, "uid"));
+    render(MessageListPrivate.renderItem(item, "uid"));
 
-    expect(getByText("name")).toBeVisible();
-    expect(getByText("Hello")).toBeVisible();
-    expect(getByText(new Date(0).toLocaleDateString())).toBeVisible();
+    expect(screen.getByText("name")).toBeVisible();
+    expect(screen.getByText("Hello")).toBeVisible();
+    expect(screen.getByText(new Date(0).toLocaleDateString())).toBeVisible();
   });
 });
