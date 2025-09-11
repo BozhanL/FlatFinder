@@ -2,6 +2,7 @@ import useGroups from "@/hooks/useGroups";
 import { Group } from "@/modules/message/Group";
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
+import { JSX } from "react";
 import {
   Image,
   StyleSheet,
@@ -11,7 +12,7 @@ import {
   VirtualizedList,
 } from "react-native";
 
-export default function MessageList({ uid }: { uid: string }) {
+export default function MessageList({ uid }: { uid: string }): JSX.Element {
   const sortedGroups = useGroups(uid);
 
   return (
@@ -28,7 +29,7 @@ export default function MessageList({ uid }: { uid: string }) {
   );
 }
 
-function renderItem(item: Group, uid: string) {
+function renderItem(item: Group, uid: string): JSX.Element {
   return (
     <TouchableOpacity
       onPress={() => {

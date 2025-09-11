@@ -5,10 +5,10 @@ import {
   getAuth,
   onAuthStateChanged,
 } from "@react-native-firebase/auth";
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
-export default function MessageView() {
+export default function MessageView(): JSX.Element {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderLogo />
@@ -17,7 +17,7 @@ export default function MessageView() {
   );
 }
 
-function Message() {
+function Message(): JSX.Element {
   // Set an initializing state whilst Firebase connects
   const [user, setUser] = useState<FirebaseAuthTypes.User | null | undefined>(
     undefined,

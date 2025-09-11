@@ -7,7 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "@react-native-firebase/auth";
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 
-export default function ProfileScreen() {
+export default function ProfileScreen(): JSX.Element {
   // Set an initializing state whilst Firebase connects
   const [user, setUser] = useState<FirebaseAuthTypes.User | null | undefined>(
     undefined,
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
   );
 }
 
-function Login() {
+function Login(): JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 

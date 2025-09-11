@@ -1,5 +1,7 @@
 import useMessages from "@/hooks/useMessages";
 import { sendMessage } from "@/services/message";
+import { JSX } from "react";
+import { ActivityIndicator, View } from "react-native";
 import {
   Bubble,
   BubbleProps,
@@ -18,13 +20,17 @@ export default function ChatList({
   gid: string;
   gname: string;
   uid: string;
-}) {
+}): JSX.Element {
   const { sortedMessages, loading, usercache } = useMessages(gid, gname);
 
   const insets = useSafeAreaInsets();
 
   if (loading) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator accessibilityHint="loading" />
+      </View>
+    );
   }
 
   const renderBubble = (props: BubbleProps<IMessage>) => {

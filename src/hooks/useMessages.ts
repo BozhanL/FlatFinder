@@ -11,9 +11,16 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { User } from "react-native-gifted-chat";
+import { IMessage, User } from "react-native-gifted-chat";
 
-export default function useMessages(gid: string, gname: string) {
+export default function useMessages(
+  gid: string,
+  gname: string,
+): {
+  sortedMessages: IMessage[];
+  loading: boolean;
+  usercache: Map<string, User>;
+} {
   const [messages, setMessages] = useState<Message[]>([]);
   const [usercache, setUserCache] = useState<Map<string, User>>(new Map());
   const [loading, setLoading] = useState(true);

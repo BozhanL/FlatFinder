@@ -1,5 +1,6 @@
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
+import { JSX } from "react";
 import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,7 +20,7 @@ if (Platform.OS === "web") {
   initializeApp(firebaseConfig);
 }
 
-export default function RootLayout() {
+export default function RootLayout(): JSX.Element {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
       <Stack>
