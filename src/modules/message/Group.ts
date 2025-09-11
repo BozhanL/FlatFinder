@@ -7,6 +7,7 @@ export class Group {
   public lastTimestamp: Timestamp;
   public lastMessage: string;
   public lastSender: string;
+  public lastNotified: Timestamp;
 
   constructor(
     id: string,
@@ -15,6 +16,7 @@ export class Group {
     lastTimestamp: Timestamp,
     lastMessage: string,
     lastSender: string,
+    lastNotified: Timestamp = Timestamp.fromMillis(0),
   ) {
     this.id = id;
     this.name = name;
@@ -22,5 +24,6 @@ export class Group {
     this.lastTimestamp = lastTimestamp;
     this.lastMessage = lastMessage;
     this.lastSender = lastSender;
+    this.lastNotified = lastNotified;
   }
 }

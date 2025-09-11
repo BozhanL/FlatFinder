@@ -22,7 +22,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: "com.flatfinder",
     googleServicesFile: "./google-services.json",
-    permissions: ["android.permission.POST_NOTIFICATIONS"],
   },
   web: {
     bundler: "metro",
@@ -40,12 +39,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
-      },
-    ],
-    [
-      "./plugins/withAbiFilters.ts",
-      {
-        abiFilters: ["arm64-v8a", "x86_64"],
       },
     ],
     [
@@ -82,6 +75,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "node_modules/@expo-google-fonts/roboto/400Regular/Roboto_400Regular.ttf",
           "node_modules/@expo-google-fonts/roboto/500Medium/Roboto_500Medium.ttf",
         ],
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          buildArchs: ["arm64-v8a", "x86_64"],
+          extraMavenRepos: [
+            // https://github.com/invertase/notifee/issues/1226#issuecomment-3228701613
+            "$rootDir/../../../node_modules/@notifee/react-native/android/libs",
+          ],
+        },
       },
     ],
   ],

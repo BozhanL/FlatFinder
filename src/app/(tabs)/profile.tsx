@@ -1,11 +1,11 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import { logout } from "@/services/logout";
 import { createGroup } from "@/services/message";
 import {
   FirebaseAuthTypes,
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut,
 } from "@react-native-firebase/auth";
 import { JSX, useEffect, useState } from "react";
 import {
@@ -51,7 +51,7 @@ export default function ProfileScreen(): JSX.Element {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderLogo />
-      <Button title="Logout" onPress={handleLogout} />
+      <Button title="Logout" onPress={logout} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
       <Button title="Create Group" onPress={handleCreateGroup} />
     </View>
@@ -83,8 +83,4 @@ function Login(): JSX.Element {
 
 async function handleLogin(email: string, password: string) {
   await signInWithEmailAndPassword(getAuth(), email, password);
-}
-
-async function handleLogout() {
-  await signOut(getAuth());
 }
