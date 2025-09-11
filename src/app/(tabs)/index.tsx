@@ -9,11 +9,10 @@ import {
   ShapeSource,
   SymbolLayer
 } from "@maplibre/maplibre-react-native";
+import firestore, { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
-import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { db } from "../../firebaseconfig";
+import { StyleSheet, Text, TouchableOpacity, View, } from "react-native";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -141,13 +140,15 @@ export default function Index() {
     }
   ];
 
-  useEffect(() => {
+// Fetch properties from Firestore on mount
+useEffect(() => {
   const fetchProperties = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "properties"));
-      querySnapshot.forEach((doc) => {
+      const snapshot = await firestore().collection("properties").get();
+
+      snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
         const data = doc.data();
-        console.log("Property title:", data["title"]);
+        console.log("Property title:", data?.["title"]);
       });
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -156,6 +157,8 @@ export default function Index() {
 
   fetchProperties();
 }, []);
+
+
 
 
   // Handle marker press
