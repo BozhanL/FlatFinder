@@ -1,16 +1,17 @@
-import { Group } from "@/modules/message/Group";
+import { Group } from "@/types/Group";
 import { Timestamp } from "@react-native-firebase/firestore";
 
 describe("Group.ts", () => {
   test("Test constructs correctly", async () => {
-    const g = new Group(
-      "id",
-      null,
-      ["a", "b"],
-      Timestamp.fromMillis(0),
-      "last",
-      "sender",
-    );
+    const g: Group = {
+      id: "id",
+      name: null,
+      members: ["a", "b"],
+      lastTimestamp: Timestamp.fromMillis(0),
+      lastMessage: "last",
+      lastSender: "sender",
+      lastNotified: Timestamp.fromMillis(0),
+    };
 
     expect(g.id).toBe("id");
     expect(g.name).toBeNull();

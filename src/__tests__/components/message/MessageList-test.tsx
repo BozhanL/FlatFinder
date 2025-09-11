@@ -1,25 +1,24 @@
 import MessageList, {
   __test__ as MessageListPrivate,
 } from "@/components/message/MessageList";
-import { Group } from "@/modules/message/Group";
+import { Group } from "@/types/Group";
 import { Timestamp } from "@react-native-firebase/firestore";
 import { render, screen } from "@testing-library/react-native";
 
 jest.mock("@/hooks/useGroups", () =>
   jest.fn(() => {
-    const { Group } = jest.requireActual("@/modules/message/Group");
     const { Timestamp } = jest.requireActual(
       "@react-native-firebase/firestore",
     );
     return [
-      new Group(
-        "gid",
-        "name",
-        ["uid1", "uid2"],
-        Timestamp.fromMillis(0),
-        "text",
-        "uid1",
-      ),
+      {
+        id: "gid",
+        name: "name",
+        members: ["uid1", "uid2"],
+        lastTimestamp: Timestamp.fromMillis(0),
+        lastMessage: "text",
+        lastSender: "uid1",
+      },
     ];
   }),
 );
@@ -119,14 +118,15 @@ describe("MessageList.tsx", () => {
   });
 
   test("Test renderItem", async () => {
-    const item = new Group(
-      "gid",
-      "name",
-      ["uid1", "uid2"],
-      Timestamp.fromMillis(0),
-      "Hello",
-      "uid1",
-    );
+    const item: Group = {
+      id: "gid",
+      name: "name",
+      members: ["uid1", "uid2"],
+      lastTimestamp: Timestamp.fromMillis(0),
+      lastMessage: "Hello",
+      lastSender: "uid1",
+      lastNotified: Timestamp.fromMillis(0),
+    };
 
     render(MessageListPrivate.renderItem(item, "uid"));
 

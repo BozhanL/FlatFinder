@@ -1,5 +1,5 @@
 import useGroups from "@/hooks/useGroups";
-import { Group } from "@/modules/message/Group";
+import { Group } from "@/types/Group";
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { JSX } from "react";

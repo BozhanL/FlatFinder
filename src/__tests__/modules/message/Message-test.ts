@@ -1,14 +1,14 @@
-import { Message } from "@/modules/message/Message";
+import { Message } from "@/types/Message";
 import { Timestamp } from "@react-native-firebase/firestore";
 
 describe("Message.ts", () => {
   test("Test constructs correctly", async () => {
-    const g = new Message(
-      "id",
-      "sender",
-      "message",
-      Timestamp.fromMillis(1000),
-    );
+    const g: Message = {
+      id: "id",
+      sender: "sender",
+      message: "message",
+      timestamp: Timestamp.fromMillis(1000),
+    };
 
     expect(g.id).toBe("id");
     expect(g.sender).toBe("sender");
