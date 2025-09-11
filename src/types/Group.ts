@@ -5,7 +5,7 @@ export type Group = {
   name: string | null;
   members: string[];
   lastTimestamp: Timestamp;
-  lastMessage: string;
-  lastSender: string;
+  lastMessage: string | null;
+  lastSender: string | null;
   lastNotified: Timestamp;
 };

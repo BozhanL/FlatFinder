@@ -1,3 +1,5 @@
+import { Group } from "@/types/Group";
+import { Message } from "@/types/Message";
 import {
   collection,
   doc,
@@ -5,6 +7,7 @@ import {
   getFirestore,
   runTransaction,
   serverTimestamp,
+  Timestamp,
 } from "@react-native-firebase/firestore";
 import { IMessage, User } from "react-native-gifted-chat";
 
@@ -15,12 +18,14 @@ export async function sendMessage(msg: IMessage, gid: string) {
     await runTransaction(db, async (transaction) => {
       const groupRef = doc(db, "groups", gid);
       const docref = doc(collection(db, "messages", gid, "messages"));
-      transaction.set(docref, {
+
+      const m: Message = {
         id: docref.id,
         message: msg.text,
-        sender: msg.user._id,
-        timestamp: serverTimestamp(),
-      });
+        sender: msg.user._id.toString(),
+        timestamp: serverTimestamp() as Timestamp,
+      };
+      transaction.set(docref, m);
       transaction.update(groupRef, {
         lastMessage: msg.text,
         lastSender: msg.user._id,
@@ -45,13 +50,17 @@ export async function createGroup(
   try {
     const p = await runTransaction<string>(db, async (transaction) => {
       const groupRef = doc(collection(db, "groups"));
-      await transaction.set(groupRef, {
+
+      const g: Group = {
         id: groupRef.id,
         name: gname || null,
         members: uids,
-        lastSender: "",
-        lastTimestamp: serverTimestamp(),
-      });
+        lastSender: null,
+        lastTimestamp: serverTimestamp() as Timestamp,
+        lastMessage: null,
+        lastNotified: Timestamp.fromMillis(0),
+      };
+      await transaction.set(groupRef, g);
       return groupRef.id;
     });
     return p;

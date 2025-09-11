@@ -56,10 +56,12 @@ describe("Message.ts", () => {
       (doc as jest.Mock).mock.results[0]!.value,
       {
         id: "jestDocId",
-        lastSender: "",
+        lastSender: null,
         lastTimestamp: Timestamp.fromMillis(0),
         members: ["uid1", "uid2"],
         name: null,
+        lastMessage: null,
+        lastNotified: Timestamp.fromMillis(0),
       },
     );
   });
