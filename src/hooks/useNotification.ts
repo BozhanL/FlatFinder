@@ -69,7 +69,9 @@ export default function useNotification() {
 }
 
 export function backgroundMessageHandler() {
-  return setBackgroundMessageHandler(getMessaging(), onMessageReceived);
+  notifee.onBackgroundEvent(async () => {});
+
+  setBackgroundMessageHandler(getMessaging(), onMessageReceived);
 }
 
 function foregroundMessageHandler(): () => void {
