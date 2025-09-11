@@ -20,8 +20,6 @@ export async function deregisterToken() {
 }
 
 export function foregroundMessageHandler(path: string) {
-  notifee.onForegroundEvent(async () => {});
-
   return onMessage(getMessaging(), (message) =>
     onMessageReceived(message, path),
   );

@@ -1,6 +1,6 @@
+import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";
-import { backgroundMessageHandler } from "@/services/notification";
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
 import { JSX } from "react";
@@ -23,11 +23,10 @@ if (Platform.OS === "web") {
   initializeApp(firebaseConfig);
 }
 
-backgroundMessageHandler();
-
 export default function RootLayout(): JSX.Element {
   useNotification();
   useMessageToken();
+  useInitialNotification();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
