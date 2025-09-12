@@ -43,6 +43,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      "./plugins/withAbiFilters.ts",
+      {
+        abiFilters: ["arm64-v8a", "x86_64"],
+      },
+    ],
+    [
       "./plugins/withGradlePropertiesWhenCI",
       {
         gradle_properties: [
