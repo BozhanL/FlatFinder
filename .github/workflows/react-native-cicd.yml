@@ -75,7 +75,6 @@ jobs:
           namedLogo: typescript
 
   build:
-    needs: test
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
