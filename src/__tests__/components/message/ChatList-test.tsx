@@ -42,7 +42,7 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
-describe("chat.tsx", () => {
+describe("@/components/message/ChatList", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

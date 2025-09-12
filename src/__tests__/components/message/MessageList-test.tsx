@@ -23,7 +23,7 @@ jest.mock("@/hooks/useGroups", () =>
   }),
 );
 
-describe("MessageList.tsx", () => {
+describe("@/components/message/MessageList", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

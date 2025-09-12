@@ -27,7 +27,7 @@ jest.mock("@react-native-firebase/firestore", () => {
   };
 });
 
-describe("Message.ts", () => {
+describe("@/services/message.ts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

@@ -12,7 +12,7 @@ import {
   router,
 } from "expo-router";
 
-const NO_PUSH_PATH = ["/message", "/chat"];
+export const NO_PUSH_PATH = ["/message", "/chat"];
 
 export async function deregisterToken() {
   const token = await getToken(getMessaging());
