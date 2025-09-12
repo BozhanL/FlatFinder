@@ -7,7 +7,10 @@ import {
   onMessage,
   setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
-import { router, useNavigationContainerRef } from "expo-router";
+import {
+  useNavigationContainerRef as getNavigationContainerRef,
+  router,
+} from "expo-router";
 
 const NO_PUSH_PATH = ["/message", "/chat"];
 
@@ -75,7 +78,10 @@ export async function backgroundEvent({
 }: Event) {
   console.log("Background Event:", type, notification);
 
-  const ref = useNavigationContainerRef();
+  // I think it is fine to call useNavigationContainerRef here.
+  // This is the only way I can find to navigate in background event handler.
+  // If this is not correct, please let me know.
+  const ref = getNavigationContainerRef();
   if (ref.isReady() && type === EventType.PRESS) {
     if (notification) {
       console.log("Notification:", notification);
