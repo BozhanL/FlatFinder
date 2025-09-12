@@ -28,7 +28,6 @@ jobs:
       checks: write
       # Required to put a comment into the pull-request
       pull-requests: write
-    continue-on-error: true
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v5
@@ -76,7 +75,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       matrix:
         build:
