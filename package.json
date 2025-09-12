@@ -2,6 +2,15 @@
   "name": "flatfinder",
   "main": "src/index.ts",
   "version": "1.0.0",
+  "homepage": "https://github.com/BozhanL/FlatFinder",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BozhanL/FlatFinder.git"
+  },
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/BozhanL/FlatFinder/issues"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
