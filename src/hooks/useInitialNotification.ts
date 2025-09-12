@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
 import notifee from "@notifee/react-native";
 import { router } from "expo-router";
 import { useEffect } from "react";
