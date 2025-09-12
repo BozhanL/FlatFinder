@@ -48,7 +48,7 @@ jest.mock("expo-router", () => {
   };
 });
 
-describe("@/services/message.ts", () => {
+describe("@/services/notification.ts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
