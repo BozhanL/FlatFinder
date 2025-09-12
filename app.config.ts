@@ -88,7 +88,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "expo-build-properties",
       {
         android: {
-          buildArchs: ["arm64-v8a", "x86_64"],
           extraMavenRepos: [
             // https://github.com/invertase/notifee/issues/1226#issuecomment-3228701613
             "$rootDir/../../../node_modules/@notifee/react-native/android/libs",
