@@ -35,7 +35,12 @@
     "collectCoverageFrom": [
       "./src/**/*.{ts,tsx,js,jsx}"
     ],
-    "coverageDirectory": "coverage"
+    "coverageDirectory": "coverage",
+    "coverageThreshold": {
+      "global": {
+        "statements": 60
+      }
+    }
   },
   "engines": {
     "node": "^22",
