@@ -67,7 +67,7 @@ describe("@/components/message/ChatList", () => {
     });
 
     expect(await screen.findByText("text")).toBeVisible();
-    expect(await screen.findByText("1 January 1970")).toBeDefined();
+    expect(await screen.  findByText("1 January 1970")).toBeDefined();
     expect(
       await screen.findByText(format.format(new Date(0)).toUpperCase()),
     ).toBeVisible();
