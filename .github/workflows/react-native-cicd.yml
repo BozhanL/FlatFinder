@@ -74,7 +74,6 @@ jobs:
           namedLogo: typescript
 
   build:
-    needs: test
     runs-on: ubuntu-latest
     strategy:
       matrix:

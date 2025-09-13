@@ -21,7 +21,7 @@ jest.mock("@/components/message/MessageList", () =>
   }),
 );
 
-describe("message.tsx", () => {
+describe("@/app/(tabs)/message", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

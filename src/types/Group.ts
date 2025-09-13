@@ -1,3 +1,6 @@
+/* istanbul ignore file */
+// This file contains only type definitions.
+// No need to test it in unit tests.
 import { Timestamp } from "@react-native-firebase/firestore";
 
 export type Group = {
@@ -5,7 +8,7 @@ export type Group = {
   name: string | null;
   members: string[];
   lastTimestamp: Timestamp;
-  lastMessage: string;
-  lastSender: string;
+  lastMessage: string | null;
+  lastSender: string | null;
   lastNotified: Timestamp;
 };

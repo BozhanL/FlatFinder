@@ -1,7 +1,7 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import { render, screen } from "@testing-library/react-native";
 
-describe("<HeaderLogo />", () => {
+describe("@/components/HeaderLogo", () => {
   test("Text renders correctly on HeaderLogo", async () => {
     render(<HeaderLogo />);
     const elements = screen.getAllByText("FlatFinder");

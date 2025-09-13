@@ -75,7 +75,7 @@ export default function useMessages(
       .map((msg) => ({
         _id: msg.id,
         text: msg.message,
-        createdAt: msg.timestamp ? msg.timestamp.toDate() : new Date(),
+        createdAt: msg.timestamp.toDate(),
         name: gname,
         user: usercache.get(msg.sender) || { _id: msg.sender },
       }))
