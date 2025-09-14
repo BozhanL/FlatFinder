@@ -12,7 +12,7 @@ import {
 import firestore, { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -95,71 +95,68 @@ const enum TabMode {
   Properties = "Properties",
 }
 
-// Sample property data
+// Updated Property interface to match Firebase data
 interface Property {
   id: string;
   title: string;
   latitude: number;
   longitude: number;
-  type: string;
-  price: string;
+  price: number;
+  type?: string; // Made optional since it might not be in Firebase
 }
-
-
 
 export default function Index() {
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]); // Changed to state
+  const [loading, setLoading] = useState(true);
 
-  // Sample properties
-  const properties: Property[] = [
-    {
-      id: '1',
-      title: 'Auckland Apartment',
-      latitude: -36.8485,
-      longitude: 174.7633,
-      type: 'rental',
-      price: '$500/week'
-    },
-    {
-      id: '2', 
-      title: 'Ponsonby House',
-      latitude: -36.8502,
-      longitude: 174.7423,
-      type: 'sale',
-      price: '$800,000'
-    },
-    {
-      id: '3',
-      title: 'Parnell Flat',
-      latitude: -36.8572,
-      longitude: 174.7796,
-      type: 'rental', 
-      price: '$650/week'
-    }
-  ];
+  // Fetch properties from Firestore on mount
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setLoading(true);
+        const snapshot = await firestore().collection("properties").get();
+        
+        const fetchedProperties: Property[] = [];
+        
+        snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
+          const data = doc.data();
+          
+          if (data) {
+            // Extract coordinates from GeoPoint using bracket notation
+            const coordinates = data["coordinates"];
+            const latitude = coordinates?._latitude || coordinates?.latitude;
+            const longitude = coordinates?._longitude || coordinates?.longitude;
+            
+            // Create property object using bracket notation
+            const property: Property = {
+              id: doc.id,
+              title: data["title"] || 'Untitled Property',
+              latitude: latitude,
+              longitude: longitude,
+              price: data["price"] || 0,
+              type: data["type"] || 'rental' // Default to rental if not specified
+            };
+            
+            fetchedProperties.push(property);
+            console.log("Fetched property:", property.title, `${property.price}`);
+          }
+        });
+        
+        setProperties(fetchedProperties);
+        console.log(`Loaded ${fetchedProperties.length} properties from Firebase`);
+        
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-// Fetch properties from Firestore on mount
-useEffect(() => {
-  const fetchProperties = async () => {
-    try {
-      const snapshot = await firestore().collection("properties").get();
-
-      snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
-        const data = doc.data();
-        console.log("Property title:", data?.["title"]);
-      });
-    } catch (error) {
-      console.error("Error fetching properties:", error);
-    }
-  };
-
-  fetchProperties();
-}, []);
-
-
-
+    fetchProperties();
+  }, []);
 
   // Handle marker press
   const handleMarkerPress = (event: any) => {
@@ -181,6 +178,15 @@ useEffect(() => {
     }, 300);
   };
 
+  // Format price for display
+  const formatPrice = (price: number, type?: string): string => {
+    if (type === 'sale') {
+      return `$${price.toLocaleString()}`;
+    } else {
+      return `$${price}/week`;
+    }
+  };
+
   // Create GeoJSON for properties
   const createPropertyData = () => ({
     type: 'FeatureCollection' as const,
@@ -193,7 +199,7 @@ useEffect(() => {
       properties: {
         id: property.id,
         title: property.title,
-        type: property.type,
+        type: property.type || 'rental',
         price: property.price
       }
     }))
@@ -230,51 +236,62 @@ useEffect(() => {
           </View>
         ) : (
           <View style={{ flex: 1 }}>
-            <MapView 
-              style={styles.map}
-              onDidFinishLoadingMap={() => console.log("Map finished loading")}
-            >
-              {/* RasterSource for OSM tiles */}
-              <RasterSource
-                id="osm"
-                tileUrlTemplates={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
-                tileSize={256}
+            {loading ? (
+              <View style={styles.centerContent}>
+                <ActivityIndicator size="large" color="#2563eb" />
+                <Text style={{ marginTop: 10 }}>Loading properties...</Text>
+              </View>
+            ) : properties.length === 0 ? (
+              <View style={styles.centerContent}>
+                <Text>No properties found</Text>
+              </View>
+            ) : (
+              <MapView 
+                style={styles.map}
+                onDidFinishLoadingMap={() => console.log("Map finished loading")}
               >
-                <RasterLayer id="osm-layer" sourceID="osm" />
-              </RasterSource>
+                {/* RasterSource for OSM tiles */}
+                <RasterSource
+                  id="osm"
+                  tileUrlTemplates={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
+                  tileSize={256}
+                >
+                  <RasterLayer id="osm-layer" sourceID="osm" />
+                </RasterSource>
 
-              {/* Camera to set initial view */}
-              <Camera
-                zoomLevel={10}
-                centerCoordinate={[174.7633, -36.8485]}
-                animationDuration={2000}
-              />
+                {/* Camera to set initial view */}
+                <Camera
+                  zoomLevel={10}
+                  centerCoordinate={[174.7633, -36.8485]}
+                  animationDuration={2000}
+                />
 
-              {/* Images for markers */}
-              <Images
-                images={{ 
-                  pin: require("../../../assets/images/pin.png")
-                }}
-              />
-              
-              {/* Property markers */}
-              <ShapeSource
-                id="property-markers"
-                shape={createPropertyData()}
-                onPress={handleMarkerPress}
-              >
-                <SymbolLayer
-                  id="property-icons"
-                  style={{
-                    iconImage: 'pin',
-                    iconSize: 0.2,
-                    iconAnchor: 'bottom',
-                    iconAllowOverlap: true,
-                    iconIgnorePlacement: true
+                {/* Images for markers */}
+                <Images
+                  images={{ 
+                    pin: require("../../../assets/images/pin.png")
                   }}
                 />
-              </ShapeSource>
-            </MapView>
+                
+                {/* Property markers */}
+                <ShapeSource
+                  id="property-markers"
+                  shape={createPropertyData()}
+                  onPress={handleMarkerPress}
+                >
+                  <SymbolLayer
+                    id="property-icons"
+                    style={{
+                      iconImage: 'pin',
+                      iconSize: 0.2,
+                      iconAnchor: 'bottom',
+                      iconAllowOverlap: true,
+                      iconIgnorePlacement: true
+                    }}
+                  />
+                </ShapeSource>
+              </MapView>
+            )}
 
             {/* Floating Property Tile */}
             {selectedProperty && (
@@ -291,8 +308,10 @@ useEffect(() => {
                   <View style={styles.tileHeader}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.tileTitle}>{selectedProperty.title}</Text>
-                      <Text style={styles.tilePrice}>{selectedProperty.price}</Text>
-                      <Text style={styles.tileType}>{selectedProperty.type}</Text>
+                      <Text style={styles.tilePrice}>
+                        {formatPrice(selectedProperty.price, selectedProperty.type)}
+                      </Text>
+                      <Text style={styles.tileType}>{selectedProperty.type || 'rental'}</Text>
                     </View>
                     <TouchableOpacity onPress={closePropertyTile} style={styles.closeButton}>
                       <Text style={styles.closeButtonText}>✕</Text>
@@ -302,8 +321,9 @@ useEffect(() => {
                   <TouchableOpacity 
                     style={styles.expandButton}
                     onPress={() => {
-                      console.log('Navigate to property details:', selectedProperty.id);
-                      // this will send a console log but actually need to make it send the user to a page
+                      // Navigate to property details page
+                      router.push(`/property/${selectedProperty.id}` as any);
+                      
                     }}
                   >
                     <Text style={styles.expandButtonText}>View Details →</Text>

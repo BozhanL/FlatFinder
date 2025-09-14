@@ -99,6 +99,14 @@ export default function TabsLayout() {
             },
           }}
         />
+
+        // hides from nav bar
+        <Tabs.Screen
+          name="property/[id]"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
     </SafeAreaView>
   );
