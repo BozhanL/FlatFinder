@@ -8,12 +8,22 @@ on:
       - "**.md"
       - "LICENSE"
       - "docs/**"
+      - ".firebaserc"
+      - "database.rules.json"
+      - "firebase.json"
+      - "firestore.indexes.json"
+      - "firestore.rules"
   pull_request:
     branches: [main, master]
     paths-ignore:
       - "**.md"
       - "LICENSE"
       - "docs/**"
+      - ".firebaserc"
+      - "database.rules.json"
+      - "firebase.json"
+      - "firestore.indexes.json"
+      - "firestore.rules"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
