@@ -156,11 +156,11 @@ interface PropertyDetails {
   description: string;
   bedrooms?: number;
   bathrooms?: number;
-  area?: number;
   address?: string;
+  contract?: number; // Changed to number for weeks
+  contractLength?: number; // Alternative field name
+  minContract?: number; // Another possible field name
   imageUrl?: string;
-  contactEmail?: string;
-  contactPhone?: string;
   latitude?: number;
   longitude?: number;
 }
@@ -172,11 +172,8 @@ export default function PropertyDetailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPropertyDetails = async () => {
-      console.log("Route params:", { id }); // Debug log
-      
+    const fetchPropertyDetails = async () => {      
       if (!id) {
-        console.log("No ID found in route params");
         setError("Property ID not found");
         setLoading(false);
         return;
@@ -184,22 +181,19 @@ export default function PropertyDetailsPage() {
 
       try {
         setLoading(true);
-        console.log("Fetching property with ID:", id); // Debug log
         const doc = await firestore().collection("properties").doc(id).get();
         
-        console.log("Document exists:", doc.exists); // Debug log
-        
         if (!doc.exists) {
-          console.log("Document not found for ID:", id);
           setError("Property not found");
           setLoading(false);
           return;
         }
 
         const data = doc.data();
-        console.log("Document data:", data); // Debug log
         
         if (data) {
+          const contractWeeks = data["contract"]
+          
           const propertyDetails: PropertyDetails = {
             id: doc.id,
             title: data["title"] || 'Untitled Property',
@@ -210,14 +204,14 @@ export default function PropertyDetailsPage() {
             bathrooms: data["bathrooms"],
             address: data["address"],
             imageUrl: data["imageUrl"],
+            contract: contractWeeks,
           };
 
           setProperty(propertyDetails);
-          console.log("details:", propertyDetails.title);
         }
       } catch (err) {
-        console.error("error getting details:", err);
-        setError("failed to load property details");
+        console.error("Error getting details:", err);
+        setError("Failed to load property details");
       } finally {
         setLoading(false);
       }
@@ -234,10 +228,14 @@ export default function PropertyDetailsPage() {
     }
   };
 
+  const formatContractLength = (weeks?: number): string => {
+    if (!weeks) return 'Not specified';
+    return `${weeks} weeks`;
+  };
+
   const handleBackPress = () => {
     router.back();
   };
-
 
   if (loading) {
     return (
@@ -318,25 +316,27 @@ export default function PropertyDetailsPage() {
           {/* Property Details Grid */}
           <Text style={styles.sectionTitle}>Property Details</Text>
           <View style={styles.detailsGrid}>
-            {property.bedrooms && (
+            {property.bedrooms !== undefined && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Bedrooms</Text>
                 <Text style={styles.detailValue}>{property.bedrooms}</Text>
               </View>
             )}
-            {property.bathrooms && (
+            {property.bathrooms !== undefined && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Bathrooms</Text>
                 <Text style={styles.detailValue}>{property.bathrooms}</Text>
               </View>
             )}
-            
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Type</Text>
-              <Text style={styles.detailValue}>{property.type}</Text>
-            </View>
-          </View>
 
+            {/* Always show contract length, even if not specified */}
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Minimum Contract</Text>
+              <Text style={styles.detailValue}>{formatContractLength(property.contract)}</Text>
+            </View>
+            
+            
+          </View>
         </View>
       </ScrollView>
     </View>
