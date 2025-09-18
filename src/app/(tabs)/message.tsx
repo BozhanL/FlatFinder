@@ -1,7 +1,7 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import MessageList from "@/components/message/MessageList";
 import useUser from "@/hooks/useUser";
-import { JSX } from "react";
+import type { JSX } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function MessageView(): JSX.Element {

@@ -1,4 +1,4 @@
-import notifee, { Event, EventType } from "@notifee/react-native";
+import notifee, { type Event, EventType } from "@notifee/react-native";
 import { deleteDoc, doc, getFirestore } from "@react-native-firebase/firestore";
 import {
   FirebaseMessagingTypes,

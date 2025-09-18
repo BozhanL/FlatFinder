@@ -3,7 +3,7 @@ import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

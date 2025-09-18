@@ -1,5 +1,5 @@
-import { Group } from "@/types/Group";
-import { Message } from "@/types/Message";
+import type { Group } from "@/types/Group";
+import type { Message } from "@/types/Message";
 import {
   collection,
   doc,
@@ -9,7 +9,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from "@react-native-firebase/firestore";
-import { IMessage, User } from "react-native-gifted-chat";
+import type { IMessage, User } from "react-native-gifted-chat";
 
 export async function sendMessage(msg: IMessage, gid: string) {
   const db = getFirestore();
