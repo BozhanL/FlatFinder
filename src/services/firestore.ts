@@ -1,4 +1,6 @@
 import firestore, { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
+import type { Flatmate } from "@/types/flatmate";
+import { pickAvatarFor } from "@/utils/avatar";
 
 export function matchIdFor(a:string,b:string){
     return [a,b].sort().join("_");
@@ -34,7 +36,20 @@ export async function loadCandidates(
 
   const s = await q.get();
   return s.docs
-    .map(d => ({ id: d.id, ...(d.data() as any) }))
+    .map((d) => {
+      const data = d.data() as any;
+      const fm: Flatmate = {
+        id: d.id,
+        name: data.name,
+        age: data.age,
+        bio: data.bio,
+        budget: data.budget,
+        location: data.location,
+        tags: data.tags ?? [],
+        avatar: data.avatarUrl ? { uri: data.avatarUrl } : pickAvatarFor(d.id),
+      };
+      return fm;
+    })
     .filter(u => !swiped.has(u.id));
 }
 
@@ -75,12 +90,3 @@ export async function ensureMatchIfMutualLike(me: string, target: string) {
   }
   return null;
 }
-
-/** function to show matched list (from James?) */
-export function showMatches(){};
-
-/** function to show Messages (from James?) */
-export function showMessages(){};
-
-/** function to send Messages (from James?) */
-export function sendMessages(){};

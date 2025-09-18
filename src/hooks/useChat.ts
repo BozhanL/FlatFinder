@@ -1,1 +1,0 @@
-// James: finish the sendMessages & showMessages functions in services/firstore and create custom hook for chatting here? -Gary

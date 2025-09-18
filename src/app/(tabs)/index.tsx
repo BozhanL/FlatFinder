@@ -1,13 +1,24 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/SwipeDeck";
-import { FLATMATES } from "@/data/flatmates.mock";
+import { useCandidates } from "@/hooks/useCandidates";
+import { ensureMatchIfMutualLike, swipe } from "@/services/firestore";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
+// temp uid
+const ME = "testuser1";
+
 export default function Index() {
   const [mode, setMode] = useState(TabMode.Flatmates);
+  const { items, loading, setItems } = useCandidates(ME);
+  if (loading)
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text>Loading…</Text>
+      </View>
+    );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -49,18 +60,18 @@ export default function Index() {
         </TouchableOpacity>
       </View>
 
-      {/* Main contents to be added*/}
       <View style={{ flex: 1, position: "relative" }}>
         {mode === TabMode.Flatmates ? (
           <SwipeDeck
-            data={FLATMATES}
-            onLike={(u) => {
-              // TODO: push to firestore
-              console.log("like", u.id);
+            data={items}
+            onLike={async (u) => {
+              await swipe(ME, u.id, "like");
+              await ensureMatchIfMutualLike(ME, u.id);
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
-            onPass={(u) => {
-              // to record unlike so it won't show again
-              console.log("pass", u.id);
+            onPass={async (u) => {
+              await swipe(ME, u.id, "pass");
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
           />
         ) : (

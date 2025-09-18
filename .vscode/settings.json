@@ -7,5 +7,6 @@
   "files.associations": {
     "firestore.indexes.json": "jsonc",
     "database.rules.json": "jsonc"
-  }
+  },
+  "java.configuration.updateBuildConfiguration": "automatic"
 }

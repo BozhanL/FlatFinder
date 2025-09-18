@@ -1,7 +1,12 @@
+import useInitialNotification from "@/hooks/useInitialNotification";
+import useMessageToken from "@/hooks/useMessageToken";
+import useNotification from "@/hooks/useNotification";
 import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
+import { JSX } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 if (Platform.OS === "web") {
   const firebaseConfig = {
@@ -19,16 +24,22 @@ if (Platform.OS === "web") {
   initializeApp(firebaseConfig);
 }
 
-export default function RootLayout() {
+export default function RootLayout(): JSX.Element {
+  useNotification();
+  useMessageToken();
+  useInitialNotification();
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
+    <SafeAreaView style={{ backgroundColor: "#ECEBEC" }}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)"
+          options={{ presentation: "modal", headerShown: false }}
+        />
+      </Stack>
+    </SafeAreaView>
     </GestureHandlerRootView>
   );
 }

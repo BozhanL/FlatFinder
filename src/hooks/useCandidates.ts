@@ -2,6 +2,7 @@ import { loadCandidates } from "@/services/firestore";
 import type { Flatmate } from "@/types/flatmate";
 import { useEffect, useState } from "react";
 
+
 export function useCandidates(
   meUid: string,
   filters?: { area?: string; maxBudget?: number }
