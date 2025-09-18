@@ -165,9 +165,7 @@ interface PropertyDetails {
   bedrooms?: number;
   bathrooms?: number;
   address?: string;
-  contract?: number; // Changed to number for weeks
-  contractLength?: number; // Alternative field name
-  minContract?: number; // Another possible field name
+  contract?: number;
   imageUrl?: string;
   latitude?: number;
   longitude?: number;
@@ -252,11 +250,13 @@ export default function PropertyDetailsPage() {
           <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Loading...</Text>
+          <Text style={styles.headerTitle} testID="property-header">
+            Loading...
+          </Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={{ marginTop: 10, color: "#666" }}>
+          <Text style={{ marginTop: 10, color: "#666" }} testID="loading-text">
             Loading property details...
           </Text>
         </View>
@@ -271,13 +271,18 @@ export default function PropertyDetailsPage() {
           <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Error</Text>
+          <Text style={styles.headerTitle} testID="property-header">
+            Error
+          </Text>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error || "Property not found"}</Text>
+          <Text style={styles.errorText} testID="error-text">
+            {error || "Property not found"}
+          </Text>
           <TouchableOpacity
             onPress={handleBackPress}
             style={styles.contactButton}
+            testID="back-button"
           >
             <Text style={styles.contactButtonText}>Go Back</Text>
           </TouchableOpacity>
@@ -290,10 +295,18 @@ export default function PropertyDetailsPage() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={handleBackPress}
+          style={styles.backButton}
+          testID="back-button"
+        >
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
+        <Text
+          style={styles.headerTitle}
+          numberOfLines={1}
+          testID="property-header"
+        >
           {property.title}
         </Text>
       </View>
@@ -305,50 +318,74 @@ export default function PropertyDetailsPage() {
             <Image
               source={{ uri: property.imageUrl }}
               style={styles.propertyImage}
+              testID="property-image"
             />
           ) : (
-            <Text style={styles.placeholderImage}>No Image Available</Text>
+            <Text
+              style={styles.placeholderImage}
+              testID="property-image-placeholder"
+            >
+              No Image Available
+            </Text>
           )}
         </View>
 
         {/* Property Details */}
         <View style={styles.contentSection}>
-          <Text style={styles.propertyTitle}>{property.title}</Text>
-          <Text style={styles.propertyPrice}>
+          <Text style={styles.propertyTitle} testID="property-title">
+            {property.title}
+          </Text>
+          <Text style={styles.propertyPrice} testID="property-price">
             {formatPrice(property.price, property.type)}
           </Text>
-          <Text style={styles.propertyType}>{property.type}</Text>
+          <Text style={styles.propertyType} testID="property-type">
+            {property.type}
+          </Text>
 
           {property.address && (
             <>
-              <Text style={styles.sectionTitle}>Address</Text>
-              <Text style={styles.description}>{property.address}</Text>
+              <Text style={styles.sectionTitle} testID="address-title">
+                Address
+              </Text>
+              <Text style={styles.description} testID="property-address">
+                {property.address}
+              </Text>
             </>
           )}
 
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>{property.description}</Text>
+          <Text style={styles.sectionTitle} testID="description-title">
+            Description
+          </Text>
+          <Text style={styles.description} testID="property-description">
+            {property.description}
+          </Text>
 
           {/* Property Details Grid */}
-          <Text style={styles.sectionTitle}>Property Details</Text>
+          <Text style={styles.sectionTitle} testID="details-title">
+            Property Details
+          </Text>
           <View style={styles.detailsGrid}>
             {property.bedrooms !== undefined && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Bedrooms</Text>
-                <Text style={styles.detailValue}>{property.bedrooms}</Text>
+                <Text style={styles.detailValue} testID="property-bedrooms">
+                  {property.bedrooms}
+                </Text>
               </View>
             )}
             {property.bathrooms !== undefined && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Bathrooms</Text>
-                <Text style={styles.detailValue}>{property.bathrooms}</Text>
+                <Text style={styles.detailValue} testID="property-bathrooms">
+                  {property.bathrooms}
+                </Text>
               </View>
             )}
 
             {/* Always show contract length, even if not specified */}
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Minimum Contract</Text>
-              <Text style={styles.detailValue}>
+              <Text style={styles.detailValue} testID="property-contract">
                 {formatContractLength(property.contract)}
               </Text>
             </View>
