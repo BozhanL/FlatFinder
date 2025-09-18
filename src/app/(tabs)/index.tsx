@@ -115,7 +115,7 @@ interface Property {
   type?: string;
   bedrooms?: number;
   bathrooms?: number;
-  contract?: string;
+  contract?: number;
 }
 
 interface FilterState {
@@ -124,6 +124,7 @@ interface FilterState {
   maxPrice: string;
   bedrooms: number[];
   bathrooms: number[];
+  minContract: string;
 }
 
 // Global filter state
@@ -132,7 +133,8 @@ let globalFilters: FilterState = {
   minPrice: '',
   maxPrice: '',
   bedrooms: [],
-  bathrooms: []
+  bathrooms: [],
+  minContract: ''
 };
 
 let globalApplyFilter: ((filters: FilterState) => void) | null = null;
@@ -200,6 +202,16 @@ export default function Index() {
         const meetsBathroomRequirement = filters.bathrooms.some(minBathrooms => propertyBathrooms >= minBathrooms);
         if (!meetsBathroomRequirement) {
           return false;
+        }
+      }
+
+      // Contract length filter
+      if (filters.minContract && filters.minContract !== '') {
+        const minContract = parseInt(filters.minContract);
+        if (!isNaN(minContract)) {
+          if (!property.contract || property.contract > minContract) {
+            return false;
+          }
         }
       }
 
@@ -315,7 +327,8 @@ export default function Index() {
            filters.minPrice !== '' || 
            filters.maxPrice !== '' || 
            filters.bedrooms.length > 0 ||
-           filters.bathrooms.length > 0;
+           filters.bathrooms.length > 0 ||
+           filters.minContract !== '';
   };
 
   // Count active filters
@@ -325,6 +338,7 @@ export default function Index() {
     if (filters.minPrice !== '' || filters.maxPrice !== '') count++;
     if (filters.bedrooms.length > 0) count++;
     if (filters.bathrooms.length > 0) count++;
+    if (filters.minContract !== '') count++;
     return count;
   };
 

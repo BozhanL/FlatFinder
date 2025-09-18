@@ -107,67 +107,42 @@ interface FilterState {
   maxPrice: string;
   bedrooms: number[];
   bathrooms: number[];
-}
-
-// Local state interface for single selection
-interface LocalFilterState {
-  type: string[];
-  minPrice: string;
-  maxPrice: string;
-  bedrooms: number | null;
-  bathrooms: number | null;
+  minContract: string;
 }
 
 export default function FilterScreen() {
-  const [localFilters, setLocalFilters] = useState<LocalFilterState>({
+  const [filters, setFilters] = useState<FilterState>({
     type: [],
     minPrice: '',
     maxPrice: '',
-    bedrooms: null,
-    bathrooms: null,
+    bedrooms: [],
+    bathrooms: [],
+    minContract: '',
   });
 
   const propertyTypes = ['rental', 'sale'];
   const bedroomOptions = [1, 2, 3, 4, 5];
   const bathroomOptions = [1, 2, 3, 4];
 
-  const toggleFilter = (category: keyof LocalFilterState, value: string | number) => {
-    setLocalFilters(prev => {
-      // For property type (multi-select)
-      if (category === 'type') {
-        const current = prev[category] as string[];
-        const newArray = current.includes(value as string) 
+  const toggleFilter = (category: keyof FilterState, value: string | number) => {
+    setFilters(prev => {
+      const current = prev[category];
+      if (Array.isArray(current)) {
+        const newArray = current.includes(value as never) 
           ? current.filter(item => item !== value)
-          : [...current, value as string];
+          : [...current, value as never];
         return { ...prev, [category]: newArray };
-      }
-      // For bedrooms and bathrooms (single-select)
-      else if (category === 'bedrooms' || category === 'bathrooms') {
-        const current = prev[category] as number | null;
-        // If clicking the same value again, clear the selection
-        if (current === value) {
-          return { ...prev, [category]: null };
-        }
-        // Otherwise set the new value
-        return { ...prev, [category]: value as number };
       }
       return prev;
     });
   };
 
   const updatePriceFilter = (type: 'minPrice' | 'maxPrice', value: string) => {
-    setLocalFilters(prev => ({ ...prev, [type]: value }));
+    setFilters(prev => ({ ...prev, [type]: value }));
   };
 
-  // Convert local single selection state to the expected array format
-  const convertToFilterState = (local: LocalFilterState): FilterState => {
-    return {
-      type: local.type,
-      minPrice: local.minPrice,
-      maxPrice: local.maxPrice,
-      bedrooms: local.bedrooms !== null ? [local.bedrooms] : [],
-      bathrooms: local.bathrooms !== null ? [local.bathrooms] : [],
-    };
+  const updateContractFilter = (value: string) => {
+    setFilters(prev => ({ ...prev, minContract: value }));
   };
 
   const clearFilters = () => {
@@ -175,15 +150,16 @@ export default function FilterScreen() {
       type: [],
       minPrice: '',
       maxPrice: '',
-      bedrooms: null,
-      bathrooms: null,
+      bedrooms: [],
+      bathrooms: [],
+      minContract: '',
     };
-    setLocalFilters(clearedFilters);
+    setFilters(clearedFilters);
     
     // Apply cleared filters immediately
     const applyFilter = getGlobalApplyFilter();
     if (applyFilter) {
-      applyFilter(convertToFilterState(clearedFilters));
+      applyFilter(clearedFilters);
     }
   };
 
@@ -195,17 +171,18 @@ export default function FilterScreen() {
       return;
     }
 
-    console.log('Applying filters:', localFilters);
-    applyFilter(convertToFilterState(localFilters));
+    console.log('Applying filters:', filters);
+    applyFilter(filters);
     router.back();
   };
 
   const hasActiveFilters = () => {
-    return localFilters.type.length > 0 || 
-           localFilters.bedrooms !== null || 
-           localFilters.bathrooms !== null ||
-           localFilters.minPrice !== '' || 
-           localFilters.maxPrice !== '';
+    return filters.type.length > 0 || 
+           filters.bedrooms.length > 0 || 
+           filters.bathrooms.length > 0 ||
+           filters.minPrice !== '' || 
+           filters.maxPrice !== '' ||
+           filters.minContract !== '';
   };
 
   return (
@@ -229,13 +206,13 @@ export default function FilterScreen() {
                   key={type}
                   style={[
                     styles.filterChip,
-                    localFilters.type.includes(type) && styles.filterChipActive
+                    filters.type.includes(type) && styles.filterChipActive
                   ]}
                   onPress={() => toggleFilter('type', type)}
                 >
                   <Text style={[
                     styles.filterChipText,
-                    localFilters.type.includes(type) && styles.filterChipTextActive
+                    filters.type.includes(type) && styles.filterChipTextActive
                   ]}>
                     {type === 'rental' ? 'For Rent' : 'For Sale'}
                   </Text>
@@ -251,7 +228,7 @@ export default function FilterScreen() {
               <TextInput
                 style={styles.priceInput}
                 placeholder="Min price"
-                value={localFilters.minPrice}
+                value={filters.minPrice}
                 onChangeText={(value) => updatePriceFilter('minPrice', value)}
                 keyboardType="numeric"
               />
@@ -259,7 +236,7 @@ export default function FilterScreen() {
               <TextInput
                 style={styles.priceInput}
                 placeholder="Max price"
-                value={localFilters.maxPrice}
+                value={filters.maxPrice}
                 onChangeText={(value) => updatePriceFilter('maxPrice', value)}
                 keyboardType="numeric"
               />
@@ -275,13 +252,13 @@ export default function FilterScreen() {
                   key={bedrooms}
                   style={[
                     styles.filterChip,
-                    localFilters.bedrooms === bedrooms && styles.filterChipActive
+                    filters.bedrooms.includes(bedrooms) && styles.filterChipActive
                   ]}
                   onPress={() => toggleFilter('bedrooms', bedrooms)}
                 >
                   <Text style={[
                     styles.filterChipText,
-                    localFilters.bedrooms === bedrooms && styles.filterChipTextActive
+                    filters.bedrooms.includes(bedrooms) && styles.filterChipTextActive
                   ]}>
                     {bedrooms}+ bed{bedrooms > 1 ? 's' : ''}
                   </Text>
@@ -299,19 +276,31 @@ export default function FilterScreen() {
                   key={bathrooms}
                   style={[
                     styles.filterChip,
-                    localFilters.bathrooms === bathrooms && styles.filterChipActive
+                    filters.bathrooms.includes(bathrooms) && styles.filterChipActive
                   ]}
                   onPress={() => toggleFilter('bathrooms', bathrooms)}
                 >
                   <Text style={[
                     styles.filterChipText,
-                    localFilters.bathrooms === bathrooms && styles.filterChipTextActive
+                    filters.bathrooms.includes(bathrooms) && styles.filterChipTextActive
                   ]}>
                     {bathrooms}+ bath{bathrooms > 1 ? 's' : ''}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* Minimum Contract Length Filter */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Minimum Contract Length (Weeks)</Text>
+            <TextInput
+              style={styles.priceInput}
+              placeholder="Enter weeks (e.g. 1 for 1 week)"
+              value={filters.minContract}
+              onChangeText={updateContractFilter}
+              keyboardType="numeric"
+            />
           </View>
         </ScrollView>
 
@@ -332,11 +321,9 @@ export default function FilterScreen() {
           >
             <Text style={[styles.buttonText, styles.applyButtonText]}>
               Apply Filters{hasActiveFilters() ? ` (${
-                localFilters.type.length + 
-                (localFilters.bedrooms !== null ? 1 : 0) + 
-                (localFilters.bathrooms !== null ? 1 : 0) +
-                (localFilters.minPrice ? 1 : 0) + 
-                (localFilters.maxPrice ? 1 : 0)
+                filters.type.length + filters.bedrooms.length + filters.bathrooms.length +
+                (filters.minPrice ? 1 : 0) + (filters.maxPrice ? 1 : 0) + 
+                (filters.minContract ? 1 : 0)
               })` : ''}
             </Text>
           </TouchableOpacity>
