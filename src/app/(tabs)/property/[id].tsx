@@ -1,13 +1,21 @@
 import firestore from "@react-native-firebase/firestore";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    position: 'absolute',
+    backgroundColor: "#fff",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -16,13 +24,13 @@ const styles = StyleSheet.create({
     paddingTop: 5,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: "#e5e5e5",
   },
   backButton: {
     padding: 8,
@@ -30,29 +38,29 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 18,
-    color: '#2563eb',
+    color: "#2563eb",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   errorText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginBottom: 20,
   },
   scrollContent: {
@@ -60,50 +68,50 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     height: 250,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
   },
   propertyImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   placeholderImage: {
     fontSize: 16,
-    color: '#999',
+    color: "#999",
   },
   contentSection: {
     padding: 16,
   },
   propertyTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 8,
   },
   propertyPrice: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: "600",
+    color: "#2563eb",
     marginBottom: 4,
   },
   propertyType: {
     fontSize: 16,
-    color: '#666',
-    textTransform: 'capitalize',
+    color: "#666",
+    textTransform: "capitalize",
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 20,
     marginBottom: 8,
   },
   description: {
     fontSize: 16,
-    color: '#444',
+    color: "#444",
     lineHeight: 24,
     marginBottom: 16,
   },
@@ -111,40 +119,40 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   detailRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   detailLabel: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     flex: 1,
   },
   detailValue: {
     fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
     flex: 1,
-    textAlign: 'right',
+    textAlign: "right",
   },
   contactSection: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 16,
     margin: 16,
     borderRadius: 12,
   },
   contactButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     borderRadius: 8,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 12,
   },
   contactButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
@@ -172,7 +180,7 @@ export default function PropertyDetailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPropertyDetails = async () => {      
+    const fetchPropertyDetails = async () => {
       if (!id) {
         setError("Property ID not found");
         setLoading(false);
@@ -182,7 +190,7 @@ export default function PropertyDetailsPage() {
       try {
         setLoading(true);
         const doc = await firestore().collection("properties").doc(id).get();
-        
+
         if (!doc.exists) {
           setError("Property not found");
           setLoading(false);
@@ -190,16 +198,16 @@ export default function PropertyDetailsPage() {
         }
 
         const data = doc.data();
-        
+
         if (data) {
-          const contractWeeks = data["contract"]
-          
+          const contractWeeks = data["contract"];
+
           const propertyDetails: PropertyDetails = {
             id: doc.id,
-            title: data["title"] || 'Untitled Property',
+            title: data["title"] || "Untitled Property",
             price: data["price"] || 0,
-            type: data["type"] || 'rental',
-            description: data["description"] || 'No description available.',
+            type: data["type"] || "rental",
+            description: data["description"] || "No description available.",
             bedrooms: data["bedrooms"],
             bathrooms: data["bathrooms"],
             address: data["address"],
@@ -221,7 +229,7 @@ export default function PropertyDetailsPage() {
   }, [id]);
 
   const formatPrice = (price: number, type: string): string => {
-    if (type === 'sale') {
+    if (type === "sale") {
       return `$${price.toLocaleString()}`;
     } else {
       return `$${price}/week`;
@@ -229,7 +237,7 @@ export default function PropertyDetailsPage() {
   };
 
   const formatContractLength = (weeks?: number): string => {
-    if (!weeks) return 'Not specified';
+    if (!weeks) return "Not specified";
     return `${weeks} weeks`;
   };
 
@@ -248,7 +256,9 @@ export default function PropertyDetailsPage() {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={{ marginTop: 10, color: '#666' }}>Loading property details...</Text>
+          <Text style={{ marginTop: 10, color: "#666" }}>
+            Loading property details...
+          </Text>
         </View>
       </View>
     );
@@ -265,7 +275,10 @@ export default function PropertyDetailsPage() {
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error || "Property not found"}</Text>
-          <TouchableOpacity onPress={handleBackPress} style={styles.contactButton}>
+          <TouchableOpacity
+            onPress={handleBackPress}
+            style={styles.contactButton}
+          >
             <Text style={styles.contactButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -289,7 +302,10 @@ export default function PropertyDetailsPage() {
         {/* Property Image */}
         <View style={styles.imageContainer}>
           {property.imageUrl ? (
-            <Image source={{ uri: property.imageUrl }} style={styles.propertyImage} />
+            <Image
+              source={{ uri: property.imageUrl }}
+              style={styles.propertyImage}
+            />
           ) : (
             <Text style={styles.placeholderImage}>No Image Available</Text>
           )}
@@ -332,10 +348,10 @@ export default function PropertyDetailsPage() {
             {/* Always show contract length, even if not specified */}
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Minimum Contract</Text>
-              <Text style={styles.detailValue}>{formatContractLength(property.contract)}</Text>
+              <Text style={styles.detailValue}>
+                {formatContractLength(property.contract)}
+              </Text>
             </View>
-            
-            
           </View>
         </View>
       </ScrollView>

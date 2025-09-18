@@ -90,14 +90,13 @@ export default function TabsLayout(): JSX.Element {
           },
         }}
       />
-
-      // hides from nav bar
-        <Tabs.Screen
-          name="property/[id]"
-          options={{
-            href: null,
-          }}
-        />
+      {/* Floating Property Tile */}
+      <Tabs.Screen
+        name="property/[id]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

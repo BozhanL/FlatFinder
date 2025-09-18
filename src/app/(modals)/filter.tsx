@@ -6,14 +6,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { getGlobalApplyFilter } from "../(tabs)/index";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   content: {
     padding: 16,
@@ -23,13 +23,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 12,
   },
   filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   filterChip: {
@@ -37,29 +37,29 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
   },
   filterChipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: "#2563eb",
+    borderColor: "#2563eb",
   },
   filterChipText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   filterChipTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   priceInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   priceInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -67,37 +67,37 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
+    borderTopColor: "#e5e5e5",
   },
   button: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   clearButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   applyButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   clearButtonText: {
-    color: '#666',
+    color: "#666",
   },
   applyButtonText: {
-    color: '#fff',
+    color: "#fff",
   },
 });
 
@@ -110,52 +110,66 @@ interface FilterState {
   minContract: string;
 }
 
-export default function FilterScreen() {
+export default function FilterScreen(): React.JSX.Element {
   const [filters, setFilters] = useState<FilterState>({
     type: [],
-    minPrice: '',
-    maxPrice: '',
+    minPrice: "",
+    maxPrice: "",
     bedrooms: [],
     bathrooms: [],
-    minContract: '',
+    minContract: "",
   });
 
-  const propertyTypes = ['rental', 'sale'];
+  const propertyTypes = ["rental", "sale"];
   const bedroomOptions = [1, 2, 3, 4, 5];
   const bathroomOptions = [1, 2, 3, 4];
 
-  const toggleFilter = (category: keyof FilterState, value: string | number) => {
-    setFilters(prev => {
+  const toggleFilter = (
+    category: keyof FilterState,
+    value: string | number,
+  ): void => {
+    setFilters((prev) => {
       const current = prev[category];
       if (Array.isArray(current)) {
-        const newArray = current.includes(value as never) 
-          ? current.filter(item => item !== value)
-          : [...current, value as never];
-        return { ...prev, [category]: newArray };
+        if (category === "bedrooms" || category === "bathrooms") {
+          // Single selection for bedrooms and bathrooms
+          const isSelected = current.includes(value as never);
+          const newArray = isSelected ? [] : [value as never];
+          return { ...prev, [category]: newArray };
+        } else {
+          // Multi-selection for property type
+          const newArray = current.includes(value as never)
+            ? current.filter((item) => item !== value)
+            : [...current, value as never];
+          return { ...prev, [category]: newArray };
+        }
       }
       return prev;
     });
   };
 
-  const updatePriceFilter = (type: 'minPrice' | 'maxPrice', value: string) => {
-    setFilters(prev => ({ ...prev, [type]: value }));
+  const updatePriceFilter = (
+    type: "minPrice" | "maxPrice",
+    value: string,
+  ): void => {
+    setFilters((prev) => ({ ...prev, [type]: value }));
   };
 
-  const updateContractFilter = (value: string) => {
-    setFilters(prev => ({ ...prev, minContract: value }));
+  const updateContractFilter = (value: string): void => {
+    setFilters((prev) => ({ ...prev, minContract: value }));
   };
 
-  const clearFilters = () => {
+  const clearFilters = (): void => {
     const clearedFilters = {
       type: [],
-      minPrice: '',
-      maxPrice: '',
+      minPrice: "",
+      maxPrice: "",
       bedrooms: [],
       bathrooms: [],
-      minContract: '',
+      minContract: "",
     };
     setFilters(clearedFilters);
-    
+
     // Apply cleared filters immediately
     const applyFilter = getGlobalApplyFilter();
     if (applyFilter) {
@@ -163,58 +177,63 @@ export default function FilterScreen() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = (): void => {
     const applyFilter = getGlobalApplyFilter();
     if (!applyFilter) {
-      console.error('No filter function available');
+      console.error("No filter function available");
       router.back();
       return;
     }
 
-    console.log('Applying filters:', filters);
+    console.log("Applying filters:", filters);
     applyFilter(filters);
     router.back();
   };
 
-  const hasActiveFilters = () => {
-    return filters.type.length > 0 || 
-           filters.bedrooms.length > 0 || 
-           filters.bathrooms.length > 0 ||
-           filters.minPrice !== '' || 
-           filters.maxPrice !== '' ||
-           filters.minContract !== '';
+  const hasActiveFilters = (): boolean => {
+    return (
+      filters.type.length > 0 ||
+      filters.bedrooms.length > 0 ||
+      filters.bathrooms.length > 0 ||
+      filters.minPrice !== "" ||
+      filters.maxPrice !== "" ||
+      filters.minContract !== ""
+    );
   };
 
   return (
     <>
       <Stack.Screen
-        options={{ 
-          headerShown: true, 
-          title: "Filter Properties", 
-          presentation: "modal" 
+        options={{
+          headerShown: true,
+          title: "Filter Properties",
+          presentation: "modal",
         }}
       />
-      
+
       <View style={styles.container}>
         <ScrollView style={styles.content}>
           {/* Property Type Filter */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Property Type</Text>
             <View style={styles.filterRow}>
-              {propertyTypes.map(type => (
+              {propertyTypes.map((type) => (
                 <TouchableOpacity
                   key={type}
                   style={[
                     styles.filterChip,
-                    filters.type.includes(type) && styles.filterChipActive
+                    filters.type.includes(type) && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter('type', type)}
+                  onPress={() => toggleFilter("type", type)}
                 >
-                  <Text style={[
-                    styles.filterChipText,
-                    filters.type.includes(type) && styles.filterChipTextActive
-                  ]}>
-                    {type === 'rental' ? 'For Rent' : 'For Sale'}
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filters.type.includes(type) &&
+                        styles.filterChipTextActive,
+                    ]}
+                  >
+                    {type === "rental" ? "For Rent" : "For Sale"}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -229,7 +248,7 @@ export default function FilterScreen() {
                 style={styles.priceInput}
                 placeholder="Min price"
                 value={filters.minPrice}
-                onChangeText={(value) => updatePriceFilter('minPrice', value)}
+                onChangeText={(value) => updatePriceFilter("minPrice", value)}
                 keyboardType="numeric"
               />
               <Text style={styles.priceLabel}>to</Text>
@@ -237,7 +256,7 @@ export default function FilterScreen() {
                 style={styles.priceInput}
                 placeholder="Max price"
                 value={filters.maxPrice}
-                onChangeText={(value) => updatePriceFilter('maxPrice', value)}
+                onChangeText={(value) => updatePriceFilter("maxPrice", value)}
                 keyboardType="numeric"
               />
             </View>
@@ -245,22 +264,26 @@ export default function FilterScreen() {
 
           {/* Bedrooms Filter */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Bedrooms</Text>
+            <Text style={styles.sectionTitle}>Bedrooms (select one)</Text>
             <View style={styles.filterRow}>
-              {bedroomOptions.map(bedrooms => (
+              {bedroomOptions.map((bedrooms) => (
                 <TouchableOpacity
                   key={bedrooms}
                   style={[
                     styles.filterChip,
-                    filters.bedrooms.includes(bedrooms) && styles.filterChipActive
+                    filters.bedrooms.includes(bedrooms) &&
+                      styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter('bedrooms', bedrooms)}
+                  onPress={() => toggleFilter("bedrooms", bedrooms)}
                 >
-                  <Text style={[
-                    styles.filterChipText,
-                    filters.bedrooms.includes(bedrooms) && styles.filterChipTextActive
-                  ]}>
-                    {bedrooms}+ bed{bedrooms > 1 ? 's' : ''}
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filters.bedrooms.includes(bedrooms) &&
+                        styles.filterChipTextActive,
+                    ]}
+                  >
+                    {bedrooms}+ bed{bedrooms > 1 ? "s" : ""}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -269,22 +292,26 @@ export default function FilterScreen() {
 
           {/* Bathrooms Filter */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Bathrooms</Text>
+            <Text style={styles.sectionTitle}>Bathrooms (select one)</Text>
             <View style={styles.filterRow}>
-              {bathroomOptions.map(bathrooms => (
+              {bathroomOptions.map((bathrooms) => (
                 <TouchableOpacity
                   key={bathrooms}
                   style={[
                     styles.filterChip,
-                    filters.bathrooms.includes(bathrooms) && styles.filterChipActive
+                    filters.bathrooms.includes(bathrooms) &&
+                      styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter('bathrooms', bathrooms)}
+                  onPress={() => toggleFilter("bathrooms", bathrooms)}
                 >
-                  <Text style={[
-                    styles.filterChipText,
-                    filters.bathrooms.includes(bathrooms) && styles.filterChipTextActive
-                  ]}>
-                    {bathrooms}+ bath{bathrooms > 1 ? 's' : ''}
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      filters.bathrooms.includes(bathrooms) &&
+                        styles.filterChipTextActive,
+                    ]}
+                  >
+                    {bathrooms}+ bath{bathrooms > 1 ? "s" : ""}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -293,7 +320,9 @@ export default function FilterScreen() {
 
           {/* Minimum Contract Length Filter */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Minimum Contract Length (Weeks)</Text>
+            <Text style={styles.sectionTitle}>
+              Minimum Contract Length (Weeks)
+            </Text>
             <TextInput
               style={styles.priceInput}
               placeholder="Enter weeks (e.g. 1 for 1 week)"
@@ -306,7 +335,7 @@ export default function FilterScreen() {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.button, styles.clearButton]}
             onPress={clearFilters}
           >
@@ -314,17 +343,23 @@ export default function FilterScreen() {
               Clear All
             </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.button, styles.applyButton]}
             onPress={applyFilters}
           >
             <Text style={[styles.buttonText, styles.applyButtonText]}>
-              Apply Filters{hasActiveFilters() ? ` (${
-                filters.type.length + filters.bedrooms.length + filters.bathrooms.length +
-                (filters.minPrice ? 1 : 0) + (filters.maxPrice ? 1 : 0) + 
-                (filters.minContract ? 1 : 0)
-              })` : ''}
+              Apply Filters
+              {hasActiveFilters()
+                ? ` (${
+                    filters.type.length +
+                    filters.bedrooms.length +
+                    filters.bathrooms.length +
+                    (filters.minPrice ? 1 : 0) +
+                    (filters.maxPrice ? 1 : 0) +
+                    (filters.minContract ? 1 : 0)
+                  })`
+                : ""}
             </Text>
           </TouchableOpacity>
         </View>

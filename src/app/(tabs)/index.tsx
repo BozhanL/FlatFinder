@@ -7,12 +7,20 @@ import {
   RasterLayer,
   RasterSource,
   ShapeSource,
-  SymbolLayer
+  SymbolLayer,
 } from "@maplibre/maplibre-react-native";
-import firestore, { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -43,14 +51,14 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   centerContent: { flex: 1, alignItems: "center", justifyContent: "center" },
   floatingTile: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: 16,
     right: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -59,46 +67,46 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   tileHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   tileTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 4,
   },
   tilePrice: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: "600",
+    color: "#2563eb",
     marginBottom: 2,
   },
   tileType: {
     fontSize: 12,
-    color: '#666',
-    textTransform: 'capitalize',
+    color: "#666",
+    textTransform: "capitalize",
   },
   closeButton: {
     padding: 4,
   },
   closeButtonText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   expandButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     borderRadius: 8,
     padding: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   expandButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
   },
-}); 
+});
 
 const enum TabMode {
   Flatmates = "Flatmates",
@@ -130,20 +138,22 @@ interface FilterState {
 // Global filter state
 let globalFilters: FilterState = {
   type: [],
-  minPrice: '',
-  maxPrice: '',
+  minPrice: "",
+  maxPrice: "",
   bedrooms: [],
   bathrooms: [],
-  minContract: ''
+  minContract: "",
 };
 
 let globalApplyFilter: ((filters: FilterState) => void) | null = null;
 
-export const getGlobalApplyFilter = () => globalApplyFilter;
+export const getGlobalApplyFilter = (): ((filters: FilterState) => void) | null => globalApplyFilter;
 
-export default function Index() {
+export default function Index(): React.JSX.Element {
   const [mode, setMode] = useState(TabMode.Flatmates);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
   const [isVisible, setIsVisible] = useState(false);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -152,45 +162,52 @@ export default function Index() {
 
   // Filter function
   useEffect(() => {
-    globalApplyFilter = (newFilters: FilterState) => {
-      console.log('Applying filters in index:', newFilters);
+    globalApplyFilter = (newFilters: FilterState): void => {
+      console.log("Applying filters in index:", newFilters);
       setFilters(newFilters);
       globalFilters = newFilters;
     };
-    
-    return () => {
+
+    return (): void => {
       globalApplyFilter = null;
     };
   }, []);
 
   // Using client sided filtering as firestore doesn't support complex "OR" queries
   // Eg, both "minimum bedrooms" and "minimum bathrooms" at the same time
-  const applyFilters = (properties: Property[], filters: FilterState): Property[] => {
-    return properties.filter(property => {
+  const applyFilters = (
+    properties: Property[],
+    filters: FilterState,
+  ): Property[] => {
+    return properties.filter((property) => {
       // Property type filter - if empty, show all types
       if (filters.type.length > 0) {
-        const propertyType = property.type || 'rental';
+        const propertyType = property.type || "rental";
         if (!filters.type.includes(propertyType)) {
           return false;
         }
       }
 
       // Price filter
-      if (filters.minPrice !== '' || filters.maxPrice !== '') {
+      if (filters.minPrice !== "" || filters.maxPrice !== "") {
         const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-        const maxPrice = filters.maxPrice ? parseFloat(filters.maxPrice) : Infinity;
-        
-        if (isNaN(minPrice) || isNaN(maxPrice)) {
-          // Skip price filtering if values are invalid
-        } else if (property.price < minPrice || property.price > maxPrice) {
-          return false;
+        const maxPrice = filters.maxPrice
+          ? parseFloat(filters.maxPrice)
+          : Infinity;
+
+        if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+          if (property.price < minPrice || property.price > maxPrice) {
+            return false;
+          }
         }
       }
 
       // Bedrooms filter - if array is empty, show all bedroom counts
       if (filters.bedrooms.length > 0) {
         const propertyBedrooms = property.bedrooms || 0;
-        const meetsBedroomRequirement = filters.bedrooms.some(minBedrooms => propertyBedrooms >= minBedrooms);
+        const meetsBedroomRequirement = filters.bedrooms.some(
+          (minBedrooms) => propertyBedrooms >= minBedrooms,
+        );
         if (!meetsBedroomRequirement) {
           return false;
         }
@@ -199,14 +216,16 @@ export default function Index() {
       // Bathrooms filter - if array is empty, show all bathroom counts
       if (filters.bathrooms.length > 0) {
         const propertyBathrooms = property.bathrooms || 0;
-        const meetsBathroomRequirement = filters.bathrooms.some(minBathrooms => propertyBathrooms >= minBathrooms);
+        const meetsBathroomRequirement = filters.bathrooms.some(
+          (minBathrooms) => propertyBathrooms >= minBathrooms,
+        );
         if (!meetsBathroomRequirement) {
           return false;
         }
       }
 
       // Contract length filter
-      if (filters.minContract && filters.minContract !== '') {
+      if (filters.minContract && filters.minContract !== "") {
         const minContract = parseInt(filters.minContract);
         if (!isNaN(minContract)) {
           if (!property.contract || property.contract > minContract) {
@@ -222,48 +241,51 @@ export default function Index() {
   // Apply filters whenever filters change
   useEffect(() => {
     const filtered = applyFilters(allProperties, filters);
-    console.log(`Filtered ${filtered.length} properties from ${allProperties.length} total`);
-    console.log('Current filters:', filters);
+    console.log(
+      `Filtered ${filtered.length} properties from ${allProperties.length} total`,
+    );
+    console.log("Current filters:", filters);
     setFilteredProperties(filtered);
   }, [allProperties, filters]);
 
   // Fetch properties from Firebase
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchProperties = async (): Promise<void> => {
       try {
         setLoading(true);
         const snapshot = await firestore().collection("properties").get();
-        
+
         const fetchedProperties: Property[] = [];
-        
+
         snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
           const data = doc.data();
-          
+
           if (data) {
             // Extract coordinates from GeoPoint data
             const coordinates = data["coordinates"];
             const latitude = coordinates?._latitude || coordinates?.latitude;
             const longitude = coordinates?._longitude || coordinates?.longitude;
-            
+
             const property: Property = {
               id: doc.id,
-              title: data["title"] || 'Untitled Property',
+              title: data["title"] || "Untitled Property",
               latitude: latitude,
               longitude: longitude,
               price: data["price"] || 0,
-              type: data["type"] || 'rental',
+              type: data["type"] || "rental",
               bedrooms: data["bedrooms"] || undefined,
               bathrooms: data["bathrooms"] || undefined,
               contract: data["contract"] || undefined,
             };
-            
+
             fetchedProperties.push(property);
           }
         });
-        
+
         setAllProperties(fetchedProperties);
-        console.log(`Loaded ${fetchedProperties.length} properties from Firebase`);
-        
+        console.log(
+          `Loaded ${fetchedProperties.length} properties from Firebase`,
+        );
       } catch (error) {
         console.error("Error fetching properties:", error);
       } finally {
@@ -275,11 +297,11 @@ export default function Index() {
   }, []);
 
   // Handle marker press
-  const handleMarkerPress = (event: any) => {
+  const handleMarkerPress = (event: any): void => {
     const feature = event.features[0];
     const propertyId = feature.properties.id;
-    const property = filteredProperties.find(p => p.id === propertyId);
-    
+    const property = filteredProperties.find((p) => p.id === propertyId);
+
     if (property) {
       setSelectedProperty(property);
       setIsVisible(true);
@@ -287,7 +309,7 @@ export default function Index() {
   };
 
   // Close the floating tile
-  const closePropertyTile = () => {
+  const closePropertyTile = (): void => {
     setIsVisible(false);
     setTimeout(() => {
       setSelectedProperty(null);
@@ -296,7 +318,7 @@ export default function Index() {
 
   // Format price for display
   const formatPrice = (price: number, type?: string): string => {
-    if (type === 'sale') {
+    if (type === "sale") {
       return `$${price.toLocaleString()}`;
     } else {
       return `$${price}/week`;
@@ -305,40 +327,42 @@ export default function Index() {
 
   // Create GeoJSON for filtered properties
   const createPropertyData = () => ({
-    type: 'FeatureCollection' as const,
+    type: "FeatureCollection" as const,
     features: filteredProperties.map((property) => ({
-      type: 'Feature' as const,
+      type: "Feature" as const,
       geometry: {
-        type: 'Point' as const,
-        coordinates: [property.longitude, property.latitude]
+        type: "Point" as const,
+        coordinates: [property.longitude, property.latitude],
       },
       properties: {
         id: property.id,
         title: property.title,
-        type: property.type || 'rental',
-        price: property.price
-      }
-    }))
+        type: property.type || "rental",
+        price: property.price,
+      },
+    })),
   });
 
   // Check if any filters are active
-  const hasActiveFilters = () => {
-    return filters.type.length > 0 || 
-           filters.minPrice !== '' || 
-           filters.maxPrice !== '' || 
-           filters.bedrooms.length > 0 ||
-           filters.bathrooms.length > 0 ||
-           filters.minContract !== '';
+  const hasActiveFilters = (): boolean => {
+    return (
+      filters.type.length > 0 ||
+      filters.minPrice !== "" ||
+      filters.maxPrice !== "" ||
+      filters.bedrooms.length > 0 ||
+      filters.bathrooms.length > 0 ||
+      filters.minContract !== ""
+    );
   };
 
   // Count active filters
-  const getActiveFilterCount = () => {
+  const getActiveFilterCount = (): number => {
     let count = 0;
     if (filters.type.length > 0) count++;
-    if (filters.minPrice !== '' || filters.maxPrice !== '') count++;
+    if (filters.minPrice !== "" || filters.maxPrice !== "") count++;
     if (filters.bedrooms.length > 0) count++;
     if (filters.bathrooms.length > 0) count++;
-    if (filters.minContract !== '') count++;
+    if (filters.minContract !== "") count++;
     return count;
   };
 
@@ -357,18 +381,21 @@ export default function Index() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push("/(modals)/filter" as any)}
+          onPress={() => router.push("/(modals)/filter")}
           activeOpacity={0.8}
           style={[
             styles.filterBtn,
-            hasActiveFilters() && styles.filterBtnActive
+            hasActiveFilters() && styles.filterBtnActive,
           ]}
         >
-          <Text style={[
-            styles.filterBtnText,
-            hasActiveFilters() && styles.filterBtnTextActive
-          ]}>
-            Filter {getActiveFilterCount() > 0 ? `(${getActiveFilterCount()})` : ''}
+          <Text
+            style={[
+              styles.filterBtnText,
+              hasActiveFilters() && styles.filterBtnTextActive,
+            ]}
+          >
+            Filter{" "}
+            {getActiveFilterCount() > 0 ? `(${getActiveFilterCount()})` : ""}
           </Text>
         </TouchableOpacity>
       </View>
@@ -393,19 +420,23 @@ export default function Index() {
             ) : filteredProperties.length === 0 ? (
               <View style={styles.centerContent}>
                 <Text>No properties match your filters</Text>
-                <Text style={{ marginTop: 8, color: '#666' }}>
+                <Text style={{ marginTop: 8, color: "#666" }}>
                   Try adjusting your filter criteria
                 </Text>
               </View>
             ) : (
-              <MapView 
+              <MapView
                 style={styles.map}
-                onDidFinishLoadingMap={() => console.log("Map finished loading")}
+                onDidFinishLoadingMap={() =>
+                  console.log("Map finished loading")
+                }
               >
                 {/* RasterSource for OSM tiles */}
                 <RasterSource
                   id="osm"
-                  tileUrlTemplates={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
+                  tileUrlTemplates={[
+                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  ]}
                   tileSize={256}
                 >
                   <RasterLayer id="osm-layer" sourceID="osm" />
@@ -420,11 +451,11 @@ export default function Index() {
 
                 {/* Images for markers */}
                 <Images
-                  images={{ 
-                    pin: require("../../../assets/images/pin.png")
+                  images={{
+                    pin: require("../../../assets/images/pin.png"),
                   }}
                 />
-                
+
                 {/* Property markers */}
                 <ShapeSource
                   id="property-markers"
@@ -434,11 +465,11 @@ export default function Index() {
                   <SymbolLayer
                     id="property-icons"
                     style={{
-                      iconImage: 'pin',
+                      iconImage: "pin",
                       iconSize: 0.2,
-                      iconAnchor: 'bottom',
+                      iconAnchor: "bottom",
                       iconAllowOverlap: true,
-                      iconIgnorePlacement: true
+                      iconIgnorePlacement: true,
                     }}
                   />
                 </ShapeSource>
@@ -447,30 +478,40 @@ export default function Index() {
 
             {/* Floating Property Tile */}
             {selectedProperty && (
-              <View 
+              <View
                 style={[
                   styles.floatingTile,
                   {
                     opacity: isVisible ? 1 : 0,
-                    transform: [{ translateY: isVisible ? 0 : 200 }]
-                  }
+                    transform: [{ translateY: isVisible ? 0 : 200 }],
+                  },
                 ]}
               >
                 <View style={styles.tileContent}>
                   <View style={styles.tileHeader}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.tileTitle}>{selectedProperty.title}</Text>
-                      <Text style={styles.tilePrice}>
-                        {formatPrice(selectedProperty.price, selectedProperty.type)}
+                      <Text style={styles.tileTitle}>
+                        {selectedProperty.title}
                       </Text>
-                      <Text style={styles.tileType}>{selectedProperty.type || 'rental'}</Text>
+                      <Text style={styles.tilePrice}>
+                        {formatPrice(
+                          selectedProperty.price,
+                          selectedProperty.type,
+                        )}
+                      </Text>
+                      <Text style={styles.tileType}>
+                        {selectedProperty.type || "rental"}
+                      </Text>
                     </View>
-                    <TouchableOpacity onPress={closePropertyTile} style={styles.closeButton}>
+                    <TouchableOpacity
+                      onPress={closePropertyTile}
+                      style={styles.closeButton}
+                    >
                       <Text style={styles.closeButtonText}>✕</Text>
                     </TouchableOpacity>
                   </View>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={styles.expandButton}
                     onPress={() => {
                       router.push(`/property/${selectedProperty.id}` as any);

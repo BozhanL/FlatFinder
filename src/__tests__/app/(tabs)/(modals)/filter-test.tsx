@@ -18,8 +18,11 @@ interface FilterState {
   bathrooms: number[];
 }
 
-const applyFilters = (properties: Property[], filters: FilterState): Property[] => {
-  return properties.filter(property => {
+const applyFilters = (
+  properties: Property[],
+  filters: FilterState,
+): Property[] => {
+  return properties.filter((property) => {
     // Property type filter - if empty, show all types
     if (filters.type.length > 0) {
       if (!filters.type.includes(property.type)) {
@@ -28,10 +31,12 @@ const applyFilters = (properties: Property[], filters: FilterState): Property[] 
     }
 
     // Price filter
-    if (filters.minPrice !== '' || filters.maxPrice !== '') {
+    if (filters.minPrice !== "" || filters.maxPrice !== "") {
       const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-      const maxPrice = filters.maxPrice ? parseFloat(filters.maxPrice) : Infinity;
-      
+      const maxPrice = filters.maxPrice
+        ? parseFloat(filters.maxPrice)
+        : Infinity;
+
       if (isNaN(minPrice) || isNaN(maxPrice)) {
         // Skip price filtering if values are invalid
       } else if (property.price < minPrice || property.price > maxPrice) {
@@ -41,8 +46,8 @@ const applyFilters = (properties: Property[], filters: FilterState): Property[] 
 
     // Bedrooms, if array is empty, show all bedroom counts
     if (filters.bedrooms.length > 0) {
-      const meetsBedroomRequirement = filters.bedrooms.some((minBedrooms: number) => 
-        property.bedrooms >= minBedrooms
+      const meetsBedroomRequirement = filters.bedrooms.some(
+        (minBedrooms: number) => property.bedrooms >= minBedrooms,
       );
       if (!meetsBedroomRequirement) {
         return false;
@@ -51,8 +56,8 @@ const applyFilters = (properties: Property[], filters: FilterState): Property[] 
 
     // Bathrooms, if array is empty, show all bathroom counts
     if (filters.bathrooms.length > 0) {
-      const meetsBathroomRequirement = filters.bathrooms.some((minBathrooms: number) => 
-        property.bathrooms >= minBathrooms
+      const meetsBathroomRequirement = filters.bathrooms.some(
+        (minBathrooms: number) => property.bathrooms >= minBathrooms,
       );
       if (!meetsBathroomRequirement) {
         return false;
@@ -78,8 +83,8 @@ const testProperties: Property[] = [
   {
     id: "2",
     title: "Test House",
-    latitude: -36.8500,
-    longitude: 174.7600,
+    latitude: -36.85,
+    longitude: 174.76,
     price: 800000,
     type: "sale",
     bedrooms: 3,
@@ -88,8 +93,8 @@ const testProperties: Property[] = [
   {
     id: "3",
     title: "Expensive Apartment",
-    latitude: -36.8470,
-    longitude: 174.7650,
+    latitude: -36.847,
+    longitude: 174.765,
     price: 1200,
     type: "rental",
     bedrooms: 4,
@@ -98,8 +103,8 @@ const testProperties: Property[] = [
   {
     id: "4",
     title: "Studio Apartment",
-    latitude: -36.8490,
-    longitude: 174.7640,
+    latitude: -36.849,
+    longitude: 174.764,
     price: 400,
     type: "rental",
     bedrooms: 1,
@@ -120,9 +125,9 @@ describe("Filter Function Tests", () => {
 
     const result = applyFilters(testProperties, filters);
     expect(result.length).toBe(3); // find 3 rental properties
-    
+
     // Check that all results are rental properties
-    result.forEach(p => {
+    result.forEach((p) => {
       expect(p.type).toBe("rental");
     });
   });
@@ -152,9 +157,9 @@ describe("Filter Function Tests", () => {
 
     const result = applyFilters(testProperties, filters);
     expect(result.length).toBe(2);
-    
+
     // Check that all results have 3+ bedrooms
-    result.forEach(p => {
+    result.forEach((p) => {
       expect(p.bedrooms).toBeGreaterThanOrEqual(3);
     });
   });
@@ -170,9 +175,9 @@ describe("Filter Function Tests", () => {
 
     const result = applyFilters(testProperties, filters);
     expect(result.length).toBe(2);
-    
+
     // Check that all results have 2+ bathrooms
-    result.forEach(p => {
+    result.forEach((p) => {
       expect(p.bathrooms).toBeGreaterThanOrEqual(2);
     });
   });
@@ -203,7 +208,6 @@ describe("Filter Function Tests", () => {
     const result = applyFilters(testProperties, filters);
     expect(result.length).toBe(4);
   });
-
 
   test("filter for sale properties only", () => {
     const filters: FilterState = {
