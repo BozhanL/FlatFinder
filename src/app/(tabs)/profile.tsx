@@ -22,41 +22,34 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let alive = true;
-
-    //Lead to login page if unlogin
     if (!uid) {
       router.replace("/login");
       return;
     }
 
-    (async () => {
-      try {
-        const snap = await firestore().collection("users").doc(uid).get();
-        if (!alive) return;
+    const ref = firestore().collection("users").doc(uid);
 
+    const unsub = ref.onSnapshot(
+      (snap) => {
         const d = (snap.data() as any) ?? {};
-        const fm: Flatmate = {
+        setProfile({
           id: snap.id,
           name: d.name ?? "Unnamed",
           age: d.age ?? undefined,
           bio: d.bio ?? "",
           budget: d.budget ?? 0,
-          location: d.location,
+          location: d.location ?? "",
           tags: Array.isArray(d.tags) ? d.tags : [],
-        };
-        setProfile(fm);
-      } catch (e) {
-        console.error("load profile failed:", e);
-        setProfile(null);
-      } finally {
-        if (alive) setLoading(false);
+        });
+        setLoading(false);
+      },
+      (err) => {
+        console.error("profile onSnapshot error:", err);
+        setLoading(false);
       }
-    })();
+    );
 
-    return () => {
-      alive = false;
-    };
+    return unsub;
   }, [uid]);
 
   if (loading) {
@@ -82,7 +75,6 @@ export default function ProfileScreen() {
       style={{ flex: 1, backgroundColor: "#fff" }}
       contentContainerStyle={{ paddingBottom: 32 }}
     >
-      
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         {/* Logo */}
         <HeaderLogo />
