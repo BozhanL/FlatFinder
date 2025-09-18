@@ -375,6 +375,7 @@ export default function Index(): React.JSX.Element {
 
       {/* Segmented & Filter Section */}
       <View style={styles.segmentedContainer}>
+      <View style={styles.segmentedContainer}>
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
@@ -404,7 +405,11 @@ export default function Index(): React.JSX.Element {
 
       {/* Main content */}
       <View style={{ flex: 1 }}>
+      {/* Main content */}
+      <View style={{ flex: 1 }}>
         {mode === TabMode.Flatmates ? (
+          <View style={styles.centerContent}>
+            <Text>Flatmate list</Text>
           <View style={styles.centerContent}>
             <Text>Flatmate list</Text>
           </View>
