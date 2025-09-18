@@ -38,7 +38,7 @@ describe("FilterScreen", () => {
     expect(mockApplyFilter).toHaveBeenCalledWith(
       expect.objectContaining({
         type: ["rental"],
-      })
+      }),
     );
   });
 
@@ -56,7 +56,7 @@ describe("FilterScreen", () => {
       expect.objectContaining({
         minPrice: "500",
         maxPrice: "1500",
-      })
+      }),
     );
   });
 
@@ -74,7 +74,7 @@ describe("FilterScreen", () => {
       expect.objectContaining({
         bedrooms: [3],
         bathrooms: [2],
-      })
+      }),
     );
   });
 
@@ -86,14 +86,14 @@ describe("FilterScreen", () => {
 
     fireEvent.changeText(
       screen.getByPlaceholderText("Enter weeks (e.g. 1 for 1 week)"),
-      "1"
+      "1",
     );
     fireEvent.press(screen.getByText(/Apply Filters/i));
 
     expect(mockApplyFilter).toHaveBeenCalledWith(
       expect.objectContaining({
         minContract: "1",
-      })
+      }),
     );
   });
 
