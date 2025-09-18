@@ -429,6 +429,7 @@ export default function Index(): React.JSX.Element {
             ) : (
               <MapView
                 style={styles.map}
+                testID="map-view"
                 onDidFinishLoadingMap={() =>
                   console.log("Map finished loading")
                 }
