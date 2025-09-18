@@ -1,11 +1,7 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import MessageList from "@/components/message/MessageList";
-import {
-  FirebaseAuthTypes,
-  getAuth,
-  onAuthStateChanged,
-} from "@react-native-firebase/auth";
-import { JSX, useEffect, useState } from "react";
+import useUser from "@/hooks/useUser";
+import { JSX } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function MessageView(): JSX.Element {
@@ -19,16 +15,7 @@ export default function MessageView(): JSX.Element {
 
 function Message(): JSX.Element {
   // Set an initializing state whilst Firebase connects
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null | undefined>(
-    undefined,
-  );
-
-  useEffect(() => {
-    const subscriber = onAuthStateChanged(getAuth(), (user) => {
-      setUser(user);
-    });
-    return subscriber; // unsubscribe on unmount
-  }, []);
+  const user = useUser();
 
   if (!user) {
     return (
