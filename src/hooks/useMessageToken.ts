@@ -1,10 +1,6 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-import {
-  FirebaseAuthTypes,
-  getAuth,
-  onAuthStateChanged,
-} from "@react-native-firebase/auth";
+import useUser from "@/hooks/useUser";
 import {
   doc,
   getFirestore,
@@ -16,14 +12,10 @@ import {
   getToken,
   onTokenRefresh,
 } from "@react-native-firebase/messaging";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function useMessageToken() {
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-
-  useEffect(() => {
-    return onAuthStateChanged(getAuth(), setUser);
-  }, []);
+  const user = useUser();
 
   useEffect(() => {
     if (!user) {

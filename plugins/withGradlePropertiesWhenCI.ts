@@ -1,5 +1,8 @@
-import { type PropertiesItem } from "@expo/config-plugins/build/android/Properties";
-import { type ConfigPlugin, withGradleProperties } from "expo/config-plugins";
+import {
+  withGradleProperties,
+  type AndroidConfig,
+  type ConfigPlugin,
+} from "expo/config-plugins";
 
 type MyPropertiesItem = {
   key: string;
@@ -33,7 +36,7 @@ const withGradlePropertiesWhenCI: ConfigPlugin<GradlePropertiesWhenCIProps> = (
 
     config.modResults.push(
       ...gradle_properties.map(
-        (p): PropertiesItem => ({
+        (p): AndroidConfig.Properties.PropertiesItem => ({
           type: "property",
           key: p.key,
           value: p.value,
