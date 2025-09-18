@@ -32,6 +32,27 @@ export default function TabsLayout(): JSX.Element {
       }}
     >
       <Tabs.Screen
+        name="login"
+        options={{
+          title: "Login",
+          tabBarIcon: ({ color, focused }) => {
+            return focused ? (
+              <MaterialCommunityIcons
+                name="home-variant"
+                size={24}
+                color={color}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="home-variant-outline"
+                size={24}
+                color={color}
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: "Home",

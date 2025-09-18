@@ -1,36 +1,42 @@
-import firestore, { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import type { Flatmate } from "@/types/flatmate";
 import { pickAvatarFor } from "@/utils/avatar";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
+import { createGroup } from "@/services/message"; 
 
-export function matchIdFor(a:string,b:string){
-    return [a,b].sort().join("_");
+export function matchIdFor(a: string, b: string) {
+  return [a, b].sort().join("_");
 }
 
 /** Set of swiped users */
-export async function fetchSwipedSet(me:string): Promise<Set<string>> {
-     const s = await firestore()
-    .collection("users").doc(me)
+export async function fetchSwipedSet(me: string): Promise<Set<string>> {
+  const s = await firestore()
+    .collection("users")
+    .doc(me)
     .collection("swipes")
     .orderBy("createdAt", "desc")
     .limit(500)
     .get();
-  return new Set(s.docs.map(d => d.id));
+  return new Set(s.docs.map((d) => d.id));
 }
 
 /** Load unswiped candidates */
 export async function loadCandidates(
   me: string,
-  { area, maxBudget, limit = 30 }: { area?: string; maxBudget?: number; limit?: number } = {}
+  {
+    area,
+    maxBudget,
+    limit = 30,
+  }: { area?: string; maxBudget?: number; limit?: number } = {}
 ) {
   const swiped = await fetchSwipedSet(me);
 
   let q: FirebaseFirestoreTypes.Query = firestore().collection("users");
 
-  // Filter myself
-  q = q.where(firestore.FieldPath.documentId(), "!=", me);
-
   if (area) q = q.where("location", "==", area);
-  if (maxBudget) q = q.where("budget", "<=", maxBudget).orderBy("budget", "asc");
+  if (maxBudget)
+    q = q.where("budget", "<=", maxBudget).orderBy("budget", "asc");
 
   q = q.orderBy("lastActiveAt", "desc").limit(limit);
 
@@ -50,14 +56,17 @@ export async function loadCandidates(
       };
       return fm;
     })
-    .filter(u => !swiped.has(u.id));
+    .filter((u) => u.id !== me)
+    .filter((u) => !swiped.has(u.id));
 }
 
 /**record like/pass */
 export async function swipe(me: string, target: string, dir: "like" | "pass") {
   await firestore()
-    .collection("users").doc(me)
-    .collection("swipes").doc(target)
+    .collection("users")
+    .doc(me)
+    .collection("swipes")
+    .doc(target)
     .set(
       { dir, createdAt: firestore.FieldValue.serverTimestamp() },
       { merge: true }
@@ -66,26 +75,18 @@ export async function swipe(me: string, target: string, dir: "like" | "pass") {
 
 /** Create match between users if mutual like*/
 export async function ensureMatchIfMutualLike(me: string, target: string) {
+  //check if the user liked me
   const back = await firestore()
-    .collection("users").doc(target)
-    .collection("swipes").doc(me)
+    .collection("users")
+    .doc(target)
+    .collection("swipes")
+    .doc(me)
     .get();
 
+  // Call createGroup() to enable the message feature
   if (back.exists() && back.data()?.["dir"] === "like") {
     const id = matchIdFor(me, target);
-    await firestore().collection("matches").doc(id).set(
-      {
-        participants: [me, target],
-        createdAt: firestore.FieldValue.serverTimestamp(),
-        lastMessageAt: null,
-        lastMessageText: "",
-      },
-      { merge: true }
-    );
-    await firestore().collection("chats").doc(id).set(
-      { createdAt: firestore.FieldValue.serverTimestamp() },
-      { merge: true }
-    );
+    await createGroup([me, target], id);
     return id;
   }
   return null;

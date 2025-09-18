@@ -19,7 +19,7 @@ export default function SwipeCard({item}: Props){
       />
       <View style={{ padding: 14, gap: 6 }}>
         <Text style={{ fontSize: 20, fontWeight: "700" }}>
-          {item.name}, {item.age ? `, ${item.age}` : ""}
+          {item.name}, {item.age ? ` ${item.age}` : ""}
         </Text>
 
         <Text style={{ color: "#555" }}>

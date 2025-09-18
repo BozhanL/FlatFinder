@@ -2,21 +2,28 @@ import { loadCandidates } from "@/services/firestore";
 import type { Flatmate } from "@/types/flatmate";
 import { useEffect, useState } from "react";
 
-
-export function useCandidates(
-  meUid: string,
-  filters?: { area?: string; maxBudget?: number }
-) {
+export function useCandidates(me: string | null) {
   const [items, setItems] = useState<Flatmate[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
+
+    if (!me) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
     (async () => {
-      setLoading(true);
       try {
-        const rows = await loadCandidates(meUid, { ...filters, limit: 30 });
+        setLoading(true);
+        const rows = await loadCandidates(me, { limit: 30 });
         if (alive) setItems(rows as any);
+        console.log(
+          "candidates:",
+          rows.map((r: any) => r.id)
+        );
       } finally {
         if (alive) setLoading(false);
       }
@@ -24,7 +31,7 @@ export function useCandidates(
     return () => {
       alive = false;
     };
-  }, [meUid, filters?.area, filters?.maxBudget]);
+  }, [me]);
 
   return { items, loading, setItems };
 }

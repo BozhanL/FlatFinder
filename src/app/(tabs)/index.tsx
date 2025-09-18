@@ -3,22 +3,50 @@ import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/SwipeDeck";
 import { useCandidates } from "@/hooks/useCandidates";
 import { ensureMatchIfMutualLike, swipe } from "@/services/firestore";
+import auth from "@react-native-firebase/auth";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-// temp uid
-const ME = "testuser1";
+const enum TabMode {
+  Flatmates = "Flatmates",
+  Properties = "Properties",
+}
 
 export default function Index() {
+  const [uid, setUid] = useState<string | null>(
+    auth().currentUser?.uid ?? null
+  );
+  const [authChecking, setAuthChecking] = useState(true);
   const [mode, setMode] = useState(TabMode.Flatmates);
-  const { items, loading, setItems } = useCandidates(ME);
-  if (loading)
+
+  //Check Authentication State
+  useEffect(() => {
+    const unsub = auth().onAuthStateChanged((user) => {
+      setUid(user?.uid ?? null);
+      setAuthChecking(false);
+    });
+    return unsub;
+  }, []);
+
+  //Lead to login page if unlogin
+  useEffect(() => {
+    if (!authChecking && !uid) {
+      router.replace("/login");
+    }
+  }, [authChecking, uid]);
+
+  const { items, loading, setItems } = useCandidates(uid);
+
+  //Loading condition
+  if (authChecking || (!uid && !loading))
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <Text>Loading…</Text>
       </View>
     );
+
+  if (!uid) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -65,12 +93,12 @@ export default function Index() {
           <SwipeDeck
             data={items}
             onLike={async (u) => {
-              await swipe(ME, u.id, "like");
-              await ensureMatchIfMutualLike(ME, u.id);
+              await swipe(uid, u.id, "like");
+              await ensureMatchIfMutualLike(uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
             onPass={async (u) => {
-              await swipe(ME, u.id, "pass");
+              await swipe(uid, u.id, "pass");
               setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
           />
@@ -82,9 +110,4 @@ export default function Index() {
       </View>
     </View>
   );
-}
-
-const enum TabMode {
-  Flatmates = "Flatmates",
-  Properties = "Properties",
 }

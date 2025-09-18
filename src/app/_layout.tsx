@@ -31,15 +31,15 @@ export default function RootLayout(): JSX.Element {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <SafeAreaView style={{ backgroundColor: "#ECEBEC" }}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(modals)"
-          options={{ presentation: "modal", headerShown: false }}
-        />
-      </Stack>
-    </SafeAreaView>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(modals)"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+        </Stack>
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 }
