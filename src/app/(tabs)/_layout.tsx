@@ -90,6 +90,14 @@ export default function TabsLayout(): JSX.Element {
           },
         }}
       />
+
+      // hides from nav bar
+        <Tabs.Screen
+          name="property/[id]"
+          options={{
+            href: null,
+          }}
+        />
     </Tabs>
   );
 }
