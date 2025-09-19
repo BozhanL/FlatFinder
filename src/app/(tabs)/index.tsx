@@ -9,8 +9,11 @@ import {
   ShapeSource,
   SymbolLayer,
 } from "@maplibre/maplibre-react-native";
-import firestore, {
+import {
+  collection,
   FirebaseFirestoreTypes,
+  getDocs,
+  getFirestore
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -19,8 +22,32 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+
+// Ignores warning from maplibre as this warning is not code based
+// but rather from OSM api limitations.
+if (__DEV__) {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  
+  console.log = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('Request failed due to a permanent error: Canceled')) {
+      return;
+    }
+    originalLog.apply(console, args);
+  };
+  
+  console.warn = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('Request failed due to a permanent error: Canceled')) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -130,8 +157,8 @@ interface FilterState {
   type: string[];
   minPrice: string;
   maxPrice: string;
-  bedrooms: number[];
-  bathrooms: number[];
+  bedrooms: number | null;
+  bathrooms: number | null;
   minContract: string;
 }
 
@@ -140,8 +167,8 @@ let globalFilters: FilterState = {
   type: [],
   minPrice: "",
   maxPrice: "",
-  bedrooms: [],
-  bathrooms: [],
+  bedrooms: null,
+  bathrooms: null,
   minContract: "",
 };
 
@@ -204,24 +231,18 @@ export default function Index(): React.JSX.Element {
         }
       }
 
-      // Bedrooms filter - if array is empty, show all bedroom counts
-      if (filters.bedrooms.length > 0) {
+      // Bedrooms filter - single selection (null means no filter)
+      if (filters.bedrooms !== null) {
         const propertyBedrooms = property.bedrooms || 0;
-        const meetsBedroomRequirement = filters.bedrooms.some(
-          (minBedrooms) => propertyBedrooms >= minBedrooms,
-        );
-        if (!meetsBedroomRequirement) {
+        if (propertyBedrooms < filters.bedrooms) {
           return false;
         }
       }
 
-      // Bathrooms filter - if array is empty, show all bathroom counts
-      if (filters.bathrooms.length > 0) {
+      // Bathrooms filter - single selection (null means no filter)
+      if (filters.bathrooms !== null) {
         const propertyBathrooms = property.bathrooms || 0;
-        const meetsBathroomRequirement = filters.bathrooms.some(
-          (minBathrooms) => propertyBathrooms >= minBathrooms,
-        );
-        if (!meetsBathroomRequirement) {
+        if (propertyBathrooms < filters.bathrooms) {
           return false;
         }
       }
@@ -250,12 +271,13 @@ export default function Index(): React.JSX.Element {
     setFilteredProperties(filtered);
   }, [allProperties, filters]);
 
-  // Fetch properties from Firebase
+  // Fetch properties from Firebase using v9+ API
   useEffect(() => {
     const fetchProperties = async (): Promise<void> => {
       try {
         setLoading(true);
-        const snapshot = await firestore().collection("properties").get();
+        const db = getFirestore();
+        const snapshot = await getDocs(collection(db, "properties"));
 
         const fetchedProperties: Property[] = [];
 
@@ -351,8 +373,8 @@ export default function Index(): React.JSX.Element {
       filters.type.length > 0 ||
       filters.minPrice !== "" ||
       filters.maxPrice !== "" ||
-      filters.bedrooms.length > 0 ||
-      filters.bathrooms.length > 0 ||
+      filters.bedrooms !== null ||
+      filters.bathrooms !== null ||
       filters.minContract !== ""
     );
   };
@@ -362,8 +384,8 @@ export default function Index(): React.JSX.Element {
     let count = 0;
     if (filters.type.length > 0) count++;
     if (filters.minPrice !== "" || filters.maxPrice !== "") count++;
-    if (filters.bedrooms.length > 0) count++;
-    if (filters.bathrooms.length > 0) count++;
+    if (filters.bedrooms !== null) count++;
+    if (filters.bathrooms !== null) count++;
     if (filters.minContract !== "") count++;
     return count;
   };
