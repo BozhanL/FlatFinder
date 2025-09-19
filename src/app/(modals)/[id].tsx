@@ -1,4 +1,4 @@
-import firestore from "@react-native-firebase/firestore";
+import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -187,21 +187,23 @@ export default function PropertyDetailsPage() {
 
       try {
         setLoading(true);
-        const doc = await firestore().collection("properties").doc(id).get();
+        const db = getFirestore();
+        const docRef = doc(db, "properties", id);
+        const docSnap = await getDoc(docRef);
 
-        if (!doc.exists) {
+        if (!docSnap.exists()) {
           setError("Property not found");
           setLoading(false);
           return;
         }
 
-        const data = doc.data();
+        const data = docSnap.data();
 
         if (data) {
           const contractWeeks = data["contract"];
 
           const propertyDetails: PropertyDetails = {
-            id: doc.id,
+            id: docSnap.id,
             title: data["title"] || "Untitled Property",
             price: data["price"] || 0,
             type: data["type"] || "rental",
@@ -293,7 +295,6 @@ export default function PropertyDetailsPage() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBackPress}
@@ -312,7 +313,6 @@ export default function PropertyDetailsPage() {
       </View>
 
       <ScrollView style={styles.scrollContent}>
-        {/* Property Image */}
         <View style={styles.imageContainer}>
           {property.imageUrl ? (
             <Image
@@ -330,7 +330,6 @@ export default function PropertyDetailsPage() {
           )}
         </View>
 
-        {/* Property Details */}
         <View style={styles.contentSection}>
           <Text style={styles.propertyTitle} testID="property-title">
             {property.title}
@@ -360,7 +359,6 @@ export default function PropertyDetailsPage() {
             {property.description}
           </Text>
 
-          {/* Property Details Grid */}
           <Text style={styles.sectionTitle} testID="details-title">
             Property Details
           </Text>
@@ -382,7 +380,6 @@ export default function PropertyDetailsPage() {
               </View>
             )}
 
-            {/* Always show contract length, even if not specified */}
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Minimum Contract</Text>
               <Text style={styles.detailValue} testID="property-contract">

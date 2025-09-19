@@ -1,4 +1,4 @@
-import PropertyDetailsPage from "@/app/(tabs)/property/[id]";
+import PropertyDetailsPage from "@/app/(modals)/[id]";
 import { render, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
 

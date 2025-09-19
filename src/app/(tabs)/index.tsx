@@ -13,7 +13,7 @@ import {
   collection,
   FirebaseFirestoreTypes,
   getDocs,
-  getFirestore
+  getFirestore,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -22,7 +22,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
@@ -32,24 +32,23 @@ import {
 if (__DEV__) {
   const originalLog = console.log;
   const originalWarn = console.warn;
-  
+
   console.log = (...args) => {
-    const message = args.join(' ');
-    if (message.includes('Request failed due to a permanent error: Canceled')) {
+    const message = args.join(" ");
+    if (message.includes("Request failed due to a permanent error")) {
       return;
     }
     originalLog.apply(console, args);
   };
-  
+
   console.warn = (...args) => {
-    const message = args.join(' ');
-    if (message.includes('Request failed due to a permanent error: Canceled')) {
+    const message = args.join(" ");
+    if (message.includes("Request failed due to a permanent error")) {
       return;
     }
     originalWarn.apply(console, args);
   };
 }
-
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -279,34 +278,38 @@ export default function Index(): React.JSX.Element {
       try {
         setLoading(true);
         const db = getFirestore();
-        const snapshot = await getDocs(collection(db, "properties"));
+        const propertiesCollection = collection(db, "properties");
+        const snapshot = await getDocs(propertiesCollection);
 
         const fetchedProperties: Property[] = [];
 
-        snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
-          const data = doc.data();
+        snapshot.forEach(
+          (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
+            const data = doc.data();
 
-          if (data) {
-            // Extract coordinates from GeoPoint data
-            const coordinates = data["coordinates"];
-            const latitude = coordinates?._latitude || coordinates?.latitude;
-            const longitude = coordinates?._longitude || coordinates?.longitude;
+            if (data) {
+              // Extract coordinates from GeoPoint data
+              const coordinates = data["coordinates"];
+              const latitude = coordinates?._latitude || coordinates?.latitude;
+              const longitude =
+                coordinates?._longitude || coordinates?.longitude;
 
-            const property: Property = {
-              id: doc.id,
-              title: data["title"] || "Untitled Property",
-              latitude: latitude,
-              longitude: longitude,
-              price: data["price"] || 0,
-              type: data["type"] || "rental",
-              bedrooms: data["bedrooms"] || undefined,
-              bathrooms: data["bathrooms"] || undefined,
-              contract: data["contract"] || undefined,
-            };
+              const property: Property = {
+                id: doc.id,
+                title: data["title"] || "Untitled Property",
+                latitude: latitude,
+                longitude: longitude,
+                price: data["price"] || 0,
+                type: data["type"] || "rental",
+                bedrooms: data["bedrooms"] || undefined,
+                bathrooms: data["bathrooms"] || undefined,
+                contract: data["contract"] || undefined,
+              };
 
-            fetchedProperties.push(property);
-          }
-        });
+              fetchedProperties.push(property);
+            }
+          },
+        );
 
         setAllProperties(fetchedProperties);
         console.log(
@@ -541,7 +544,7 @@ export default function Index(): React.JSX.Element {
                   <TouchableOpacity
                     style={styles.expandButton}
                     onPress={() => {
-                      router.push(`../(modals)/${selectedProperty.id}` as any);
+                      router.push(`/(modals)/${selectedProperty.id}` as any);
                     }}
                   >
                     <Text style={styles.expandButtonText}>View Details →</Text>

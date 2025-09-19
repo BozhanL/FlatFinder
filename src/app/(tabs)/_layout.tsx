@@ -90,13 +90,6 @@ export default function TabsLayout(): JSX.Element {
           },
         }}
       />
-      {/* Floating Property Tile */}
-      <Tabs.Screen
-        name="property/[id]"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }
