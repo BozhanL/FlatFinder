@@ -295,8 +295,7 @@ export default function FilterScreen(): React.JSX.Element {
                   key={bathrooms}
                   style={[
                     styles.filterChip,
-                    filters.bathrooms === bathrooms &&
-                      styles.filterChipActive,
+                    filters.bathrooms === bathrooms && styles.filterChipActive,
                   ]}
                   onPress={() => toggleFilter("bathrooms", bathrooms)}
                 >
