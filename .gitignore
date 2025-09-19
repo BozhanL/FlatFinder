@@ -46,3 +46,5 @@ report.json
 
 android/
 ios/
+
+src/firebaseconfig.ts
