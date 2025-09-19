@@ -7,27 +7,25 @@ jest.mock("expo-router", () => ({
 }));
 
 // Mock firestore with fake property
-jest.mock("@react-native-firebase/firestore", () => {
-  return () => ({
-    collection: jest.fn().mockReturnThis(),
-    doc: jest.fn().mockReturnThis(),
-    get: jest.fn().mockResolvedValue({
-      exists: true,
-      id: "prop1",
-      data: () => ({
-        title: "Test Property",
-        price: 500,
-        type: "rental",
-        description: "test property",
-        bedrooms: 2,
-        bathrooms: 1,
-        address: "123 Test St",
-        imageUrl: "https://example.com/image.jpg",
-        contract: 12,
-      }),
+jest.mock("@react-native-firebase/firestore", () => ({
+  getFirestore: jest.fn(),
+  doc: jest.fn(),
+  getDoc: jest.fn().mockResolvedValue({
+    exists: () => true,
+    id: "prop1",
+    data: () => ({
+      title: "Test Property",
+      price: 500,
+      type: "rental",
+      description: "test property",
+      bedrooms: 2,
+      bathrooms: 1,
+      address: "123 Test St",
+      imageUrl: "https://example.com/image.jpg",
+      contract: 12,
     }),
-  });
-});
+  }),
+}));
 
 describe("PropertyDetailsPage", () => {
   it("renders loading state initially", async () => {

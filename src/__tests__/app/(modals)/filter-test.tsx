@@ -72,8 +72,8 @@ describe("FilterScreen", () => {
 
     expect(mockApplyFilter).toHaveBeenCalledWith(
       expect.objectContaining({
-        bedrooms: [3],
-        bathrooms: [2],
+        bedrooms: 3,
+        bathrooms: 2,
       }),
     );
   });
@@ -114,8 +114,8 @@ describe("FilterScreen", () => {
       type: [],
       minPrice: "",
       maxPrice: "",
-      bedrooms: [],
-      bathrooms: [],
+      bedrooms: null,
+      bathrooms: null,
       minContract: "",
     });
   });
