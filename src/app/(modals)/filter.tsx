@@ -105,8 +105,8 @@ interface FilterState {
   type: string[];
   minPrice: string;
   maxPrice: string;
-  bedrooms: number[];
-  bathrooms: number[];
+  bedrooms: number | null;
+  bathrooms: number | null;
   minContract: string;
 }
 
@@ -115,8 +115,8 @@ export default function FilterScreen(): React.JSX.Element {
     type: [],
     minPrice: "",
     maxPrice: "",
-    bedrooms: [],
-    bathrooms: [],
+    bedrooms: null,
+    bathrooms: null,
     minContract: "",
   });
 
@@ -129,20 +129,17 @@ export default function FilterScreen(): React.JSX.Element {
     value: string | number,
   ): void => {
     setFilters((prev) => {
-      const current = prev[category];
-      if (Array.isArray(current)) {
-        if (category === "bedrooms" || category === "bathrooms") {
-          // Single selection for bedrooms and bathrooms
-          const isSelected = current.includes(value as never);
-          const newArray = isSelected ? [] : [value as never];
-          return { ...prev, [category]: newArray };
-        } else {
-          // Multi-selection for property type
-          const newArray = current.includes(value as never)
-            ? current.filter((item) => item !== value)
-            : [...current, value as never];
-          return { ...prev, [category]: newArray };
-        }
+      if (category === "bedrooms" || category === "bathrooms") {
+        // Single selection for bedrooms and bathrooms
+        const isSelected = prev[category] === value;
+        return { ...prev, [category]: isSelected ? null : (value as number) };
+      } else if (category === "type") {
+        // Multi-selection for property type
+        const current = prev.type;
+        const newArray = current.includes(value as string)
+          ? current.filter((item) => item !== value)
+          : [...current, value as string];
+        return { ...prev, type: newArray };
       }
       return prev;
     });
@@ -160,12 +157,12 @@ export default function FilterScreen(): React.JSX.Element {
   };
 
   const clearFilters = (): void => {
-    const clearedFilters = {
+    const clearedFilters: FilterState = {
       type: [],
       minPrice: "",
       maxPrice: "",
-      bedrooms: [],
-      bathrooms: [],
+      bedrooms: null,
+      bathrooms: null,
       minContract: "",
     };
     setFilters(clearedFilters);
@@ -193,8 +190,8 @@ export default function FilterScreen(): React.JSX.Element {
   const hasActiveFilters = (): boolean => {
     return (
       filters.type.length > 0 ||
-      filters.bedrooms.length > 0 ||
-      filters.bathrooms.length > 0 ||
+      filters.bedrooms !== null ||
+      filters.bathrooms !== null ||
       filters.minPrice !== "" ||
       filters.maxPrice !== "" ||
       filters.minContract !== ""
@@ -271,15 +268,14 @@ export default function FilterScreen(): React.JSX.Element {
                   key={bedrooms}
                   style={[
                     styles.filterChip,
-                    filters.bedrooms.includes(bedrooms) &&
-                      styles.filterChipActive,
+                    filters.bedrooms === bedrooms && styles.filterChipActive,
                   ]}
                   onPress={() => toggleFilter("bedrooms", bedrooms)}
                 >
                   <Text
                     style={[
                       styles.filterChipText,
-                      filters.bedrooms.includes(bedrooms) &&
+                      filters.bedrooms === bedrooms &&
                         styles.filterChipTextActive,
                     ]}
                   >
@@ -299,7 +295,7 @@ export default function FilterScreen(): React.JSX.Element {
                   key={bathrooms}
                   style={[
                     styles.filterChip,
-                    filters.bathrooms.includes(bathrooms) &&
+                    filters.bathrooms === bathrooms &&
                       styles.filterChipActive,
                   ]}
                   onPress={() => toggleFilter("bathrooms", bathrooms)}
@@ -307,7 +303,7 @@ export default function FilterScreen(): React.JSX.Element {
                   <Text
                     style={[
                       styles.filterChipText,
-                      filters.bathrooms.includes(bathrooms) &&
+                      filters.bathrooms === bathrooms &&
                         styles.filterChipTextActive,
                     ]}
                   >
@@ -353,8 +349,8 @@ export default function FilterScreen(): React.JSX.Element {
               {hasActiveFilters()
                 ? ` (${
                     filters.type.length +
-                    filters.bedrooms.length +
-                    filters.bathrooms.length +
+                    (filters.bedrooms !== null ? 1 : 0) +
+                    (filters.bathrooms !== null ? 1 : 0) +
                     (filters.minPrice ? 1 : 0) +
                     (filters.maxPrice ? 1 : 0) +
                     (filters.minContract ? 1 : 0)
