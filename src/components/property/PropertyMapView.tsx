@@ -6,7 +6,7 @@ import {
   RasterLayer,
   RasterSource,
   ShapeSource,
-  SymbolLayer
+  SymbolLayer,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -15,12 +15,10 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 // but rather from OSM api limitations.
 // https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
 // The link above is for mapbox but applies to maplibre too
-Logger.setLogCallback(log => {
+Logger.setLogCallback((log) => {
   const { message } = log;
 
-  if (
-    message.match('Request failed')
-  ) {
+  if (message.match("Request failed")) {
     return true;
   }
   return false;
@@ -30,8 +28,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  map: { 
-    flex: 1 
+  map: {
+    flex: 1,
   },
   floatingTile: {
     position: "absolute",
@@ -111,12 +109,12 @@ interface PropertyMapViewProps {
   onClosePropertyTile: () => void;
 }
 
-export default function PropertyMapView({ 
-  properties, 
+export default function PropertyMapView({
+  properties,
   selectedProperty,
   isVisible,
-  onMarkerPress, 
-  onClosePropertyTile 
+  onMarkerPress,
+  onClosePropertyTile,
 }: PropertyMapViewProps) {
   // Create GeoJSON for filtered properties
   const createPropertyData = () => ({
@@ -150,16 +148,12 @@ export default function PropertyMapView({
       <MapView
         style={styles.map}
         testID="map-view"
-        onDidFinishLoadingMap={() =>
-          console.log("Map finished loading")
-        }
+        onDidFinishLoadingMap={() => console.log("Map finished loading")}
       >
         {/* RasterSource for OSM tiles */}
         <RasterSource
           id="osm"
-          tileUrlTemplates={[
-            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          ]}
+          tileUrlTemplates={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
           tileSize={256}
         >
           <RasterLayer id="osm-layer" sourceID="osm" />
@@ -213,9 +207,7 @@ export default function PropertyMapView({
           <View style={styles.tileContent}>
             <View style={styles.tileHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.tileTitle}>
-                  {selectedProperty.title}
-                </Text>
+                <Text style={styles.tileTitle}>{selectedProperty.title}</Text>
                 <Text style={styles.tilePrice}>
                   {formatPrice(selectedProperty.price, selectedProperty.type)}
                 </Text>
@@ -236,7 +228,7 @@ export default function PropertyMapView({
               onPress={() => {
                 router.push({
                   pathname: "/(modals)/property" as any,
-                  params: { id: selectedProperty.id }
+                  params: { id: selectedProperty.id },
                 });
               }}
             >

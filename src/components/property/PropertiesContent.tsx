@@ -42,7 +42,7 @@ export default function PropertiesContent({
 
   if (filteredProperties.length === 0) {
     return (
-      <StateDisplay 
+      <StateDisplay
         type="filtered"
         message="No properties match your filters"
         subtitle="Try adjusting your filter criteria"
@@ -51,7 +51,7 @@ export default function PropertiesContent({
   }
 
   return (
-    <PropertyMapView 
+    <PropertyMapView
       properties={filteredProperties}
       selectedProperty={selectedProperty}
       isVisible={isVisible}
