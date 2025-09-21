@@ -38,7 +38,7 @@ No additional setup is required for Cloud Messaging.
 
 To build this project for your own use
 
-#### Prerequisites
+#### Build Prerequisites
 
 - Node.js (v22)
 - npm (v10)
@@ -57,7 +57,7 @@ Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js a
 
 1. Clone this repository by `git clone https://github.com/BozhanL/FlatFinder.git`
 2. Navigate to the project directory `cd FlatFinder`
-3. Replace the `google-services.json`, `firebaseConfig` in `src/index.ts`, and android package name in `app.config.ts` with your own Firebase project configuration.
+3. Replace the `google-services.json`, android `package` name and `firebaseWebConfig` in `app.config.ts` with your own Firebase project configuration.
 4. Install dependencies by `npm ci`
 5. Prebuild the project by `npx expo prebuild --platform android --clean`
 6. Navigate to the android directory `cd android`
@@ -66,7 +66,7 @@ Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js a
 
 ### 3. Enable Notifications
 
-#### Prerequisites
+#### Notification Prerequisites
 
 - Docker (latest)
 - Docker Compose (latest)
