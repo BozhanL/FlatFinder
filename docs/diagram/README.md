@@ -25,6 +25,7 @@ flowchart LR
     Java: Temurin v21
     Ninja: v1.13.1
     Git: 2.50.0 or above
+    Android Studio: 2025.1.2
     Other: check package.json]
 
     Dev -- Code on ---> VSCode
