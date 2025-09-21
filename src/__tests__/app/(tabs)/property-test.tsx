@@ -1,9 +1,12 @@
-import PropertyDetailsPage from "@/app/(modals)/[id]";
+import PropertyDetailsPage from "@/app/(modals)/property";
 import { render, screen, waitFor } from "@testing-library/react-native";
-import React from "react";
 
+// Mock expo-router
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "prop1" }),
+  Stack: {
+    Screen: () => null,
+  },
 }));
 
 // Mock firestore with fake property
@@ -59,13 +62,9 @@ describe("PropertyDetailsPage", () => {
     );
 
     await screen.findByText("test property");
-
     await screen.findByText("123 Test St");
-
     await screen.findByText("Bedrooms");
-
     await screen.findByText("Bathrooms");
-
     await screen.findByText("Minimum Contract");
   });
 });

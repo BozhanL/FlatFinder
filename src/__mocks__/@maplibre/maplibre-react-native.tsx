@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { View } from "react-native";
 
 export const MapView: React.FC<any> = (props) => <View {...props} />;

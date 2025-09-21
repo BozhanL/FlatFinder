@@ -1,13 +1,13 @@
+import { PropertyDetails } from "@/types/PropertyDetails";
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -156,22 +156,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface PropertyDetails {
-  id: string;
-  title: string;
-  price: number;
-  type: string;
-  description: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  address?: string;
-  contract?: number;
-  imageUrl?: string;
-  latitude?: number;
-  longitude?: number;
-}
-
-export default function PropertyDetailsPage() {
+export default function PropertyDetailsPage(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [property, setProperty] = useState<PropertyDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,7 +166,6 @@ export default function PropertyDetailsPage() {
     const fetchPropertyDetails = async () => {
       if (!id) {
         setError("Property ID not found");
-        setLoading(false);
         return;
       }
 
@@ -200,8 +184,6 @@ export default function PropertyDetailsPage() {
         const data = docSnap.data();
 
         if (data) {
-          const contractWeeks = data["contract"];
-
           const propertyDetails: PropertyDetails = {
             id: docSnap.id,
             title: data["title"] || "Untitled Property",
@@ -212,7 +194,7 @@ export default function PropertyDetailsPage() {
             bathrooms: data["bathrooms"],
             address: data["address"],
             imageUrl: data["imageUrl"],
-            contract: contractWeeks,
+            contract: data["contract"],
           };
 
           setProperty(propertyDetails);
@@ -237,25 +219,23 @@ export default function PropertyDetailsPage() {
   };
 
   const formatContractLength = (weeks?: number): string => {
-    if (!weeks) return "Not specified";
+    if (!weeks) {
+      return "Not specified";
+    }
     return `${weeks} weeks`;
-  };
-
-  const handleBackPress = () => {
-    router.back();
   };
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} testID="property-header">
-            Loading...
-          </Text>
-        </View>
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            title: "Loading...",
+            presentation: "modal",
+          }}
+        />
+
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
           <Text style={{ marginTop: 10, color: "#666" }} testID="loading-text">
@@ -269,25 +249,17 @@ export default function PropertyDetailsPage() {
   if (error || !property) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} testID="property-header">
-            Error
-          </Text>
-        </View>
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            title: "Error",
+            presentation: "modal",
+          }}
+        />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText} testID="error-text">
             {error || "Property not found"}
           </Text>
-          <TouchableOpacity
-            onPress={handleBackPress}
-            style={styles.contactButton}
-            testID="back-button"
-          >
-            <Text style={styles.contactButtonText}>Go Back</Text>
-          </TouchableOpacity>
         </View>
       </View>
     );
@@ -295,22 +267,13 @@ export default function PropertyDetailsPage() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBackPress}
-          style={styles.backButton}
-          testID="back-button"
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
-        <Text
-          style={styles.headerTitle}
-          numberOfLines={1}
-          testID="property-header"
-        >
-          {property.title}
-        </Text>
-      </View>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: property.title,
+          presentation: "modal",
+        }}
+      />
 
       <ScrollView style={styles.scrollContent}>
         <View style={styles.imageContainer}>

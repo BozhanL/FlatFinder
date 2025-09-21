@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "@react-native-firebase/auth",
     "@maplibre/maplibre-react-native",
+    "@react-native-firebase/app",
     [
       "expo-splash-screen",
       {

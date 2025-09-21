@@ -5,13 +5,26 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import React from "react";
 
 // Mock firebase
 jest.mock("@react-native-firebase/firestore", () => ({
   getFirestore: jest.fn(),
   collection: jest.fn(),
   getDocs: jest.fn(),
+}));
+
+// Mock MapLibre
+jest.mock("@maplibre/maplibre-react-native", () => ({
+  Logger: {
+    setLogCallback: jest.fn(),
+  },
+  MapView: "MapView",
+  Camera: "Camera",
+  Images: "Images",
+  RasterSource: "RasterSource",
+  RasterLayer: "RasterLayer",
+  ShapeSource: "ShapeSource",
+  SymbolLayer: "SymbolLayer",
 }));
 
 // Mock expo-router
@@ -106,6 +119,9 @@ describe("Index screen", () => {
 
   it("Shows filter button with active state", async () => {
     render(<Index />);
+
+    // Filter no longer exists on Flatmates tab - just ensure we are on Properties tab
+    fireEvent.press(screen.getByText("Properties"));
 
     // Wait for component to render
     await waitFor(() => {

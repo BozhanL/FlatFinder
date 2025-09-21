@@ -1,3 +1,5 @@
+import { getGlobalApplyFilter } from "@/app/(tabs)/index";
+import { FilterState } from "@/types/FilterState";
 import { Stack, router } from "expo-router";
 import { useState } from "react";
 import {
@@ -8,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getGlobalApplyFilter } from "../(tabs)/index";
 
 const styles = StyleSheet.create({
   container: {
@@ -100,15 +101,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 });
-
-interface FilterState {
-  type: string[];
-  minPrice: string;
-  maxPrice: string;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  minContract: string;
-}
 
 export default function FilterScreen(): React.JSX.Element {
   const [filters, setFilters] = useState<FilterState>({

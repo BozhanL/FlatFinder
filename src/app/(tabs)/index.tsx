@@ -1,14 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import PropertiesContent from "@/components/property/PropertiesContent";
 import Segmented from "@/components/Segmented";
-import {
-  Camera,
-  Images,
-  MapView,
-  RasterLayer,
-  RasterSource,
-  ShapeSource,
-  SymbolLayer,
-} from "@maplibre/maplibre-react-native";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -16,39 +8,8 @@ import {
   getFirestore,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-
-// Ignores warning from maplibre as this warning is not code based
-// but rather from OSM api limitations.
-// https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
-// The link above is for mapbox but applies to maplibre too
-if (__DEV__) {
-  const originalLog = console.log;
-  const originalWarn = console.warn;
-
-  console.log = (...args) => {
-    const message = args.join(" ");
-    if (message.includes("Request failed due to a permanent error")) {
-      return;
-    }
-    originalLog.apply(console, args);
-  };
-
-  console.warn = (...args) => {
-    const message = args.join(" ");
-    if (message.includes("Request failed due to a permanent error")) {
-      return;
-    }
-    originalWarn.apply(console, args);
-  };
-}
+import { useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -76,63 +37,10 @@ const styles = StyleSheet.create({
   filterBtnTextActive: {
     color: "#fff",
   },
-  map: { flex: 1 },
-  centerContent: { flex: 1, alignItems: "center", justifyContent: "center" },
-  floatingTile: {
-    position: "absolute",
-    bottom: 20,
-    left: 16,
-    right: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  tileContent: {
-    padding: 16,
-  },
-  tileHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  tileTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 4,
-  },
-  tilePrice: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2563eb",
-    marginBottom: 2,
-  },
-  tileType: {
-    fontSize: 12,
-    color: "#666",
-    textTransform: "capitalize",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  expandButton: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    padding: 12,
+  centerContent: {
+    flex: 1,
     alignItems: "center",
-  },
-  expandButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
+    justifyContent: "center",
   },
 });
 
@@ -345,55 +253,19 @@ export default function Index(): React.JSX.Element {
     }, 300);
   };
 
-  // Format price for display
-  const formatPrice = (price: number, type?: string): string => {
-    if (type === "sale") {
-      return `$${price.toLocaleString()}`;
-    } else {
-      return `$${price}/week`;
-    }
-  };
-
-  // Create GeoJSON for filtered properties
-  const createPropertyData = () => ({
-    type: "FeatureCollection" as const,
-    features: filteredProperties.map((property) => ({
-      type: "Feature" as const,
-      geometry: {
-        type: "Point" as const,
-        coordinates: [property.longitude, property.latitude],
-      },
-      properties: {
-        id: property.id,
-        title: property.title,
-        type: property.type || "rental",
-        price: property.price,
-      },
-    })),
-  });
+  // Count active filters
+  const activeFilterCount: number = useMemo(
+    () =>
+      (filters.type.length > 0 ? 1 : 0) +
+      (filters.minPrice !== "" || filters.maxPrice !== "" ? 1 : 0) +
+      (filters.bedrooms !== null ? 1 : 0) +
+      (filters.bathrooms !== null ? 1 : 0) +
+      (filters.minContract !== "" ? 1 : 0),
+    [filters],
+  );
 
   // Check if any filters are active
-  const hasActiveFilters = (): boolean => {
-    return (
-      filters.type.length > 0 ||
-      filters.minPrice !== "" ||
-      filters.maxPrice !== "" ||
-      filters.bedrooms !== null ||
-      filters.bathrooms !== null ||
-      filters.minContract !== ""
-    );
-  };
-
-  // Count active filters
-  const getActiveFilterCount = (): number => {
-    let count = 0;
-    if (filters.type.length > 0) count++;
-    if (filters.minPrice !== "" || filters.maxPrice !== "") count++;
-    if (filters.bedrooms !== null) count++;
-    if (filters.bathrooms !== null) count++;
-    if (filters.minContract !== "") count++;
-    return count;
-  };
+  const hasActiveFilters: boolean = activeFilterCount > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -409,24 +281,25 @@ export default function Index(): React.JSX.Element {
           />
         </View>
 
-        <TouchableOpacity
-          onPress={() => router.push("/(modals)/filter")}
-          activeOpacity={0.8}
-          style={[
-            styles.filterBtn,
-            hasActiveFilters() && styles.filterBtnActive,
-          ]}
-        >
-          <Text
+        {mode === TabMode.Properties && (
+          <TouchableOpacity
+            onPress={() => router.push("/(modals)/filter")}
+            activeOpacity={0.8}
             style={[
-              styles.filterBtnText,
-              hasActiveFilters() && styles.filterBtnTextActive,
+              styles.filterBtn,
+              hasActiveFilters && styles.filterBtnActive,
             ]}
           >
-            Filter{" "}
-            {getActiveFilterCount() > 0 ? `(${getActiveFilterCount()})` : ""}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.filterBtnText,
+                hasActiveFilters && styles.filterBtnTextActive,
+              ]}
+            >
+              Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Main content */}
@@ -436,123 +309,15 @@ export default function Index(): React.JSX.Element {
             <Text>Flatmate list</Text>
           </View>
         ) : (
-          <View style={{ flex: 1 }}>
-            {loading ? (
-              <View style={styles.centerContent}>
-                <ActivityIndicator size="large" color="#2563eb" />
-                <Text style={{ marginTop: 10 }}>Loading properties...</Text>
-              </View>
-            ) : allProperties.length === 0 ? (
-              <View style={styles.centerContent}>
-                <Text>No properties found</Text>
-              </View>
-            ) : filteredProperties.length === 0 ? (
-              <View style={styles.centerContent}>
-                <Text>No properties match your filters</Text>
-                <Text style={{ marginTop: 8, color: "#666" }}>
-                  Try adjusting your filter criteria
-                </Text>
-              </View>
-            ) : (
-              <MapView
-                style={styles.map}
-                testID="map-view"
-                onDidFinishLoadingMap={() =>
-                  console.log("Map finished loading")
-                }
-              >
-                {/* RasterSource for OSM tiles */}
-                <RasterSource
-                  id="osm"
-                  tileUrlTemplates={[
-                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  ]}
-                  tileSize={256}
-                >
-                  <RasterLayer id="osm-layer" sourceID="osm" />
-                </RasterSource>
-
-                {/* Camera to set initial view */}
-                <Camera
-                  zoomLevel={10}
-                  centerCoordinate={[174.7633, -36.8485]}
-                  animationDuration={2000}
-                />
-
-                {/* Images for markers */}
-                <Images
-                  images={{
-                    pin: require("../../../assets/images/pin.png"),
-                  }}
-                />
-
-                {/* Property markers */}
-                <ShapeSource
-                  id="property-markers"
-                  shape={createPropertyData()}
-                  onPress={handleMarkerPress}
-                >
-                  <SymbolLayer
-                    id="property-icons"
-                    style={{
-                      iconImage: "pin",
-                      iconSize: 0.2,
-                      iconAnchor: "bottom",
-                      iconAllowOverlap: true,
-                      iconIgnorePlacement: true,
-                    }}
-                  />
-                </ShapeSource>
-              </MapView>
-            )}
-
-            {/* Floating Property Tile */}
-            {selectedProperty && (
-              <View
-                style={[
-                  styles.floatingTile,
-                  {
-                    opacity: isVisible ? 1 : 0,
-                    transform: [{ translateY: isVisible ? 0 : 200 }],
-                  },
-                ]}
-              >
-                <View style={styles.tileContent}>
-                  <View style={styles.tileHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.tileTitle}>
-                        {selectedProperty.title}
-                      </Text>
-                      <Text style={styles.tilePrice}>
-                        {formatPrice(
-                          selectedProperty.price,
-                          selectedProperty.type,
-                        )}
-                      </Text>
-                      <Text style={styles.tileType}>
-                        {selectedProperty.type || "rental"}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={closePropertyTile}
-                      style={styles.closeButton}
-                    >
-                      <Text style={styles.closeButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.expandButton}
-                    onPress={() => {
-                      router.push(`/(modals)/${selectedProperty.id}` as any);
-                    }}
-                  >
-                    <Text style={styles.expandButtonText}>View Details →</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
+          <PropertiesContent
+            loading={loading}
+            allProperties={allProperties}
+            filteredProperties={filteredProperties}
+            selectedProperty={selectedProperty}
+            isVisible={isVisible}
+            onMarkerPress={handleMarkerPress}
+            onClosePropertyTile={closePropertyTile}
+          />
         )}
       </View>
     </View>
