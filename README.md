@@ -47,7 +47,7 @@ To build this project for your own use
 - Ninja (v1.13.1 or later)
 - Firebase
 
-Follow this [expo guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local) to setup Android Studio. (DO NOT install JAVA from this guide)
+Follow this [expo guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local) to set up Android Studio. (DO NOT install JAVA from this guide)
 
 Follow this [Temurin guide](https://adoptium.net/en-GB/temurin/releases?version=21&os=any&arch=any) to install Java.
 
@@ -66,7 +66,7 @@ Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js a
 
 ### 3. Enable Notifications
 
-#### Prerquisites
+#### Prerequisites
 
 - Docker (latest)
 - Docker Compose (latest)
