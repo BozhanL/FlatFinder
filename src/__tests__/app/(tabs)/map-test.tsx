@@ -48,53 +48,55 @@ describe("Index screen", () => {
     firestore.getFirestore.mockReturnValue({});
     firestore.collection.mockReturnValue({});
 
-    firestore.onSnapshot.mockImplementation((_collection: any, successCallback: (snapshot: any) => void) => {
-      setTimeout(() => {
-        const mockSnapshot = {
-          forEach: (callback: any) => {
-            // Mock data
-            const mockDoc = {
-              id: "prop1",
-              data: () => ({
-                title: "Test Property",
-                coordinates: {
-                  _latitude: -36.85,
-                  _longitude: 174.76,
-                },
-                price: 500,
-                type: "rental",
-                bedrooms: 2,
-                bathrooms: 1,
-                contract: 12,
-              }),
-            };
-            callback(mockDoc);
+    firestore.onSnapshot.mockImplementation(
+      (_collection: any, successCallback: (snapshot: any) => void) => {
+        setTimeout(() => {
+          const mockSnapshot = {
+            forEach: (callback: any) => {
+              // Mock data
+              const mockDoc = {
+                id: "prop1",
+                data: () => ({
+                  title: "Test Property",
+                  coordinates: {
+                    _latitude: -36.85,
+                    _longitude: 174.76,
+                  },
+                  price: 500,
+                  type: "rental",
+                  bedrooms: 2,
+                  bathrooms: 1,
+                  contract: 12,
+                }),
+              };
+              callback(mockDoc);
 
-            // Added a second property for better testing
-            const mockDoc2 = {
-              id: "prop2",
-              data: () => ({
-                title: "Another Property",
-                coordinates: {
-                  _latitude: -36.86,
-                  _longitude: 174.77,
-                },
-                price: 600,
-                type: "sale",
-                bedrooms: 3,
-                bathrooms: 2,
-                contract: 6,
-              }),
-            };
-            callback(mockDoc2);
-          },
-        };
-        
-        successCallback(mockSnapshot);
-      }, 0);
+              // Added a second property for better testing
+              const mockDoc2 = {
+                id: "prop2",
+                data: () => ({
+                  title: "Another Property",
+                  coordinates: {
+                    _latitude: -36.86,
+                    _longitude: 174.77,
+                  },
+                  price: 600,
+                  type: "sale",
+                  bedrooms: 3,
+                  bathrooms: 2,
+                  contract: 6,
+                }),
+              };
+              callback(mockDoc2);
+            },
+          };
 
-      return jest.fn();
-    });
+          successCallback(mockSnapshot);
+        }, 0);
+
+        return jest.fn();
+      },
+    );
   });
 
   it("Switch from flatmates to properties tab", async () => {

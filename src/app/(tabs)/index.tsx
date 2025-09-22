@@ -181,59 +181,59 @@ export default function Index(): React.JSX.Element {
   }, [allProperties, filters]);
 
   // Fetch properties from Firebase using v9+ API
-useEffect(() => {
-  const db = getFirestore();
-  const propertiesCollection = collection(db, "properties");
-  
-  const unsubscribe = onSnapshot(
-    propertiesCollection,
-    (snapshot) => {
-      setLoading(true);
-      
-      const fetchedProperties: Property[] = [];
+  useEffect(() => {
+    const db = getFirestore();
+    const propertiesCollection = collection(db, "properties");
 
-      snapshot.forEach(
-        (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-          const data = doc.data();
+    const unsubscribe = onSnapshot(
+      propertiesCollection,
+      (snapshot) => {
+        setLoading(true);
 
-          if (data) {
-            // Extract coordinates from GeoPoint data
-            const coordinates = data["coordinates"];
-            const latitude = coordinates?._latitude || coordinates?.latitude;
-            const longitude =
-              coordinates?._longitude || coordinates?.longitude;
+        const fetchedProperties: Property[] = [];
 
-            const property: Property = {
-              id: doc.id,
-              title: data["title"] || "Untitled Property",
-              latitude: latitude,
-              longitude: longitude,
-              price: data["price"] || 0,
-              type: data["type"] || "rental",
-              bedrooms: data["bedrooms"] || undefined,
-              bathrooms: data["bathrooms"] || undefined,
-              contract: data["contract"] || undefined,
-            };
+        snapshot.forEach(
+          (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
+            const data = doc.data();
 
-            fetchedProperties.push(property);
-          }
-        },
-      );
+            if (data) {
+              // Extract coordinates from GeoPoint data
+              const coordinates = data["coordinates"];
+              const latitude = coordinates?._latitude || coordinates?.latitude;
+              const longitude =
+                coordinates?._longitude || coordinates?.longitude;
 
-      setAllProperties(fetchedProperties);
-      setLoading(false);
-      console.log(
-        `Loaded ${fetchedProperties.length} properties from Firebase`,
-      );
-    },
-    (error) => {
-      console.error("Error with real-time properties listener:", error);
-      setLoading(false);
-    }
-  );
+              const property: Property = {
+                id: doc.id,
+                title: data["title"] || "Untitled Property",
+                latitude: latitude,
+                longitude: longitude,
+                price: data["price"] || 0,
+                type: data["type"] || "rental",
+                bedrooms: data["bedrooms"] || undefined,
+                bathrooms: data["bathrooms"] || undefined,
+                contract: data["contract"] || undefined,
+              };
 
-  return () => unsubscribe();
-}, []);
+              fetchedProperties.push(property);
+            }
+          },
+        );
+
+        setAllProperties(fetchedProperties);
+        setLoading(false);
+        console.log(
+          `Loaded ${fetchedProperties.length} properties from Firebase`,
+        );
+      },
+      (error) => {
+        console.error("Error with real-time properties listener:", error);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // Handle marker press
   const handleMarkerPress = (event: any): void => {
