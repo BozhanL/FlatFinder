@@ -1,5 +1,6 @@
 import type { Flatmate } from "@/types/flatmate";
 import { AntDesign } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { JSX, useMemo, useState } from "react";
 import {
   Dimensions,
@@ -151,7 +152,15 @@ export default function SwipeDeck({
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}
           >
-            <SwipeCard item={top} />
+            <SwipeCard
+              item={top}
+              onPress={() =>
+                router.push({
+                  pathname: "/(modals)/profile/[uid]",
+                  params: { uid: top.id },
+                })
+              }
+            />
 
             {/* LIKE / NOPE tag */}
             <Animated.View

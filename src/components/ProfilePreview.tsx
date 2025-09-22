@@ -1,7 +1,15 @@
+import { getApp } from "@react-native-firebase/app";
+import {
+  doc,
+  getFirestore,
+  onSnapshot,
+} from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import firestore from "@react-native-firebase/firestore";
 import type { ImageSourcePropType } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+
+const app = getApp();
+const db = getFirestore(app);
 
 type PreviewData = {
   id: string;
@@ -51,11 +59,11 @@ export default function ProfilePreview(props: Props) {
     [live?.avatarUrl, live?.avatar]
   );
 
-
   useEffect(() => {
     if (props.source !== "uid") return;
-    const ref = firestore().collection("users").doc(props.uid);
-    const unsub = ref.onSnapshot(
+    const ref = doc(db, "users", props.uid);
+    const unsub = onSnapshot(
+      ref,
       (snap) => setLive(mapDocToPreview(snap.id, snap.data())),
       (err) => console.error("ProfilePreview onSnapshot error:", err)
     );
@@ -80,7 +88,7 @@ export default function ProfilePreview(props: Props) {
           {live.name || "Unnamed"}
           {live.age ? `, ${live.age}` : ""}
         </Text>
-        
+
         {!!live.bio && (
           <Text
             style={{
@@ -96,9 +104,7 @@ export default function ProfilePreview(props: Props) {
       </View>
 
       <View style={{ marginTop: 16, paddingHorizontal: 16, gap: 8 }}>
-        {live.budget != null && (
-          <KV label="Budget" value={`$${live.budget}`} />
-        )}
+        {live.budget != null && <KV label="Budget" value={`$${live.budget}`} />}
         {!!live.location && (
           <KV label="Preferred Location" value={String(live.location)} />
         )}
@@ -141,6 +147,16 @@ function KV({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#eee" },
-  tag: { paddingHorizontal: 10, paddingVertical: 4, backgroundColor: "#eee", borderRadius: 999 },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#eee",
+  },
+  tag: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "#eee",
+    borderRadius: 999,
+  },
 });

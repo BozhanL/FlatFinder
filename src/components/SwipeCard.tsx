@@ -1,9 +1,11 @@
 import type { Flatmate } from "@/types/flatmate";
-import { Image, Text, View } from "react-native";
+import { Pressable, Image, Text, View } from "react-native";
 
-type Props = {item:Flatmate};
-export default function SwipeCard({item}: Props){
+type Props = { item: Flatmate; onPress?: () => void };
+
+export default function SwipeCard({ item, onPress }: Props){
     return (
+    <Pressable onPress={onPress}>
     <View
       style={{
         borderRadius: 16,
@@ -38,5 +40,6 @@ export default function SwipeCard({item}: Props){
         </View>
       </View>
     </View>
+    </Pressable>
   );
 }
