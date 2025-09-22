@@ -10,6 +10,12 @@ import {
 import { router } from "expo-router";
 import React from "react";
 import { Alert } from "react-native";
+
+// Import after mocks so component sees them
+import Profile from "@/app/(tabs)/profile";
+
+import * as authMod from "@react-native-firebase/auth";
+import * as fsMod from "@react-native-firebase/firestore";
 jest.mock("expo-router", () => {
   const push = jest.fn();
   const replace = jest.fn();
@@ -43,19 +49,12 @@ jest.mock("@react-native-firebase/firestore", () => {
   return { getFirestore, doc, onSnapshot };
 });
 
-// Import after mocks so component sees them
-import Profile from "@/app/(tabs)/profile";
-import * as appMod from "@react-native-firebase/app";
-import * as authMod from "@react-native-firebase/auth";
-import * as fsMod from "@react-native-firebase/firestore";
-
 // Convenient handles to the mocked functions
-const getAppMock = appMod.getApp as jest.Mock;
+
 const getAuthMock = authMod.getAuth as jest.Mock;
 const onAuthStateChangedMock = authMod.onAuthStateChanged as jest.Mock;
 const signOutMock = authMod.signOut as jest.Mock;
-const getFirestoreMock = fsMod.getFirestore as jest.Mock;
-const docMock = fsMod.doc as jest.Mock;
+
 const onSnapshotMock = fsMod.onSnapshot as jest.Mock;
 
 // Helpers to drive Firestore snapshot callbacks
@@ -133,6 +132,8 @@ describe("Profile screen", () => {
 
     await waitFor(() => {
       expect(signOutMock).toHaveBeenCalled();
+    });
+    await waitFor(() => {
       expect(router.replace).toHaveBeenCalledWith("/login");
     });
   });
@@ -148,7 +149,7 @@ describe("Profile screen", () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Sign out failed",
-        "Error: boom"
+        "Error: boom",
       );
     });
   });
@@ -160,7 +161,7 @@ describe("Profile screen", () => {
 
     expect(spy).toHaveBeenCalledWith(
       "profile onSnapshot error:",
-      expect.any(Error)
+      expect.any(Error),
     );
     expect(await screen.findByText("Profile not found")).toBeTruthy();
   });

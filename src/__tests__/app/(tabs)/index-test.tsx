@@ -1,7 +1,19 @@
 // @ts-nocheck
 import React from "react";
-import { render, screen, fireEvent, act, cleanup } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+} from "@testing-library/react-native";
 
+import Index from "@/app/(tabs)";
+import * as authMod from "@react-native-firebase/auth";
+import * as hookMod from "@/hooks/useCandidates";
+import * as swipeMod from "@/services/swipe";
+import { router } from "expo-router";
+
+import { View, Text, TouchableOpacity } from "react-native";
 
 jest.mock("expo-router", () => {
   const router = {
@@ -42,9 +54,7 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/SwipeDeck", () => {
-  const React = require("react");
-  const { View, Text, TouchableOpacity } = require("react-native");
-  return function MockSwipeDeck({ data, onLike, onPass }) {
+  const MockSwipeDeck = ({ data, onLike, onPass }) => {
     return (
       <View testID="swipe-deck">
         <Text>Mock SwipeDeck</Text>
@@ -64,40 +74,41 @@ jest.mock("@/components/SwipeDeck", () => {
       </View>
     );
   };
+
+  MockSwipeDeck.displayName = "MockSwipeDeck";
+  return MockSwipeDeck;
 });
 
-jest.mock("@/components/Segmented", () => (props) => {
-  const { View, Text } = require("react-native");
-  return (
+// Segmented
+jest.mock("@/components/Segmented", () => {
+  const MockSegmented = (props: any) => (
     <View testID="segmented">
       <Text>Mock Segmented</Text>
     </View>
   );
+  MockSegmented.displayName = "MockSegmented";
+  return MockSegmented;
 });
 
-jest.mock("@/components/HeaderLogo", () => () => {
-  const { View, Text } = require("react-native");
-  return (
+// HeaderLogo
+jest.mock("@/components/HeaderLogo", () => {
+  const MockHeaderLogo = () => (
     <View testID="header-logo">
       <Text>Logo</Text>
     </View>
   );
+  MockHeaderLogo.displayName = "MockHeaderLogo";
+  return MockHeaderLogo;
 });
-
-import Index from "@/app/(tabs)";
-import * as authMod from "@react-native-firebase/auth";
-import * as hookMod from "@/hooks/useCandidates";
-import * as swipeMod from "@/services/swipe";
-import { router } from "expo-router";
 
 const onAuthStateChangedMock = authMod.onAuthStateChanged as jest.Mock;
 const getAuthMock = authMod.getAuth as jest.Mock;
 
-const useCandidatesMock = hookMod.useCandidates as jest.Mock;
 const candidatesState: any = (hookMod as any).__state;
 
 const swipeMock = swipeMod.swipe as jest.Mock;
-const ensureMatchIfMutualLikeMock = swipeMod.ensureMatchIfMutualLike as jest.Mock;
+const ensureMatchIfMutualLikeMock =
+  swipeMod.ensureMatchIfMutualLike as jest.Mock;
 
 afterEach(() => {
   cleanup();
@@ -134,9 +145,8 @@ describe("Index screen", () => {
   it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
     render(<Index />);
     const likeBtn = screen.getByTestId("like-btn");
-    await act(async () => {
-      fireEvent.press(likeBtn);
-    });
+
+    fireEvent.press(likeBtn);
 
     expect(swipeMock).toHaveBeenCalledWith("me", "u2", "like");
     expect(ensureMatchIfMutualLikeMock).toHaveBeenCalledWith("me", "u2");
@@ -147,9 +157,8 @@ describe("Index screen", () => {
   it("pressing PASS calls swipe('pass') and setItems", async () => {
     render(<Index />);
     const passBtn = screen.getByTestId("pass-btn");
-    await act(async () => {
-      fireEvent.press(passBtn);
-    });
+
+    fireEvent.press(passBtn);
 
     expect(swipeMock).toHaveBeenCalledWith("me", "u2", "pass");
     expect(candidatesState.setItems).toHaveBeenCalled();

@@ -70,7 +70,7 @@ export default function Profile() {
       (err) => {
         console.error("profile onSnapshot error:", err);
         setLoading(false);
-      }
+      },
     );
 
     return unsub;

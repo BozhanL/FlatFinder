@@ -41,7 +41,7 @@ function mapDocToPreview(uid: string, d: any): PreviewData {
       : {
           avatar: {
             uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-              d?.name ?? "U"
+              d?.name ?? "U",
             )}`,
           },
           avatarUrl: null,
@@ -51,12 +51,12 @@ function mapDocToPreview(uid: string, d: any): PreviewData {
 
 export default function ProfilePreview(props: Props) {
   const [live, setLive] = useState<PreviewData | null>(
-    props.source === "data" ? props.data : null
+    props.source === "data" ? props.data : null,
   );
   const avatarSource = useMemo(
     () =>
       live?.avatarUrl ? { uri: live.avatarUrl } : (live?.avatar ?? undefined),
-    [live?.avatarUrl, live?.avatar]
+    [live?.avatarUrl, live?.avatar],
   );
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function ProfilePreview(props: Props) {
     const unsub = onSnapshot(
       ref,
       (snap) => setLive(mapDocToPreview(snap.id, snap.data())),
-      (err) => console.error("ProfilePreview onSnapshot error:", err)
+      (err) => console.error("ProfilePreview onSnapshot error:", err),
     );
     return unsub;
   }, [props]);

@@ -53,7 +53,7 @@ function toDraft(uid: string, d: any): Draft {
       ? { uri: d.avatarUrl }
       : {
           uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-            d?.name ?? "U"
+            d?.name ?? "U",
           )}`,
         },
     avatarUrl: d?.avatarUrl ?? "",
@@ -92,7 +92,7 @@ const draftSchema = yup.object({
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
     .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
-      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false,
     ),
   age: yup
     .number()
@@ -143,7 +143,7 @@ export default function EditProfileModal() {
         : (form?.avatar ?? {
             uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
           }),
-    [form?.avatarUrl, form?.avatar]
+    [form?.avatarUrl, form?.avatar],
   );
 
   async function onSave() {

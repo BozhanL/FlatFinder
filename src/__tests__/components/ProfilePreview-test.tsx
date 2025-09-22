@@ -9,6 +9,8 @@ import {
 } from "@testing-library/react-native";
 import React from "react";
 
+import * as fsMod from "@react-native-firebase/firestore";
+
 jest.mock("@react-native-firebase/app", () => ({
   getApp: jest.fn(() => ({})),
 }));
@@ -21,9 +23,6 @@ jest.mock("@react-native-firebase/firestore", () => {
   return { getFirestore, doc, onSnapshot };
 });
 
-import * as fsMod from "@react-native-firebase/firestore";
-const getFirestoreMock = fsMod.getFirestore as jest.Mock;
-const docMock = fsMod.doc as jest.Mock;
 const onSnapshotMock = fsMod.onSnapshot as jest.Mock;
 
 function emitSnapshot(data: any) {
@@ -58,7 +57,7 @@ describe("ProfilePreview", () => {
           avatar: { uri: "x" },
           avatarUrl: null,
         }}
-      />
+      />,
     );
 
     expect(screen.getByText(/Tony/)).toBeTruthy();
@@ -118,7 +117,7 @@ describe("ProfilePreview", () => {
           id: "u1",
           name: "NoExtras",
         }}
-      />
+      />,
     );
 
     expect(screen.getByText("NoExtras")).toBeTruthy();
@@ -139,7 +138,7 @@ describe("ProfilePreview", () => {
     await waitFor(() => {
       expect(spy).toHaveBeenCalledWith(
         "ProfilePreview onSnapshot error:",
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
@@ -157,7 +156,7 @@ describe("ProfilePreview", () => {
           name: "FallbackDude",
           avatarUrl: null,
         }}
-      />
+      />,
     );
 
     expect(screen.getByText("FallbackDude")).toBeTruthy();

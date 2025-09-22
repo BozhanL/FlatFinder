@@ -1,6 +1,23 @@
 // @ts-nocheck
 
 // Mock dependencies BEFORE importing the SUT
+// Import SUT after mocks
+import { createGroup } from "@/services/message";
+import * as swipeSvc from "@/services/swipe";
+import { pickAvatarFor } from "@/utils/avatar";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from "@react-native-firebase/firestore";
+
 jest.mock("@react-native-firebase/app", () => ({
   getApp: jest.fn(() => ({})),
 }));
@@ -47,25 +64,6 @@ jest.mock("@/services/message", () => ({
   createGroup: jest.fn(async () => {}),
 }));
 
-// Import SUT after mocks
-import { createGroup } from "@/services/message";
-import * as swipeSvc from "@/services/swipe";
-import { pickAvatarFor } from "@/utils/avatar";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  where,
-} from "@react-native-firebase/firestore";
-
-const getFirestoreMock = getFirestore as jest.Mock;
 const collectionMock = collection as jest.Mock;
 const docMock = doc as jest.Mock;
 const whereMock = where as jest.Mock;
@@ -105,7 +103,7 @@ describe("fetchSwipedSet", () => {
       expect.anything(),
       "users",
       "me",
-      "swipes"
+      "swipes",
     );
     // called with orderBy('createdAt','desc') and limit(500)
     expect(orderByMock).toHaveBeenCalledWith("createdAt", "desc");
@@ -122,7 +120,7 @@ describe("loadCandidates", () => {
   it("builds constraints (area + budget), sorts and limits, filters self & swiped", async () => {
     getDocsMock
       .mockResolvedValueOnce({
-        docs: [{ id: "u_swiped" }], 
+        docs: [{ id: "u_swiped" }],
       })
       .mockResolvedValueOnce({
         docs: [
@@ -210,7 +208,7 @@ describe("loadCandidates", () => {
     expect(whereMock).not.toHaveBeenCalledWith(
       "budget",
       "<=",
-      expect.anything()
+      expect.anything(),
     );
     expect(orderByMock).not.toHaveBeenCalledWith("budget", "asc");
     expect(Array.isArray(res)).toBe(true);
@@ -230,12 +228,12 @@ describe("swipe", () => {
       "users",
       "me",
       "swipes",
-      "target"
+      "target",
     );
     expect(setDocMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ dir: "like", createdAt: expect.anything() }),
-      { merge: true }
+      { merge: true },
     );
   });
 });
@@ -255,7 +253,7 @@ describe("ensureMatchIfMutualLike", () => {
       "users",
       "b",
       "swipes",
-      "a"
+      "a",
     );
     expect(createGroupMock).toHaveBeenCalledWith(["a", "b"], "a_b");
     expect(id).toBe("a_b");

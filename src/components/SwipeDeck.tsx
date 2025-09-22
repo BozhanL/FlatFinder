@@ -69,14 +69,15 @@ export default function SwipeDeck({
               { duration: 180 },
               () => {
                 runOnJS(commitSwipe)(dir);
-              }
+              },
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
         }),
-    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD],
   );
 
   function fling(dir: 1 | -1) {
@@ -86,7 +87,7 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      }
+      },
     );
   }
 
@@ -101,7 +102,7 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1]
+      [0, 1],
     );
     return { opacity };
   });
@@ -111,7 +112,7 @@ export default function SwipeDeck({
     const scale = interpolate(
       Math.abs(translateX.value),
       [0, SWIPE_THRESHOLD],
-      [0.95, 1]
+      [0.95, 1],
     );
     return { transform: [{ scale }] };
   });
