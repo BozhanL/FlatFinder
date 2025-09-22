@@ -180,8 +180,14 @@ export default function Index(): React.JSX.Element {
     setFilteredProperties(filtered);
   }, [allProperties, filters]);
 
+  const uid = getAuth().currentUser?.uid;
+
   // Fetch properties from Firebase using v9+ API
   useEffect(() => {
+    if (!uid) {
+      return;
+    }
+
     const db = getFirestore();
     const propertiesCollection = collection(db, "properties");
 
