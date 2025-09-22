@@ -1,8 +1,18 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import type { Flatmate } from "@/types/flatmate";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import { getApp } from "@react-native-firebase/app";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+} from "@react-native-firebase/auth";
+import {
+  doc,
+  getFirestore,
+  onSnapshot,
+} from "@react-native-firebase/firestore";
+
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -15,21 +25,35 @@ import {
   View,
 } from "react-native";
 
-export default function ProfileScreen() {
-  const user = auth().currentUser;
-  const uid = user?.uid!;
+const app = getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export default function Profile() {
+  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null);
   const [profile, setProfile] = useState<Flatmate | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setUid(user?.uid ?? null);
+    });
+    return unsubAuth;
+  }, []);
+
+  useEffect(() => {
     if (!uid) {
+      setProfile(null);
+      setLoading(false);
       router.replace("/login");
       return;
     }
 
-    const ref = firestore().collection("users").doc(uid);
+    const ref = doc(db, "users", uid);
+    setLoading(true);
 
-    const unsub = ref.onSnapshot(
+    const unsub = onSnapshot(
+      ref,
       (snap) => {
         const d = (snap.data() as any) ?? {};
         setProfile({
@@ -130,7 +154,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             onPress={async () => {
               try {
-                await auth().signOut();
+                await signOut(auth);
                 router.replace("/login");
               } catch (e) {
                 Alert.alert("Sign out failed", String(e));

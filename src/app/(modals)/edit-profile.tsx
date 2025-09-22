@@ -1,7 +1,14 @@
+import ProfilePreview from "@/components/ProfilePreview";
 import type { Flatmate } from "@/types/flatmate";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import { getApp } from "@react-native-firebase/app";
+import { getAuth } from "@react-native-firebase/auth";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -15,7 +22,10 @@ import {
   View,
 } from "react-native";
 import * as yup from "yup";
-import ProfilePreview from "@/components/ProfilePreview";
+
+const app = getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 export enum Tab {
   Edit = "Edit",
@@ -59,12 +69,12 @@ function toFirestorePayload(x: Draft) {
     location: x.location ?? null,
     tags: x.tags ?? [],
     avatarUrl: x.avatarUrl ?? null,
-    lastActiveAt: firestore.FieldValue.serverTimestamp(),
+    lastActiveAt: serverTimestamp(),
   };
 }
 
 async function isUsernameTaken(v: string, myUid: string) {
-  const snap = await firestore()
+  const snap = await getFirestore()
     .collection("users")
     .where("name", "==", v)
     .limit(1)
@@ -81,10 +91,8 @@ const draftSchema = yup.object({
     .string()
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
-    .test(
-      "no-edge-dot-underscore",
-      "Cannot start or end with . or _",
-      (v) => (v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false)
+    .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
     ),
   age: yup
     .number()
@@ -104,7 +112,7 @@ const draftSchema = yup.object({
 /* -------------------------------------------- */
 
 export default function EditProfileModal() {
-  const uid = auth().currentUser?.uid ?? null;
+  const uid = auth.currentUser?.uid ?? null;
 
   const [tab, setTab] = useState<Tab>(Tab.Edit);
   const [form, setForm] = useState<Draft | null>(null);
@@ -117,7 +125,7 @@ export default function EditProfileModal() {
     }
     let alive = true;
     (async () => {
-      const snap = await firestore().collection("users").doc(uid).get();
+      const snap = await getDoc(doc(db, "users", uid));
       if (!alive) return;
       const d = toDraft(uid, snap.data());
       setForm(d);
@@ -157,7 +165,7 @@ export default function EditProfileModal() {
         return;
       }
 
-      await firestore()
+      await getFirestore()
         .collection("users")
         .doc(uid)
         .set(toFirestorePayload({ ...form, name: candidate.name }), {
@@ -258,14 +266,12 @@ export default function EditProfileModal() {
           <View style={{ marginTop: 20 }}>
             <Text style={styles.sectionTitle}>About me</Text>
 
-          {/* Username */}
+            {/* Username */}
             <FieldInput
               label="Username"
               value={form.name ?? ""}
               placeholder="yourname"
-              onChangeText={(t) =>
-                setForm((p) => ({ ...p!, name: t.trim() }))
-              }
+              onChangeText={(t) => setForm((p) => ({ ...p!, name: t.trim() }))}
             />
             {/* Age */}
             <FieldInput
@@ -304,7 +310,7 @@ export default function EditProfileModal() {
                 }))
               }
             />
-            
+
             {/* Tag */}
             <FieldInput
               label="Tag"
@@ -332,29 +338,28 @@ export default function EditProfileModal() {
           </View>
         </ScrollView>
       ) : (
-
         <ProfilePreview
-  source="data"
-  data={{
-    id: form.id!,
-    name: form.name ?? "Unnamed",
-    ...(form.age != null ? { age: form.age } : {}),
-    ...(form.bio ? { bio: form.bio } : {}),
-    ...(form.budget != null ? { budget: form.budget } : {}),
-    ...(form.location ? { location: form.location } : {}),
-    ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
-    ...(form.avatarUrl
-      ? { avatar: { uri: form.avatarUrl }, avatarUrl: form.avatarUrl }
-      : {
-          avatar:
-            form.avatar ??
-            ({
-              uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
-            } as const),
-          avatarUrl: null,
-        }),
-  }}
-/>
+          source="data"
+          data={{
+            id: form.id!,
+            name: form.name ?? "Unnamed",
+            ...(form.age != null ? { age: form.age } : {}),
+            ...(form.bio ? { bio: form.bio } : {}),
+            ...(form.budget != null ? { budget: form.budget } : {}),
+            ...(form.location ? { location: form.location } : {}),
+            ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
+            ...(form.avatarUrl
+              ? { avatar: { uri: form.avatarUrl }, avatarUrl: form.avatarUrl }
+              : {
+                  avatar:
+                    form.avatar ??
+                    ({
+                      uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
+                    } as const),
+                  avatarUrl: null,
+                }),
+          }}
+        />
       )}
     </View>
   );
@@ -375,7 +380,9 @@ function TabButton({
       style={styles.tabBtn}
       activeOpacity={0.8}
     >
-      <Text style={[styles.tabText, active && { color: "#6B46FF" }]}>{label}</Text>
+      <Text style={[styles.tabText, active && { color: "#6B46FF" }]}>
+        {label}
+      </Text>
       <View
         style={[styles.tabUnderline, active && { backgroundColor: "#6B46FF" }]}
       />
