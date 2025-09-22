@@ -177,7 +177,6 @@ export default function PropertyDetailsPage(): JSX.Element {
 
         if (!docSnap.exists()) {
           setError("Property not found");
-          setLoading(false);
           return;
         }
 
