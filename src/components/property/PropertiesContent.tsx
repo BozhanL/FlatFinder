@@ -1,4 +1,4 @@
-import { OnPressEvent } from "node_modules/@maplibre/maplibre-react-native/lib/typescript/module/src/types/OnPressEvent";
+import { OnPressEvent } from "@maplibre/maplibre-react-native";
 import PropertyMapView from "./PropertyMapView";
 import StateDisplay from "./StateDisplay";
 
