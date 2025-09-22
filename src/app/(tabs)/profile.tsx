@@ -108,6 +108,7 @@ export default function Profile() {
           <View style={{ width: 148, height: 148 }}>
             <Image source={avatar} style={styles.avatar} />
             <TouchableOpacity
+              testID="edit-btn"
               style={styles.pencil}
               activeOpacity={0.9}
               onPress={() => router.push("/(modals)/edit-profile")}
@@ -152,6 +153,7 @@ export default function Profile() {
         {/* Sign out Button */}
         <View style={{ alignItems: "center", marginTop: 28 }}>
           <TouchableOpacity
+            testID="signout-btn"
             onPress={async () => {
               try {
                 await signOut(auth);
