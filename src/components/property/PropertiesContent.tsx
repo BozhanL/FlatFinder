@@ -1,3 +1,4 @@
+import { OnPressEvent } from "node_modules/@maplibre/maplibre-react-native/lib/typescript/module/src/types/OnPressEvent";
 import PropertyMapView from "./PropertyMapView";
 import StateDisplay from "./StateDisplay";
 
@@ -19,7 +20,7 @@ interface PropertiesContentProps {
   filteredProperties: Property[];
   selectedProperty: Property | null;
   isVisible: boolean;
-  onMarkerPress: (event: any) => void;
+  onMarkerPress: (event: OnPressEvent) => void;
   onClosePropertyTile: () => void;
 }
 

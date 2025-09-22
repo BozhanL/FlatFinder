@@ -3,12 +3,14 @@ import {
   Images,
   Logger,
   MapView,
+  OnPressEvent,
   RasterLayer,
   RasterSource,
   ShapeSource,
   SymbolLayer,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
+import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
@@ -105,7 +107,7 @@ interface PropertyMapViewProps {
   properties: Property[];
   selectedProperty: Property | null;
   isVisible: boolean;
-  onMarkerPress: (event: any) => void;
+  onMarkerPress: (event: OnPressEvent) => void;
   onClosePropertyTile: () => void;
 }
 
@@ -116,23 +118,26 @@ export default function PropertyMapView({
   onMarkerPress,
   onClosePropertyTile,
 }: PropertyMapViewProps) {
-  // Create GeoJSON for filtered properties
-  const createPropertyData = () => ({
-    type: "FeatureCollection" as const,
-    features: properties.map((property) => ({
-      type: "Feature" as const,
-      geometry: {
-        type: "Point" as const,
-        coordinates: [property.longitude, property.latitude],
-      },
-      properties: {
-        id: property.id,
-        title: property.title,
-        type: property.type || "rental",
-        price: property.price,
-      },
-    })),
-  });
+  // Create GeoJSON for filtered properties with memoization
+  const createPropertyData: GeoJSON.FeatureCollection = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: properties.map((property) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [property.longitude, property.latitude],
+        },
+        properties: {
+          id: property.id,
+          title: property.title,
+          type: property.type || "rental",
+          price: property.price,
+        },
+      })),
+    }),
+    [properties],
+  );
 
   // Format price for display
   const formatPrice = (price: number, type?: string): string => {
@@ -177,7 +182,7 @@ export default function PropertyMapView({
         {/* Property markers */}
         <ShapeSource
           id="property-markers"
-          shape={createPropertyData()}
+          shape={createPropertyData}
           onPress={onMarkerPress}
         >
           <SymbolLayer
@@ -227,7 +232,7 @@ export default function PropertyMapView({
               style={styles.expandButton}
               onPress={() => {
                 router.push({
-                  pathname: "/(modals)/property" as any,
+                  pathname: "/property",
                   params: { id: selectedProperty.id },
                 });
               }}

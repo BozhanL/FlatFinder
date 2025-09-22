@@ -32,6 +32,11 @@ jest.mock("expo-router", () => ({
   router: {
     push: jest.fn(),
   },
+  useFocusEffect: jest.fn((callback) => {
+    const cleanup = callback();
+    if (typeof cleanup === "function") {
+    }
+  }),
 }));
 
 describe("Index screen", () => {

@@ -7,8 +7,8 @@ import {
   getDocs,
   getFirestore,
 } from "@react-native-firebase/firestore";
-import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
@@ -253,6 +253,15 @@ export default function Index(): React.JSX.Element {
     }, 300);
   };
 
+  // Close the floating tile when the route is unfocused
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        closePropertyTile();
+      };
+    }, []),
+  );
+
   // Count active filters
   const activeFilterCount: number = useMemo(
     () =>
@@ -283,7 +292,7 @@ export default function Index(): React.JSX.Element {
 
         {mode === TabMode.Properties && (
           <TouchableOpacity
-            onPress={() => router.push("/(modals)/filter")}
+            onPress={() => router.push("/filter")}
             activeOpacity={0.8}
             style={[
               styles.filterBtn,
