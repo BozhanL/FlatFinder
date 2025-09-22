@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import { JSX, useMemo, useState } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -30,7 +30,11 @@ type Props = {
   onPass?: (user: Flatmate) => void;
 };
 
-export default function SwipeDeck({ data, onLike, onPass }: Props) {
+export default function SwipeDeck({
+  data,
+  onLike,
+  onPass,
+}: Props): JSX.Element {
   const [idx, setIdx] = useState(0);
   const top = data[idx];
   const next = data[idx + 1];
@@ -38,6 +42,16 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) {
   const insets = useSafeAreaInsets();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+
+  function commitSwipe(dir: 1 | -1) {
+    if (!top) return;
+    if (dir === 1) onLike?.(top);
+    else onPass?.(top);
+    // reset & next card
+    translateX.value = 0;
+    translateY.value = 0;
+    setIdx((v) => v + 1);
+  }
 
   const gesture = useMemo(
     () =>
@@ -48,7 +62,7 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) {
         })
         .onEnd(() => {
           if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const dir = Math.sign(translateX.value);
+            const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
             translateX.value = withTiming(
               dir * SCREEN_W * 1.2,
               { duration: 180 },
@@ -61,22 +75,11 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) {
             translateY.value = withSpring(0);
           }
         }),
-    []
+    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD]
   );
-
-  function commitSwipe(dir: number) {
-    if (!top) return;
-    if (dir > 0) onLike?.(top);
-    else onPass?.(top);
-    // reset & next card
-    translateX.value = 0;
-    translateY.value = 0;
-    setIdx((v) => v + 1);
-  }
 
   function fling(dir: 1 | -1) {
     if (!top) return;
-    translateX.value = withSpring(dir * 40);
     translateX.value = withTiming(
       dir * SCREEN_W * 1.2,
       { duration: 180 },
@@ -85,17 +88,6 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) {
       }
     );
   }
-
-  const topStyle = useAnimatedStyle(() => {
-    const rotate = (translateX.value / SCREEN_W) * ROTATE;
-    return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { rotate: `${rotate}deg` },
-      ],
-    };
-  });
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
@@ -121,6 +113,17 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) {
       [0.95, 1]
     );
     return { transform: [{ scale }] };
+  });
+
+  const topStyle = useAnimatedStyle(() => {
+    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { rotate: `${rotate}deg` },
+      ],
+    };
   });
 
   if (!top) {
