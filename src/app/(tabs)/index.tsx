@@ -204,7 +204,7 @@ export default function Index(): React.JSX.Element {
 
             if (data) {
               // Extract coordinates from GeoPoint data
-              const coordinates = data["coordinates"];
+              const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined = data["coordinates"];
               const latitude = coordinates?._latitude || coordinates?.latitude;
               const longitude =
                 coordinates?._longitude || coordinates?.longitude;
