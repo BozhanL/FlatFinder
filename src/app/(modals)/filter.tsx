@@ -5,7 +5,7 @@ import {
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import { Stack, router } from "expo-router";
-import { JSX, useEffect, useState } from "react";
+import { JSX, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
 
 export default function FilterScreen(): JSX.Element {
   const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
-
 
   const propertyTypes = ["rental", "sale"];
   const bedroomOptions = [1, 2, 3, 4, 5];

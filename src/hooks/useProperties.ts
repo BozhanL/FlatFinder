@@ -1,4 +1,4 @@
-import { Property } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
@@ -84,4 +84,4 @@ export function useProperties(): UsePropertiesResult {
   }, [uid]);
 
   return { properties, loading, error };
-};
+}

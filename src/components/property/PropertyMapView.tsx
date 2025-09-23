@@ -1,5 +1,6 @@
 import { useProperties } from "@/hooks/useProperties";
-import { FilterState, Property } from "@/types/FilterState";
+import { FilterState } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,

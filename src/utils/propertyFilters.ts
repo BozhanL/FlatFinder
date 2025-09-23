@@ -1,4 +1,5 @@
-import { FilterState, Property } from "@/types/FilterState";
+import { FilterState } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 
 // Pure filtering function - no React hooks, just logic
 export function applyPropertyFilters(
@@ -46,7 +47,7 @@ export function applyPropertyFilters(
         );
       })
   );
-};
+}
 
 // Count active filters
 export function countActiveFilters(filters: FilterState): number {
@@ -57,9 +58,9 @@ export function countActiveFilters(filters: FilterState): number {
     (filters.bathrooms !== null ? 1 : 0) +
     (filters.minContract !== "" ? 1 : 0)
   );
-};
+}
 
 // Check if any filters are active
 export function hasActiveFilters(filters: FilterState): boolean {
   return countActiveFilters(filters) > 0;
-};
+}

@@ -7,7 +7,7 @@ import {
   registerApplyFilter,
   unregisterApplyFilter,
 } from "@/utils/filterStateManager";
-import { countActiveFilters, hasActiveFilters } from "@/utils/propertyFilters";
+import { countActiveFilters } from "@/utils/propertyFilters";
 import { OnPressEvent } from "@maplibre/maplibre-react-native";
 import { router, useFocusEffect } from "expo-router";
 import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
