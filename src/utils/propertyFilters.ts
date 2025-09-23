@@ -1,4 +1,4 @@
-import { FilterState, Property } from '@/types/FilterState';
+import { FilterState, Property } from "@/types/FilterState";
 
 // Pure filtering function - no React hooks, just logic
 export const applyPropertyFilters = (

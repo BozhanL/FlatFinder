@@ -1,8 +1,11 @@
-import { getGlobalApplyFilter } from "@/app/(tabs)/index";
 import { FilterState } from "@/types/FilterState";
+import {
+  applyGlobalFilters,
+  getGlobalFilters,
+} from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import { Stack, router } from "expo-router";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -104,14 +107,12 @@ const styles = StyleSheet.create({
 });
 
 export default function FilterScreen(): JSX.Element {
-  const [filters, setFilters] = useState<FilterState>({
-    type: [],
-    minPrice: "",
-    maxPrice: "",
-    bedrooms: null,
-    bathrooms: null,
-    minContract: "",
-  });
+  const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
+
+  // Load current filters when component mounts
+  useEffect(() => {
+    setFilters(getGlobalFilters());
+  }, []);
 
   const propertyTypes = ["rental", "sale"];
   const bedroomOptions = [1, 2, 3, 4, 5];
@@ -165,15 +166,8 @@ export default function FilterScreen(): JSX.Element {
   };
 
   const applyFilters = (): void => {
-    const globalApplyFilter = getGlobalApplyFilter();
-    if (!globalApplyFilter) {
-      console.error("No filter function available");
-      router.back();
-      return;
-    }
-
     console.log("Applying filters:", filters);
-    globalApplyFilter(filters);
+    applyGlobalFilters(filters);
     router.back();
   };
 

@@ -1,5 +1,5 @@
 import FilterScreen from "@/app/(modals)/filter";
-import { getGlobalApplyFilter } from "@/app/(tabs)/index";
+import { getGlobalApplyFilter } from "@/utils/filterStateManager";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 jest.mock("expo-router", () => ({

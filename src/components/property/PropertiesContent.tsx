@@ -1,6 +1,6 @@
+import PropertyMapView from "@/components/property/PropertyMapView";
+import { FilterState } from "@/types/FilterState";
 import { OnPressEvent } from "@maplibre/maplibre-react-native";
-import PropertyMapView from "./PropertyMapView";
-import StateDisplay from "./StateDisplay";
 
 interface Property {
   id: string;
@@ -15,49 +15,35 @@ interface Property {
 }
 
 interface PropertiesContentProps {
-  loading: boolean;
-  allProperties: Property[];
-  filteredProperties: Property[];
+  filters: FilterState;
   selectedProperty: Property | null;
   isVisible: boolean;
   onMarkerPress: (event: OnPressEvent) => void;
   onClosePropertyTile: () => void;
+  onPropertiesLoad?: (allProps: Property[], filteredProps: Property[]) => void;
+  // Legacy props for backward compatibility
+  loading?: boolean;
+  allProperties?: Property[];
+  filteredProperties?: Property[];
 }
 
 export default function PropertiesContent({
-  loading,
-  allProperties,
-  filteredProperties,
+  filters,
   selectedProperty,
   isVisible,
   onMarkerPress,
   onClosePropertyTile,
+  onPropertiesLoad,
 }: PropertiesContentProps) {
-  if (loading) {
-    return <StateDisplay type="loading" />;
-  }
+  // Create props object conditionally including onPropertiesLoad
+  const mapViewProps = {
+    filters,
+    selectedProperty,
+    isVisible,
+    onMarkerPress,
+    onClosePropertyTile,
+    ...(onPropertiesLoad && { onPropertiesLoad }),
+  };
 
-  if (allProperties.length === 0) {
-    return <StateDisplay type="empty" message="No properties found" />;
-  }
-
-  if (filteredProperties.length === 0) {
-    return (
-      <StateDisplay
-        type="filtered"
-        message="No properties match your filters"
-        subtitle="Try adjusting your filter criteria"
-      />
-    );
-  }
-
-  return (
-    <PropertyMapView
-      properties={filteredProperties}
-      selectedProperty={selectedProperty}
-      isVisible={isVisible}
-      onMarkerPress={onMarkerPress}
-      onClosePropertyTile={onClosePropertyTile}
-    />
-  );
+  return <PropertyMapView {...mapViewProps} />;
 }

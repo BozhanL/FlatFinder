@@ -1,3 +1,6 @@
+import { useProperties } from "@/hooks/useProperties";
+import { FilterState, Property } from "@/types/FilterState";
+import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,
   Images,
@@ -10,13 +13,17 @@ import {
   SymbolLayer,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
-// https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
-// The link above is for mapbox but applies to maplibre too
 Logger.setLogCallback((log) => {
   const { message } = log;
 
@@ -36,6 +43,27 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    color: "#e74c3c",
+    textAlign: "center",
+    fontSize: 16,
   },
   floatingTile: {
     position: "absolute",
@@ -95,38 +123,45 @@ const styles = StyleSheet.create({
   },
 });
 
-interface Property {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  price: number;
-  type?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  contract?: number;
-}
-
 interface PropertyMapViewProps {
-  properties: Property[];
+  filters: FilterState;
   selectedProperty: Property | null;
   isVisible: boolean;
   onMarkerPress: (event: OnPressEvent) => void;
   onClosePropertyTile: () => void;
+  onPropertiesLoad?: (
+    allProperties: Property[],
+    filteredProperties: Property[],
+  ) => void;
 }
 
 export default function PropertyMapView({
-  properties,
+  filters,
   selectedProperty,
   isVisible,
   onMarkerPress,
   onClosePropertyTile,
+  onPropertiesLoad,
 }: PropertyMapViewProps) {
+  const { properties: allProperties, loading, error } = useProperties();
+
+  // Apply filters to properties
+  const filteredProperties = useMemo(() => {
+    return applyPropertyFilters(allProperties, filters);
+  }, [allProperties, filters]);
+
+  // Notify parent component when properties are loaded/filtered
+  useEffect(() => {
+    if (onPropertiesLoad && !loading) {
+      onPropertiesLoad(allProperties, filteredProperties);
+    }
+  }, [allProperties, filteredProperties, loading, onPropertiesLoad]);
+
   // Create GeoJSON for filtered properties with memoization
   const createPropertyData: GeoJSON.FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection" as const,
-      features: properties.map((property) => ({
+      features: filteredProperties.map((property) => ({
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
@@ -140,7 +175,7 @@ export default function PropertyMapView({
         },
       })),
     }),
-    [properties],
+    [filteredProperties],
   );
 
   // Format price for display
@@ -151,6 +186,15 @@ export default function PropertyMapView({
       return `$${price}/week`;
     }
   };
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error loading properties: {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -183,24 +227,36 @@ export default function PropertyMapView({
           }}
         />
 
-        {/* Property markers */}
-        <ShapeSource
-          id="property-markers"
-          shape={createPropertyData}
-          onPress={onMarkerPress}
-        >
-          <SymbolLayer
-            id="property-icons"
-            style={{
-              iconImage: "pin",
-              iconSize: 0.2,
-              iconAnchor: "bottom",
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-            }}
-          />
-        </ShapeSource>
+        {/* Property markers - only show if data is loaded */}
+        {!loading && (
+          <ShapeSource
+            id="property-markers"
+            shape={createPropertyData}
+            onPress={onMarkerPress}
+          >
+            <SymbolLayer
+              id="property-icons"
+              style={{
+                iconImage: "pin",
+                iconSize: 0.2,
+                iconAnchor: "bottom",
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+              }}
+            />
+          </ShapeSource>
+        )}
       </MapView>
+
+      {/* Loading overlay */}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={{ marginTop: 10, color: "#666" }}>
+            Loading properties...
+          </Text>
+        </View>
+      )}
 
       {/* Floating Property Tile */}
       {selectedProperty && (
