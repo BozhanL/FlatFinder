@@ -5,18 +5,3 @@ export async function logout() {
   await deregisterToken();
   await signOut(getAuth());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
