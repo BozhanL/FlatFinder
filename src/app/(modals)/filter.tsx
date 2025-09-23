@@ -109,10 +109,6 @@ const styles = StyleSheet.create({
 export default function FilterScreen(): JSX.Element {
   const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
 
-  // Load current filters when component mounts
-  useEffect(() => {
-    setFilters(getGlobalFilters());
-  }, []);
 
   const propertyTypes = ["rental", "sale"];
   const bedroomOptions = [1, 2, 3, 4, 5];
