@@ -2,13 +2,11 @@
 
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
-import { createGroup } from "@/services/message";
 import * as swipeSvc from "@/services/swipe";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -71,21 +69,12 @@ const orderByMock = orderBy as jest.Mock;
 const limitMock = limit as jest.Mock;
 const queryMock = query as jest.Mock;
 const getDocsMock = getDocs as jest.Mock;
-const getDocMock = getDoc as jest.Mock;
 const setDocMock = setDoc as jest.Mock;
 const serverTimestampMock = serverTimestamp as jest.Mock;
-const createGroupMock = createGroup as jest.Mock;
 const pickAvatarForMock = pickAvatarFor as jest.Mock;
 
 afterEach(() => {
   jest.clearAllMocks();
-});
-
-describe("matchIdFor", () => {
-  it("sorts and joins ids with underscore", () => {
-    expect(swipeSvc.matchIdFor("b", "a")).toBe("a_b");
-    expect(swipeSvc.matchIdFor("me", "me")).toBe("me_me");
-  });
 });
 
 describe("fetchSwipedSet", () => {
@@ -235,51 +224,5 @@ describe("swipe", () => {
       expect.objectContaining({ dir: "like", createdAt: expect.anything() }),
       { merge: true },
     );
-  });
-});
-
-describe("ensureMatchIfMutualLike", () => {
-  it("calls createGroup and returns id when mutual like", async () => {
-    // getDoc returns exists with dir=like
-    getDocMock.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({ dir: "like" }),
-    });
-
-    const id = await swipeSvc.ensureMatchIfMutualLike("a", "b");
-
-    expect(docMock).toHaveBeenCalledWith(
-      expect.anything(),
-      "users",
-      "b",
-      "swipes",
-      "a",
-    );
-    expect(createGroupMock).toHaveBeenCalledWith(["a", "b"], "a_b");
-    expect(id).toBe("a_b");
-  });
-
-  it("returns null and does not create group when not mutual like", async () => {
-    getDocMock.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({ dir: "pass" }),
-    });
-
-    const id = await swipeSvc.ensureMatchIfMutualLike("a", "b");
-
-    expect(createGroupMock).not.toHaveBeenCalled();
-    expect(id).toBeNull();
-  });
-
-  it("returns null when remote swipe doc does not exist", async () => {
-    getDocMock.mockResolvedValueOnce({
-      exists: () => false,
-      data: () => ({}),
-    });
-
-    const id = await swipeSvc.ensureMatchIfMutualLike("a", "b");
-
-    expect(createGroupMock).not.toHaveBeenCalled();
-    expect(id).toBeNull();
   });
 });

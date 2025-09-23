@@ -1,8 +1,8 @@
 export const AVATARS = [
-  require("../../assets/images/dummy1.png"),
-  require("../../assets/images/dummy2.png"),
-  require("../../assets/images/dummy3.png"),
-  require("../../assets/images/dummy4.png"),
+  require("assets/images/dummy1.png"),
+  require("assets/images/dummy2.png"),
+  require("assets/images/dummy3.png"),
+  require("assets/images/dummy4.png"),
 ];
 
 function hash(s: string) {

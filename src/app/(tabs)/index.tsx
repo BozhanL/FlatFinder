@@ -1,15 +1,12 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import Segmented from "@/components/Segmented";
-import SwipeDeck from "@/components/SwipeDeck";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
 import { useCandidates } from "@/hooks/useCandidates";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
-import { getApp } from "@react-native-firebase/app";
 import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-
-const auth = getAuth(getApp());
 
 const enum TabMode {
   Flatmates = "Flatmates",
@@ -17,35 +14,18 @@ const enum TabMode {
 }
 
 export default function Index() {
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null);
-  const [authChecking, setAuthChecking] = useState(true);
+  const [uid, setUid] = useState<string | null>(null);
   const [mode, setMode] = useState(TabMode.Flatmates);
 
   //Check Authentication State
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(getAuth(), (user) => {
       setUid(user?.uid ?? null);
-      setAuthChecking(false);
     });
     return unsub;
   }, []);
 
-  //Lead to login page if unlogin
-  useEffect(() => {
-    if (!authChecking && !uid) {
-      router.replace("/login");
-    }
-  }, [authChecking, uid]);
-
-  const { items, loading, setItems } = useCandidates(uid);
-
-  //Loading condition
-  if (authChecking || (!uid && !loading))
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <Text>Loading…</Text>
-      </View>
-    );
+  const { items, setItems } = useCandidates(uid);
 
   if (!uid) return null;
 

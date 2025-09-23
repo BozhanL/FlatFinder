@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
-import SwipeDeck from "@/components/SwipeDeck";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
 
 jest.mock("react-native-reanimated", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -18,7 +18,7 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-jest.mock("@/components/SwipeCard", () => {
+jest.mock("@/components/swipe/SwipeCard", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
