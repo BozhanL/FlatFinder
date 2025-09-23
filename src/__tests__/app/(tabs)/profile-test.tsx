@@ -10,8 +10,6 @@ import {
 import { router } from "expo-router";
 import React from "react";
 import { Alert } from "react-native";
-
-// Import after mocks so component sees them
 import Profile from "@/app/(tabs)/profile";
 
 import * as authMod from "@react-native-firebase/auth";
