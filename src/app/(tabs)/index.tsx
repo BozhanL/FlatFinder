@@ -2,11 +2,14 @@ import HeaderLogo from "@/components/HeaderLogo";
 import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/SwipeDeck";
 import { useCandidates } from "@/hooks/useCandidates";
-import { ensureMatchIfMutualLike, swipe } from "@/services/firestore";
-import auth from "@react-native-firebase/auth";
+import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
+import { getApp } from "@react-native-firebase/app";
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+
+const auth = getAuth(getApp());
 
 const enum TabMode {
   Flatmates = "Flatmates",
@@ -14,15 +17,13 @@ const enum TabMode {
 }
 
 export default function Index() {
-  const [uid, setUid] = useState<string | null>(
-    auth().currentUser?.uid ?? null
-  );
+  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null);
   const [authChecking, setAuthChecking] = useState(true);
   const [mode, setMode] = useState(TabMode.Flatmates);
 
   //Check Authentication State
   useEffect(() => {
-    const unsub = auth().onAuthStateChanged((user) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
       setUid(user?.uid ?? null);
       setAuthChecking(false);
     });

@@ -13,7 +13,7 @@ export default function SwipeCard({item}: Props){
       }}
     >
       <Image
-        source={item.avatar as any}
+        source={item.avatar}
         style={{ width: "100%", height: 420 }}
         resizeMode="cover"
       />
