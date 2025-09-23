@@ -1,18 +1,7 @@
 import PropertyMapView from "@/components/property/PropertyMapView";
-import { FilterState } from "@/types/FilterState";
+import { FilterState, Property } from "@/types/FilterState";
 import { OnPressEvent } from "@maplibre/maplibre-react-native";
 
-interface Property {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  price: number;
-  type?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  contract?: number;
-}
 
 interface PropertiesContentProps {
   filters: FilterState;
