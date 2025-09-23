@@ -12,8 +12,8 @@ import React from "react";
 import { Alert } from "react-native";
 import Profile from "@/app/(tabs)/profile";
 
-import * as authMod from "@react-native-firebase/auth";
-import * as fsMod from "@react-native-firebase/firestore";
+import authMod from "@react-native-firebase/auth";
+import fsMod from "@react-native-firebase/firestore";
 jest.mock("expo-router", () => {
   const push = jest.fn();
   const replace = jest.fn();
