@@ -163,9 +163,9 @@ export default function FilterScreen(): JSX.Element {
     setFilters(clearedFilters);
 
     // Apply cleared filters immediately
-    const applyFilter = getGlobalApplyFilter();
-    if (applyFilter) {
-      applyFilter(clearedFilters);
+    const globalApplyFilter = getGlobalApplyFilter();
+    if (globalApplyFilter) {
+      globalApplyFilter(clearedFilters);
     }
   };
 
