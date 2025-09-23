@@ -122,10 +122,7 @@ export default function Index(): JSX.Element {
   );
 
   // Check if any filters are active using utility function
-  const filtersActive: boolean = useMemo(
-    () => hasActiveFilters(filters),
-    [filters],
-  );
+  const filtersActive: boolean = activeFilterCount > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
