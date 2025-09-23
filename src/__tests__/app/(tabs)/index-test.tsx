@@ -99,10 +99,8 @@ jest.mock("@/components/SwipeDeck", () => {
 
 // Segmented
 jest.mock("@/components/Segmented", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
+  const React = jest.requireActual("react");
+  const RN = jest.requireActual("react-native");
 
   const MockSegmented = () => (
     <RN.View testID="segmented">
