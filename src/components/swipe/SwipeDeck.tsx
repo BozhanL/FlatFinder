@@ -179,7 +179,7 @@ export default function SwipeDeck({
 
       {/* Buttons at the bottom */}
       <View
-        style={[styles.fabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}
+        style={[styles.fabBar, { paddingBottom: Math.max(insets.bottom,8) }]}
         pointerEvents="box-none"
       >
         <TouchableOpacity

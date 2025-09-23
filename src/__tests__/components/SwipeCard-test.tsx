@@ -1,4 +1,4 @@
-import SwipeCard from "@/components/SwipeCard";
+import SwipeCard from "@/components/swipe/SwipeCard";
 import type { Flatmate } from "@/types/flatmate";
 import { render, screen } from "@testing-library/react-native";
 import React from "react";
