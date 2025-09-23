@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dimensions,
   StyleSheet,
