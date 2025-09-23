@@ -1,19 +1,23 @@
 // @ts-nocheck
-import React from "react";
 import {
+  cleanup,
+  fireEvent,
   render,
   screen,
-  fireEvent,
-  cleanup,
+  waitFor,
 } from "@testing-library/react-native";
+import React from "react";
 
 import Index from "@/app/(tabs)";
-import * as authMod from "@react-native-firebase/auth";
 import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
+import * as authMod from "@react-native-firebase/auth";
 import { router } from "expo-router";
 
-import { View, Text, TouchableOpacity } from "react-native";
+export const swipeMock = jest.fn().mockResolvedValue(undefined);
+export const ensureMatchIfMutualLikeMock = jest
+  .fn()
+  .mockResolvedValue(undefined);
 
 jest.mock("expo-router", () => {
   const router = {
@@ -38,77 +42,96 @@ jest.mock("@react-native-firebase/auth", () => {
 });
 
 jest.mock("@/hooks/useCandidates", () => {
-  const state = {
-    items: [{ id: "u2", name: "Jane" }],
-    loading: false,
-    setItems: jest.fn(),
+  const setItemsMock = jest.fn();
+  return {
+    __esModule: true,
+    useCandidates: () => ({
+      loading: false,
+      items: [
+        { id: "u2", uid: "u2", name: "User2" },
+        { id: "uX", uid: "uX", name: "Other" },
+      ],
+      setItems: setItemsMock,
+    }),
+    __TEST__: { setItemsMock },
   };
-  const useCandidates = jest.fn(() => state);
-  return { useCandidates, __state: state };
 });
 
 jest.mock("@/services/swipe", () => {
-  const swipe = jest.fn(async () => {});
-  const ensureMatchIfMutualLike = jest.fn(async () => null);
-  return { swipe, ensureMatchIfMutualLike };
+  const mockSwipe = jest.fn().mockResolvedValue(undefined);
+  const mockEnsure = jest.fn().mockResolvedValue(undefined);
+
+  return {
+    __esModule: true,
+    swipe: mockSwipe,
+    ensureMatchIfMutualLike: mockEnsure,
+    __TEST__: { mockSwipe, mockEnsure },
+  };
 });
 
 jest.mock("@/components/SwipeDeck", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
   const MockSwipeDeck = ({ data, onLike, onPass }) => {
     return (
-      <View testID="swipe-deck">
-        <Text>Mock SwipeDeck</Text>
-        <Text testID="items-count">{data?.length ?? 0}</Text>
-        <TouchableOpacity
+      <RN.View testID="swipe-deck">
+        <RN.Text>Mock SwipeDeck</RN.Text>
+        <RN.Text testID="items-count">{data?.length ?? 0}</RN.Text>
+        <RN.TouchableOpacity
           testID="like-btn"
           onPress={() => data?.[0] && onLike?.(data[0])}
         >
-          <Text>LIKE</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+          <RN.Text>LIKE</RN.Text>
+        </RN.TouchableOpacity>
+        <RN.TouchableOpacity
           testID="pass-btn"
           onPress={() => data?.[0] && onPass?.(data[0])}
         >
-          <Text>PASS</Text>
-        </TouchableOpacity>
-      </View>
+          <RN.Text>PASS</RN.Text>
+        </RN.TouchableOpacity>
+      </RN.View>
     );
   };
 
   MockSwipeDeck.displayName = "MockSwipeDeck";
-  return MockSwipeDeck;
+  return { __esModule: true, default: MockSwipeDeck };
 });
 
 // Segmented
 jest.mock("@/components/Segmented", () => {
-  const MockSegmented = (props: any) => (
-    <View testID="segmented">
-      <Text>Mock Segmented</Text>
-    </View>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
+
+  const MockSegmented = () => (
+    <RN.View testID="segmented">
+      <RN.Text>Mock Segmented</RN.Text>
+    </RN.View>
   );
   MockSegmented.displayName = "MockSegmented";
-  return MockSegmented;
+  return { __esModule: true, default: MockSegmented };
 });
 
 // HeaderLogo
 jest.mock("@/components/HeaderLogo", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
   const MockHeaderLogo = () => (
-    <View testID="header-logo">
-      <Text>Logo</Text>
-    </View>
+    <RN.View testID="header-logo">
+      <RN.Text>Logo</RN.Text>
+    </RN.View>
   );
   MockHeaderLogo.displayName = "MockHeaderLogo";
-  return MockHeaderLogo;
+  return { __esModule: true, default: MockHeaderLogo };
 });
 
 const onAuthStateChangedMock = authMod.onAuthStateChanged as jest.Mock;
 const getAuthMock = authMod.getAuth as jest.Mock;
-
-const candidatesState: any = (hookMod as any).__state;
-
-const swipeMock = swipeMod.swipe as jest.Mock;
-const ensureMatchIfMutualLikeMock =
-  swipeMod.ensureMatchIfMutualLike as jest.Mock;
 
 afterEach(() => {
   cleanup();
@@ -139,19 +162,23 @@ describe("Index screen", () => {
   it("renders SwipeDeck when logged in and candidates loaded", () => {
     render(<Index />);
     expect(screen.getByTestId("swipe-deck")).toBeTruthy();
-    expect(screen.getByTestId("items-count").props.children).toBe(1);
+    expect(screen.getByTestId("items-count").props.children).toBe(2);
   });
 
   it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
     render(<Index />);
-    const likeBtn = screen.getByTestId("like-btn");
 
-    fireEvent.press(likeBtn);
+    fireEvent.press(screen.getByTestId("like-btn"));
 
-    expect(swipeMock).toHaveBeenCalledWith("me", "u2", "like");
-    expect(ensureMatchIfMutualLikeMock).toHaveBeenCalledWith("me", "u2");
-
-    expect(candidatesState.setItems).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "like"),
+    );
+    await waitFor(() =>
+      expect(swipeMod.ensureMatchIfMutualLike).toHaveBeenCalledWith("me", "u2"),
+    );
+    await waitFor(() =>
+      expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
+    );
   });
 
   it("pressing PASS calls swipe('pass') and setItems", async () => {
@@ -160,7 +187,11 @@ describe("Index screen", () => {
 
     fireEvent.press(passBtn);
 
-    expect(swipeMock).toHaveBeenCalledWith("me", "u2", "pass");
-    expect(candidatesState.setItems).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "pass"),
+    );
+    await waitFor(() =>
+      expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
+    );
   });
 });
