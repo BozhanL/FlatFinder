@@ -2,9 +2,9 @@ import type { Flatmate } from "@/types/flatmate";
 import { JSX } from "react";
 import { Image, Text, View } from "react-native";
 
-type Props = {item:Flatmate};
-export default function SwipeCard({item}: Props): JSX.Element{
-    return (
+type Props = { item: Flatmate };
+export default function SwipeCard({ item }: Props): JSX.Element {
+  return (
     <View
       style={{
         borderRadius: 16,
@@ -24,15 +24,32 @@ export default function SwipeCard({item}: Props): JSX.Element{
         </Text>
 
         <Text style={{ color: "#555" }}>
-          {typeof item.location === "string" ? item.location : item.location?.area}
+          {typeof item.location === "string"
+            ? item.location
+            : item.location?.area}
           {item.budget ? ` · $${item.budget}/wk` : ""}
         </Text>
-        
+
         {item.bio ? <Text style={{ marginTop: 4 }}>{item.bio}</Text> : null}
-        
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+            marginTop: 6,
+          }}
+        >
           {item.tags?.map((t) => (
-            <View key={t} style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: "#eee", borderRadius: 999 }}>
+            <View
+              key={t}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                backgroundColor: "#eee",
+                borderRadius: 999,
+              }}
+            >
               <Text>{t}</Text>
             </View>
           ))}

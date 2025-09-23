@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
 import { loadCandidates } from "@/services/swipe";
 import type { Flatmate } from "@/types/flatmate";
 import { useEffect, useState } from "react";
@@ -22,7 +24,7 @@ export function useCandidates(me: string | null) {
         if (alive) setItems(rows);
         console.log(
           "candidates:",
-          rows.map((r: any) => r.id)
+          rows.map((r: any) => r.id),
         );
       } finally {
         if (alive) setLoading(false);

@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { JSX, useMemo } from "react";
+import { JSX, useCallback, useMemo } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -42,14 +42,17 @@ export default function SwipeDeck({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  function commitSwipe(dir: 1 | -1) {
-    if (!top) return;
-    if (dir === 1) onLike?.(top);
-    else onPass?.(top);
-    // reset & next card
-    translateX.value = 0;
-    translateY.value = 0;
-  }
+  const commitSwipe = useCallback(
+    (dir: 1 | -1) => {
+      if (!top) return;
+      if (dir === 1) onLike?.(top);
+      else onPass?.(top);
+      // reset & next card
+      translateX.value = 0;
+      translateY.value = 0;
+    },
+    [top, onLike, onPass, translateX, translateY],
+  );
 
   const gesture = useMemo(
     () =>
@@ -66,14 +69,14 @@ export default function SwipeDeck({
               { duration: 180 },
               () => {
                 runOnJS(commitSwipe)(dir);
-              }
+              },
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
         }),
-    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD]
+    [translateX, translateY, commitSwipe],
   );
 
   function fling(dir: 1 | -1) {
@@ -83,7 +86,7 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      }
+      },
     );
   }
 
@@ -98,7 +101,7 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1]
+      [0, 1],
     );
     return { opacity };
   });
@@ -108,7 +111,7 @@ export default function SwipeDeck({
     const scale = interpolate(
       Math.abs(translateX.value),
       [0, SWIPE_THRESHOLD],
-      [0.95, 1]
+      [0.95, 1],
     );
     return { transform: [{ scale }] };
   });
