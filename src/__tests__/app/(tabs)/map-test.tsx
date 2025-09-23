@@ -13,6 +13,15 @@ jest.mock("@react-native-firebase/firestore", () => ({
   onSnapshot: jest.fn(),
 }));
 
+// Mock Firebase Auth
+jest.mock("@react-native-firebase/auth", () => ({
+  getAuth: jest.fn(() => ({
+    currentUser: {
+      uid: "mock-user-id",
+    },
+  })),
+}));
+
 // Mock MapLibre
 jest.mock("@maplibre/maplibre-react-native", () => ({
   Logger: {
@@ -25,6 +34,7 @@ jest.mock("@maplibre/maplibre-react-native", () => ({
   RasterLayer: "RasterLayer",
   ShapeSource: "ShapeSource",
   SymbolLayer: "SymbolLayer",
+  OnPressEvent: {},
 }));
 
 // Mock expo-router
@@ -59,8 +69,8 @@ describe("Index screen", () => {
                 data: () => ({
                   title: "Test Property",
                   coordinates: {
-                    _latitude: -36.85,
-                    _longitude: 174.76,
+                    latitude: -36.85,
+                    longitude: 174.76,
                   },
                   price: 500,
                   type: "rental",
@@ -77,8 +87,8 @@ describe("Index screen", () => {
                 data: () => ({
                   title: "Another Property",
                   coordinates: {
-                    _latitude: -36.86,
-                    _longitude: 174.77,
+                    latitude: -36.86,
+                    longitude: 174.77,
                   },
                   price: 600,
                   type: "sale",

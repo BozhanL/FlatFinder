@@ -1,6 +1,8 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertiesContent from "@/components/property/PropertiesContent";
 import Segmented from "@/components/Segmented";
+import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -8,7 +10,7 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
@@ -194,16 +196,16 @@ export default function Index(): JSX.Element {
 
             if (data) {
               // Extract coordinates from GeoPoint data
-              const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined = data["coordinates"];
-              const latitude = coordinates?._latitude || coordinates?.latitude;
-              const longitude =
-                coordinates?._longitude || coordinates?.longitude;
+              const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined =
+                data["coordinates"];
+              const latitude = coordinates?.latitude;
+              const longitude = coordinates?.longitude;
 
               const property: Property = {
                 id: doc.id,
                 title: data["title"] || "Untitled Property",
-                latitude: latitude,
-                longitude: longitude,
+                latitude: latitude || 0,
+                longitude: longitude || 0,
                 price: data["price"] || 0,
                 type: data["type"] || "rental",
                 bedrooms: data["bedrooms"] || undefined,
@@ -229,12 +231,16 @@ export default function Index(): JSX.Element {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [uid]);
 
   // Handle marker press
   const handleMarkerPress = (event: OnPressEvent): void => {
-    const feature = event.features[0];
-    const propertyId = feature.properties.id;
+    const feature = event.features?.[0];
+    if (!feature || !feature.properties) {
+      return;
+    }
+
+    const propertyId = feature.properties["id"];
     const property = filteredProperties.find((p) => p.id === propertyId);
 
     if (property) {

@@ -1,7 +1,7 @@
 import { getGlobalApplyFilter } from "@/app/(tabs)/index";
 import { FilterState } from "@/types/FilterState";
 import { Stack, router } from "expo-router";
-import { useState } from "react";
+import { JSX, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -161,12 +161,6 @@ export default function FilterScreen(): JSX.Element {
       minContract: "",
     };
     setFilters(clearedFilters);
-
-    // Apply cleared filters immediately
-    const globalApplyFilter = getGlobalApplyFilter();
-    if (globalApplyFilter) {
-      globalApplyFilter(clearedFilters);
-    }
   };
 
   const applyFilters = (): void => {

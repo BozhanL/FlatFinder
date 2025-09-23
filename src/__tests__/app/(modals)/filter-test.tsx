@@ -103,12 +103,11 @@ describe("FilterScreen", () => {
 
     render(<FilterScreen />);
 
-    // Set filters
     fireEvent.press(screen.getByText("For Rent"));
     fireEvent.changeText(screen.getByPlaceholderText("Min price"), "500");
 
-    // Clear all
     fireEvent.press(screen.getByText("Clear All"));
+    fireEvent.press(screen.getByText(/Apply Filters/i));
 
     expect(mockApplyFilter).toHaveBeenCalledWith({
       type: [],
