@@ -20,9 +20,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 Logger.setLogCallback((log) => {
   const { message } = log;
 
-  if (message.match("Request failed")) {
+  if (
+    message.match("Request failed due to a permanent error: Canceled") ||
+    message.match("Request failed due to a permanent error: Socket Closed")
+  ) {
     return true;
   }
+
   return false;
 });
 
