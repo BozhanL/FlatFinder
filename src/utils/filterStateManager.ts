@@ -34,17 +34,17 @@ export const getGlobalApplyFilter = ():
   | null => globalApplyFilter;
 
 // Apply new filters globally
-export const applyGlobalFilters = (newFilters: FilterState): void => {
+export function applyGlobalFilters(newFilters: FilterState): void {
   globalFilters = { ...newFilters };
   if (globalApplyFilter) {
     globalApplyFilter(newFilters);
   }
-};
+}
 
 // Get current global filters
-export const getGlobalFilters = (): FilterState => {
+export function getGlobalFilters(): FilterState {
   return { ...globalFilters };
-};
+}
 
 // Reset filters to default
 export const resetGlobalFilters = (): void => {
