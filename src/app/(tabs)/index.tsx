@@ -1,6 +1,8 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertiesContent from "@/components/property/PropertiesContent";
 import Segmented from "@/components/Segmented";
+import { FilterState, Property } from "@/types/FilterState";
+import { applyPropertyFilters, countActiveFilters, hasActiveFilters } from "@/utils/propertyFilters";
 import { OnPressEvent } from "@maplibre/maplibre-react-native";
 import { getAuth } from "@react-native-firebase/auth";
 import {
@@ -51,28 +53,6 @@ const enum TabMode {
   Properties = "Properties",
 }
 
-// Interface for property data
-interface Property {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  price: number;
-  type?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  contract?: number;
-}
-
-interface FilterState {
-  type: string[];
-  minPrice: string;
-  maxPrice: string;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  minContract: string;
-}
-
 // Global filter state
 let globalFilters: FilterState = {
   type: [],
@@ -113,58 +93,9 @@ export default function Index(): JSX.Element {
     };
   }, []);
 
-  // Using client sided filtering as firestore doesn't support complex "OR" queries
-  // Eg, both "minimum bedrooms" and "minimum bathrooms" at the same time
-  const applyFilters = (
-    properties: Property[],
-    filters: FilterState,
-  ): Property[] => {
-    return (
-      properties
-        // Property type filter - if empty, show all types
-        .filter(
-          (property) =>
-            filters.type.length === 0 ||
-            filters.type.includes(property.type || "rental"),
-        )
-        // Price filter
-        .filter((property) => {
-          const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-          const maxPrice = filters.maxPrice
-            ? parseFloat(filters.maxPrice)
-            : Infinity;
-
-          return (
-            isNaN(minPrice) ||
-            isNaN(maxPrice) ||
-            (property.price >= minPrice && property.price <= maxPrice)
-          );
-        })
-        // Bedrooms filter - single selection (null means no filter)
-        .filter(
-          (property) =>
-            filters.bedrooms === null ||
-            (property.bedrooms || 0) >= filters.bedrooms,
-        )
-        // Bathrooms filter - single selection (null means no filter)
-        .filter(
-          (property) =>
-            filters.bathrooms === null ||
-            (property.bathrooms || 0) >= filters.bathrooms,
-        )
-        // Contract length filter
-        .filter((property) => {
-          const minContract = parseInt(filters.minContract);
-          return (
-            isNaN(minContract) || minContract >= (property.contract || Infinity)
-          );
-        })
-    );
-  };
-
   // Apply filters whenever filters change
   useEffect(() => {
-    const filtered = applyFilters(allProperties, filters);
+    const filtered = applyPropertyFilters(allProperties, filters);
     console.log(
       `Filtered ${filtered.length} properties from ${allProperties.length} total`,
     );
@@ -266,19 +197,17 @@ export default function Index(): JSX.Element {
     }, []),
   );
 
-  // Count active filters
+  // Count active filters using utility function
   const activeFilterCount: number = useMemo(
-    () =>
-      (filters.type.length > 0 ? 1 : 0) +
-      (filters.minPrice !== "" || filters.maxPrice !== "" ? 1 : 0) +
-      (filters.bedrooms !== null ? 1 : 0) +
-      (filters.bathrooms !== null ? 1 : 0) +
-      (filters.minContract !== "" ? 1 : 0),
+    () => countActiveFilters(filters),
     [filters],
   );
 
-  // Check if any filters are active
-  const hasActiveFilters: boolean = activeFilterCount > 0;
+  // Check if any filters are active using utility function
+  const filtersActive: boolean = useMemo(
+    () => hasActiveFilters(filters),
+    [filters],
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -300,13 +229,13 @@ export default function Index(): JSX.Element {
             activeOpacity={0.8}
             style={[
               styles.filterBtn,
-              hasActiveFilters && styles.filterBtnActive,
+              filtersActive && styles.filterBtnActive,
             ]}
           >
             <Text
               style={[
                 styles.filterBtnText,
-                hasActiveFilters && styles.filterBtnTextActive,
+                filtersActive && styles.filterBtnTextActive,
               ]}
             >
               Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}

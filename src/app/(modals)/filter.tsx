@@ -1,5 +1,6 @@
 import { getGlobalApplyFilter } from "@/app/(tabs)/index";
 import { FilterState } from "@/types/FilterState";
+import { countActiveFilters } from "@/utils/propertyFilters";
 import { Stack, router } from "expo-router";
 import { JSX, useState } from "react";
 import {
@@ -176,16 +177,7 @@ export default function FilterScreen(): JSX.Element {
     router.back();
   };
 
-  const hasActiveFilters = (): boolean => {
-    return (
-      filters.type.length > 0 ||
-      filters.bedrooms !== null ||
-      filters.bathrooms !== null ||
-      filters.minPrice !== "" ||
-      filters.maxPrice !== "" ||
-      filters.minContract !== ""
-    );
-  };
+  const activeFilterCount = countActiveFilters(filters);
 
   return (
     <>
@@ -334,16 +326,7 @@ export default function FilterScreen(): JSX.Element {
           >
             <Text style={[styles.buttonText, styles.applyButtonText]}>
               Apply Filters
-              {hasActiveFilters()
-                ? ` (${
-                    filters.type.length +
-                    (filters.bedrooms !== null ? 1 : 0) +
-                    (filters.bathrooms !== null ? 1 : 0) +
-                    (filters.minPrice ? 1 : 0) +
-                    (filters.maxPrice ? 1 : 0) +
-                    (filters.minContract ? 1 : 0)
-                  })`
-                : ""}
+              {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
             </Text>
           </TouchableOpacity>
         </View>
