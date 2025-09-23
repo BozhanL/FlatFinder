@@ -179,6 +179,7 @@ export default function SwipeDeck({
 
       {/* Buttons at the bottom */}
       <View
+        // IMPROVE: use other value for paddingBottom
         style={[styles.fabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}
         pointerEvents="box-none"
       >
