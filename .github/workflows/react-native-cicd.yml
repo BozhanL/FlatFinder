@@ -3,17 +3,9 @@ name: React Native CI/CD
 
 on:
   push:
-    branches: [main, master]
-    paths-ignore:
-      - "**.md"
-      - "LICENSE"
-      - "docs/**"
+    branches: [main, master, sprint/**]
   pull_request:
-    branches: [main, master]
-    paths-ignore:
-      - "**.md"
-      - "LICENSE"
-      - "docs/**"
+    branches: [main, master, sprint/**]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
