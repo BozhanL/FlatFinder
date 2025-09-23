@@ -242,7 +242,7 @@ export default function Index(): React.JSX.Element {
   }, []);
 
   // Handle marker press
-  const handleMarkerPress = (event: any): void => {
+  const handleMarkerPress = (event: OnPressEvent): void => {
     const feature = event.features[0];
     const propertyId = feature.properties.id;
     const property = filteredProperties.find((p) => p.id === propertyId);
