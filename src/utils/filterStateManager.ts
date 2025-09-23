@@ -28,11 +28,6 @@ export function unregisterApplyFilter(): void {
   globalApplyFilter = null;
 }
 
-// Get the global apply filter function
-export const getGlobalApplyFilter = ():
-  | ((filters: FilterState) => void)
-  | null => globalApplyFilter;
-
 // Apply new filters globally
 export function applyGlobalFilters(newFilters: FilterState): void {
   globalFilters = { ...newFilters };
