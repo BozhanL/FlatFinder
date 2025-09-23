@@ -113,10 +113,8 @@ jest.mock("@/components/Segmented", () => {
 
 // HeaderLogo
 jest.mock("@/components/HeaderLogo", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
+  const React = jest.requireActual("react");
+  const RN = jest.requireActual("react-native");
   const MockHeaderLogo = () => (
     <RN.View testID="header-logo">
       <RN.Text>Logo</RN.Text>
