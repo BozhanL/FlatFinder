@@ -13,20 +13,20 @@ const defaultFilters: FilterState = {
 // Global filter state
 let globalFilters: FilterState = { ...defaultFilters };
 
+type ApplyFilterFunction = (filters: FilterState) => void;
+
 // Global apply filter function
-let globalApplyFilter: ((filters: FilterState) => void) | null = null;
+let globalApplyFilter: ApplyFilterFunction | null = null;
 
 // Register the apply filter function
-export const registerApplyFilter = (
-  applyFilterFn: (filters: FilterState) => void,
-): void => {
+export function registerApplyFilter(applyFilterFn: ApplyFilterFunction): void {
   globalApplyFilter = applyFilterFn;
-};
+}
 
 // Unregister the apply filter function
-export const unregisterApplyFilter = (): void => {
+export function unregisterApplyFilter(): void {
   globalApplyFilter = null;
-};
+}
 
 // Get the global apply filter function
 export const getGlobalApplyFilter = ():
