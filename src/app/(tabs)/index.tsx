@@ -1,7 +1,8 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
-import { FilterState, Property } from "@/types/FilterState";
+import { FilterState } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 import {
   getGlobalFilters,
   registerApplyFilter,
