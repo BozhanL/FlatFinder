@@ -117,57 +117,47 @@ export default function Index(): JSX.Element {
     properties: Property[],
     filters: FilterState,
   ): Property[] => {
-    return properties.filter((property) => {
-      // Property type filter - if empty, show all types
-      if (filters.type.length > 0) {
-        const propertyType = property.type || "rental";
-        if (!filters.type.includes(propertyType)) {
-          return false;
-        }
-      }
+    return (
+      properties
+        // Property type filter - if empty, show all types
+        .filter(
+          (property) =>
+            filters.type.length === 0 ||
+            filters.type.includes(property.type || "rental"),
+        )
+        // Price filter
+        .filter((property) => {
+          const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
+          const maxPrice = filters.maxPrice
+            ? parseFloat(filters.maxPrice)
+            : Infinity;
 
-      // Price filter
-      if (filters.minPrice !== "" || filters.maxPrice !== "") {
-        const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-        const maxPrice = filters.maxPrice
-          ? parseFloat(filters.maxPrice)
-          : Infinity;
-
-        if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-          if (property.price < minPrice || property.price > maxPrice) {
-            return false;
-          }
-        }
-      }
-
-      // Bedrooms filter - single selection (null means no filter)
-      if (filters.bedrooms !== null) {
-        const propertyBedrooms = property.bedrooms || 0;
-        if (propertyBedrooms < filters.bedrooms) {
-          return false;
-        }
-      }
-
-      // Bathrooms filter - single selection (null means no filter)
-      if (filters.bathrooms !== null) {
-        const propertyBathrooms = property.bathrooms || 0;
-        if (propertyBathrooms < filters.bathrooms) {
-          return false;
-        }
-      }
-
-      // Contract length filter
-      if (filters.minContract && filters.minContract !== "") {
-        const minContract = parseInt(filters.minContract);
-        if (!isNaN(minContract)) {
-          if (!property.contract || property.contract > minContract) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    });
+          return (
+            isNaN(minPrice) ||
+            isNaN(maxPrice) ||
+            (property.price >= minPrice && property.price <= maxPrice)
+          );
+        })
+        // Bedrooms filter - single selection (null means no filter)
+        .filter(
+          (property) =>
+            filters.bedrooms === null ||
+            (property.bedrooms || 0) >= filters.bedrooms,
+        )
+        // Bathrooms filter - single selection (null means no filter)
+        .filter(
+          (property) =>
+            filters.bathrooms === null ||
+            (property.bathrooms || 0) >= filters.bathrooms,
+        )
+        // Contract length filter
+        .filter((property) => {
+          const minContract = parseInt(filters.minContract);
+          return (
+            isNaN(minContract) || minContract >= (property.contract || Infinity)
+          );
+        })
+    );
   };
 
   // Apply filters whenever filters change
