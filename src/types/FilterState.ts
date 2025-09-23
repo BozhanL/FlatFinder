@@ -13,7 +13,7 @@ export type Property = {
   imageUrl?: string;
 }
 
-export interface FilterState {
+export type Property = {
   type: string[];
   minPrice: string;
   maxPrice: string;
