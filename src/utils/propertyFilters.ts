@@ -42,7 +42,7 @@ export const applyPropertyFilters = (
       .filter((property) => {
         const minContract = parseInt(filters.minContract);
         return (
-          isNaN(minContract) || minContract >= (property.contract || Infinity)
+          isNaN(minContract) || (property.contract || Infinity) >= minContract
         );
       })
   );

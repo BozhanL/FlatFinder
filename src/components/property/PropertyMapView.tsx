@@ -14,7 +14,13 @@ import {
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
 import { useEffect, useMemo } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
@@ -39,24 +45,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
-    color: '#e74c3c',
-    textAlign: 'center',
+    color: "#e74c3c",
+    textAlign: "center",
     fontSize: 16,
   },
   floatingTile: {
@@ -123,7 +129,10 @@ interface PropertyMapViewProps {
   isVisible: boolean;
   onMarkerPress: (event: OnPressEvent) => void;
   onClosePropertyTile: () => void;
-  onPropertiesLoad?: (allProperties: Property[], filteredProperties: Property[]) => void;
+  onPropertiesLoad?: (
+    allProperties: Property[],
+    filteredProperties: Property[],
+  ) => void;
 }
 
 export default function PropertyMapView({
@@ -182,9 +191,7 @@ export default function PropertyMapView({
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          Error loading properties: {error}
-        </Text>
+        <Text style={styles.errorText}>Error loading properties: {error}</Text>
       </View>
     );
   }
@@ -245,7 +252,9 @@ export default function PropertyMapView({
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={{ marginTop: 10, color: "#666" }}>Loading properties...</Text>
+          <Text style={{ marginTop: 10, color: "#666" }}>
+            Loading properties...
+          </Text>
         </View>
       )}
 

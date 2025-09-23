@@ -1,5 +1,5 @@
 import HeaderLogo from "@/components/HeaderLogo";
-import PropertiesContent from "@/components/property/PropertiesContent";
+import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
 import { FilterState, Property } from "@/types/FilterState";
 import {
@@ -57,7 +57,6 @@ export default function Index(): JSX.Element {
     null,
   );
   const [isVisible, setIsVisible] = useState(false);
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
 
@@ -77,8 +76,7 @@ export default function Index(): JSX.Element {
 
   // Handle properties loaded from PropertyMapView
   const handlePropertiesLoad = useCallback(
-    (allProps: Property[], filteredProps: Property[]) => {
-      setAllProperties(allProps);
+    (_allProps: Property[], filteredProps: Property[]) => {
       setFilteredProperties(filteredProps);
     },
     [],
@@ -167,17 +165,13 @@ export default function Index(): JSX.Element {
             <Text>Flatmate list</Text>
           </View>
         ) : (
-          <PropertiesContent
+          <PropertyMapView
             filters={filters}
             selectedProperty={selectedProperty}
             isVisible={isVisible}
             onMarkerPress={handleMarkerPress}
             onClosePropertyTile={closePropertyTile}
             onPropertiesLoad={handlePropertiesLoad}
-            // Legacy props for backward compatibility (if PropertiesContent still uses them)
-            allProperties={allProperties}
-            filteredProperties={filteredProperties}
-            loading={false} // PropertyMapView handles loading now
           />
         )}
       </View>
