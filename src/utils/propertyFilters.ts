@@ -60,6 +60,6 @@ export const countActiveFilters = (filters: FilterState): number => {
 };
 
 // Check if any filters are active
-export const hasActiveFilters = (filters: FilterState): boolean => {
+export function hasActiveFilters(filters: FilterState): boolean {
   return countActiveFilters(filters) > 0;
 };
