@@ -24,6 +24,7 @@ import {
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
+// https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
 Logger.setLogCallback((log) => {
   const { message } = log;
 
