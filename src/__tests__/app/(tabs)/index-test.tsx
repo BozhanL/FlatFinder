@@ -70,10 +70,8 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/SwipeDeck", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
+  const React = jest.requireActual("react");
+  const RN = jest.requireActual("react-native");
   const MockSwipeDeck = ({ data, onLike, onPass }) => {
     return (
       <RN.View testID="swipe-deck">
