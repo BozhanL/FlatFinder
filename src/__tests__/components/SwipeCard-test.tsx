@@ -33,7 +33,7 @@ describe("SwipeCard", () => {
 
   it("renders location as string and budget if present", () => {
     render(
-      <SwipeCard item={makeFlatmate({ location: "City", budget: 750 })} />
+      <SwipeCard item={makeFlatmate({ location: "City", budget: 750 })} />,
     );
 
     expect(screen.getByText(/City/)).toBeTruthy();
@@ -47,7 +47,7 @@ describe("SwipeCard", () => {
         item={makeFlatmate({
           location: { area: "Suburbia" } as any,
         })}
-      />
+      />,
     );
 
     expect(screen.getByText(/Suburbia/)).toBeTruthy();

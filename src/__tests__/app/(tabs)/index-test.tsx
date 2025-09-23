@@ -9,9 +9,9 @@ import {
 import React from "react";
 
 import Index from "@/app/(tabs)";
-import hookMod from "@/hooks/useCandidates";
-import swipeMod from "@/services/swipe";
-import authMod from "@react-native-firebase/auth";
+import * as hookMod from "@/hooks/useCandidates";
+import * as swipeMod from "@/services/swipe";
+import * as authMod from "@react-native-firebase/auth";
 import { router } from "expo-router";
 
 export const swipeMock = jest.fn().mockResolvedValue(undefined);
@@ -70,8 +70,10 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/SwipeDeck", () => {
-  const React = jest.requireActual("react");
-  const RN = jest.requireActual("react-native");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
   const MockSwipeDeck = ({ data, onLike, onPass }) => {
     return (
       <RN.View testID="swipe-deck">
@@ -99,8 +101,10 @@ jest.mock("@/components/SwipeDeck", () => {
 
 // Segmented
 jest.mock("@/components/Segmented", () => {
-  const React = jest.requireActual("react");
-  const RN = jest.requireActual("react-native");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
 
   const MockSegmented = () => (
     <RN.View testID="segmented">
@@ -113,8 +117,10 @@ jest.mock("@/components/Segmented", () => {
 
 // HeaderLogo
 jest.mock("@/components/HeaderLogo", () => {
-  const React = jest.requireActual("react");
-  const RN = jest.requireActual("react-native");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const RN = require("react-native");
   const MockHeaderLogo = () => (
     <RN.View testID="header-logo">
       <RN.Text>Logo</RN.Text>

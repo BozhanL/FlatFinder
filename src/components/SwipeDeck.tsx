@@ -1,7 +1,6 @@
 import type { Flatmate } from "@/types/flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { JSX, useMemo, useState } from "react";
+import { JSX, useCallback, useMemo } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -36,7 +35,6 @@ export default function SwipeDeck({
   onLike,
   onPass,
 }: Props): JSX.Element {
-
   const top = data[0];
   const next = data[1];
 
@@ -44,14 +42,17 @@ export default function SwipeDeck({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  function commitSwipe(dir: 1 | -1) {
-    if (!top) return;
-    if (dir === 1) onLike?.(top);
-    else onPass?.(top);
-    // reset & next card
-    translateX.value = 0;
-    translateY.value = 0;
-  }
+  const commitSwipe = useCallback(
+    (dir: 1 | -1) => {
+      if (!top) return;
+      if (dir === 1) onLike?.(top);
+      else onPass?.(top);
+      // reset & next card
+      translateX.value = 0;
+      translateY.value = 0;
+    },
+    [top, onLike, onPass, translateX, translateY],
+  );
 
   const gesture = useMemo(
     () =>
@@ -75,8 +76,7 @@ export default function SwipeDeck({
             translateY.value = withSpring(0);
           }
         }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD],
+    [translateX, translateY, commitSwipe],
   );
 
   function fling(dir: 1 | -1) {
@@ -152,15 +152,7 @@ export default function SwipeDeck({
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}
           >
-            <SwipeCard
-              item={top}
-              onPress={() =>
-                router.push({
-                  pathname: "/(modals)/profile/[uid]",
-                  params: { uid: top.id },
-                })
-              }
-            />
+            <SwipeCard item={top} />
 
             {/* LIKE / NOPE tag */}
             <Animated.View

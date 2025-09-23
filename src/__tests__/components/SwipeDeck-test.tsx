@@ -68,12 +68,12 @@ describe("SwipeDeck", () => {
         data={[fm({ name: "Top" }, 1), fm({}, 2)]}
         onLike={like}
         onPass={pass}
-      />
+      />,
     );
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     const heartBtn = buttons[1];
     fireEvent.press(heartBtn);
@@ -91,12 +91,12 @@ describe("SwipeDeck", () => {
         data={[fm({ name: "Top" }, 1), fm({}, 2)]}
         onLike={like}
         onPass={pass}
-      />
+      />,
     );
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     const closeBtn = buttons[0];
     fireEvent.press(closeBtn);
@@ -111,7 +111,7 @@ describe("SwipeDeck", () => {
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     fireEvent.press(buttons[0]);
     fireEvent.press(buttons[1]);

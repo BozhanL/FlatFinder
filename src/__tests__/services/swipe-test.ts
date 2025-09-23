@@ -3,7 +3,7 @@
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
 import { createGroup } from "@/services/message";
-import swipeSvc from "@/services/swipe";
+import * as swipeSvc from "@/services/swipe";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
