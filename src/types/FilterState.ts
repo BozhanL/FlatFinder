@@ -8,6 +8,9 @@ export interface Property {
   bedrooms?: number;
   bathrooms?: number;
   contract?: number;
+  description?: string;
+  address?: string;
+  imageUrl?: string;
 }
 
 export interface FilterState {

@@ -1,4 +1,4 @@
-import { PropertyDetails } from "@/types/PropertyDetails";
+import { Property } from "@/types/FilterState";
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { JSX, useEffect, useState } from "react";
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
 
 export default function PropertyDetailsPage(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [property, setProperty] = useState<PropertyDetails | null>(null);
+  const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -183,17 +183,23 @@ export default function PropertyDetailsPage(): JSX.Element {
         const data = docSnap.data();
 
         if (data) {
-          const propertyDetails: PropertyDetails = {
+          const coordinates = data["coordinates"];
+          const latitude = coordinates?.latitude || 0;
+          const longitude = coordinates?.longitude || 0;
+
+          const propertyDetails: Property = {
             id: docSnap.id,
             title: data["title"] || "Untitled Property",
+            latitude,
+            longitude,
             price: data["price"] || 0,
             type: data["type"] || "rental",
-            description: data["description"] || "No description available.",
             bedrooms: data["bedrooms"],
             bathrooms: data["bathrooms"],
+            contract: data["contract"],
+            description: data["description"] || "No description available.",
             address: data["address"],
             imageUrl: data["imageUrl"],
-            contract: data["contract"],
           };
 
           setProperty(propertyDetails);
@@ -209,7 +215,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     fetchPropertyDetails();
   }, [id]);
 
-  const formatPrice = (price: number, type: string): string => {
+  const formatPrice = (price: number, type?: string): string => {
     if (type === "sale") {
       return `$${price.toLocaleString()}`;
     } else {
@@ -300,7 +306,7 @@ export default function PropertyDetailsPage(): JSX.Element {
             {formatPrice(property.price, property.type)}
           </Text>
           <Text style={styles.propertyType} testID="property-type">
-            {property.type}
+            {property.type || "rental"}
           </Text>
 
           {property.address && (
