@@ -4,10 +4,15 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getApp } from "@react-native-firebase/app";
 import { getAuth } from "@react-native-firebase/auth";
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
+  query,
   serverTimestamp,
+  setDoc,
+  where,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -74,13 +79,10 @@ function toFirestorePayload(x: Draft) {
 }
 
 async function isUsernameTaken(v: string, myUid: string) {
-  const snap = await getFirestore()
-    .collection("users")
-    .where("name", "==", v)
-    .limit(1)
-    .get();
-  const doc = snap.docs.at(0);
-  return !!doc && doc.id !== myUid;
+  const q = query(collection(db, "users"), where("name", "==", v));
+  const snap = await getDocs(q);
+  const first = snap.docs.at(0);
+  return !!first && first.id !== myUid;
 }
 
 /* ---------------- Yup schema ---------------- */
@@ -165,12 +167,11 @@ export default function EditProfileModal() {
         return;
       }
 
-      await getFirestore()
-        .collection("users")
-        .doc(uid)
-        .set(toFirestorePayload({ ...form, name: candidate.name }), {
-          merge: true,
-        });
+      await setDoc(
+        doc(db, "users", uid),
+        toFirestorePayload({ ...form, name: candidate.name }),
+        { merge: true },
+      );
 
       Alert.alert("Saved", "Your profile has been updated.");
       setTab(Tab.Preview);
