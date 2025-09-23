@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function FilterScreen(): React.JSX.Element {
+export default function FilterScreen(): JSX.Element {
   const [filters, setFilters] = useState<FilterState>({
     type: [],
     minPrice: "",
