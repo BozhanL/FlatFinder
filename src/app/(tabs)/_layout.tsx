@@ -73,6 +73,8 @@ export default function TabsLayout(): JSX.Element {
           },
         }}
       />
+
+      {/* Profile page */}
       <Tabs.Screen
         name="profile"
         options={{
