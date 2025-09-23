@@ -1,5 +1,9 @@
 import FilterScreen from "@/app/(modals)/filter";
-import { applyGlobalFilters, getGlobalFilters } from "@/utils/filterStateManager";
+import {
+  applyGlobalFilters,
+  getGlobalFilters,
+} from "@/utils/filterStateManager";
+import { countActiveFilters } from "@/utils/propertyFilters";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 // Mock expo-router
@@ -29,7 +33,7 @@ jest.mock("@/utils/propertyFilters", () => ({
 describe("FilterScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Reset the mock implementation for getGlobalFilters to return default state
     (getGlobalFilters as jest.Mock).mockReturnValue({
       type: [],
@@ -132,7 +136,6 @@ describe("FilterScreen", () => {
   });
 
   test("Shows active filter count on apply button", () => {
-    const { countActiveFilters } = require("@/utils/propertyFilters");
     (countActiveFilters as jest.Mock).mockReturnValue(2);
 
     render(<FilterScreen />);
