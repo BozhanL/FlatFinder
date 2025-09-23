@@ -8,8 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import React from "react";
-
-import * as fsMod from "@react-native-firebase/firestore";
+import fsMod from "@react-native-firebase/firestore";
 
 jest.mock("@react-native-firebase/app", () => ({
   getApp: jest.fn(() => ({})),
