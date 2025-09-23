@@ -49,7 +49,7 @@ export function applyPropertyFilters(
 };
 
 // Count active filters
-export const countActiveFilters = (filters: FilterState): number => {
+export function countActiveFilters(filters: FilterState): number {
   return (
     (filters.type.length > 0 ? 1 : 0) +
     (filters.minPrice !== "" || filters.maxPrice !== "" ? 1 : 0) +
