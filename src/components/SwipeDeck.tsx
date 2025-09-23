@@ -61,7 +61,7 @@ export default function SwipeDeck({ data, onLike, onPass }: Props) : JSX.Element
             translateY.value = withSpring(0);
           }
         }),
-    []
+    [translateX, translateY, commitSwipe, SWIPE_THRESHOLD],
   );
 
   function commitSwipe(dir: number) {
