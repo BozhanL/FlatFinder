@@ -1,11 +1,284 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import PropertiesContent from "@/components/property/PropertiesContent";
 import Segmented from "@/components/Segmented";
-import { router } from "expo-router";
-import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import { getAuth } from "@react-native-firebase/auth";
+import {
+  collection,
+  FirebaseFirestoreTypes,
+  getFirestore,
+  onSnapshot,
+} from "@react-native-firebase/firestore";
+import { router, useFocusEffect } from "expo-router";
+import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function Index() {
+const styles = StyleSheet.create({
+  segmentedContainer: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  filterBtn: {
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#ECEBEC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterBtnActive: {
+    backgroundColor: "#2563eb",
+  },
+  filterBtnText: {
+    fontWeight: "600",
+    color: "#000",
+  },
+  filterBtnTextActive: {
+    color: "#fff",
+  },
+  centerContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+const enum TabMode {
+  Flatmates = "Flatmates",
+  Properties = "Properties",
+}
+
+// Interface for property data
+interface Property {
+  id: string;
+  title: string;
+  latitude: number;
+  longitude: number;
+  price: number;
+  type?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  contract?: number;
+}
+
+interface FilterState {
+  type: string[];
+  minPrice: string;
+  maxPrice: string;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  minContract: string;
+}
+
+// Global filter state
+let globalFilters: FilterState = {
+  type: [],
+  minPrice: "",
+  maxPrice: "",
+  bedrooms: null,
+  bathrooms: null,
+  minContract: "",
+};
+
+let globalApplyFilter: ((filters: FilterState) => void) | null = null;
+
+export const getGlobalApplyFilter = ():
+  | ((filters: FilterState) => void)
+  | null => globalApplyFilter;
+
+export default function Index(): JSX.Element {
   const [mode, setMode] = useState(TabMode.Flatmates);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
+  const [isVisible, setIsVisible] = useState(false);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterState>(globalFilters);
+
+  // Filter function
+  useEffect(() => {
+    globalApplyFilter = (newFilters: FilterState): void => {
+      console.log("Applying filters in index:", newFilters);
+      setFilters(newFilters);
+      globalFilters = newFilters;
+    };
+
+    return (): void => {
+      globalApplyFilter = null;
+    };
+  }, []);
+
+  // Using client sided filtering as firestore doesn't support complex "OR" queries
+  // Eg, both "minimum bedrooms" and "minimum bathrooms" at the same time
+  const applyFilters = (
+    properties: Property[],
+    filters: FilterState,
+  ): Property[] => {
+    return (
+      properties
+        // Property type filter - if empty, show all types
+        .filter(
+          (property) =>
+            filters.type.length === 0 ||
+            filters.type.includes(property.type || "rental"),
+        )
+        // Price filter
+        .filter((property) => {
+          const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
+          const maxPrice = filters.maxPrice
+            ? parseFloat(filters.maxPrice)
+            : Infinity;
+
+          return (
+            isNaN(minPrice) ||
+            isNaN(maxPrice) ||
+            (property.price >= minPrice && property.price <= maxPrice)
+          );
+        })
+        // Bedrooms filter - single selection (null means no filter)
+        .filter(
+          (property) =>
+            filters.bedrooms === null ||
+            (property.bedrooms || 0) >= filters.bedrooms,
+        )
+        // Bathrooms filter - single selection (null means no filter)
+        .filter(
+          (property) =>
+            filters.bathrooms === null ||
+            (property.bathrooms || 0) >= filters.bathrooms,
+        )
+        // Contract length filter
+        .filter((property) => {
+          const minContract = parseInt(filters.minContract);
+          return (
+            isNaN(minContract) || minContract >= (property.contract || Infinity)
+          );
+        })
+    );
+  };
+
+  // Apply filters whenever filters change
+  useEffect(() => {
+    const filtered = applyFilters(allProperties, filters);
+    console.log(
+      `Filtered ${filtered.length} properties from ${allProperties.length} total`,
+    );
+    console.log("Current filters:", filters);
+    setFilteredProperties(filtered);
+  }, [allProperties, filters]);
+
+  const uid = getAuth().currentUser?.uid;
+
+  // Fetch properties from Firebase using v9+ API
+  useEffect(() => {
+    if (!uid) {
+      return;
+    }
+
+    const db = getFirestore();
+    const propertiesCollection = collection(db, "properties");
+
+    const unsubscribe = onSnapshot(
+      propertiesCollection,
+      (snapshot) => {
+        setLoading(true);
+
+        const fetchedProperties: Property[] = [];
+
+        snapshot.forEach(
+          (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
+            const data = doc.data();
+
+            if (data) {
+              // Extract coordinates from GeoPoint data
+              const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined =
+                data["coordinates"];
+              const latitude = coordinates?.latitude;
+              const longitude = coordinates?.longitude;
+
+              const property: Property = {
+                id: doc.id,
+                title: data["title"] || "Untitled Property",
+                latitude: latitude || 0,
+                longitude: longitude || 0,
+                price: data["price"] || 0,
+                type: data["type"] || "rental",
+                bedrooms: data["bedrooms"] || undefined,
+                bathrooms: data["bathrooms"] || undefined,
+                contract: data["contract"] || undefined,
+              };
+
+              fetchedProperties.push(property);
+            }
+          },
+        );
+
+        setAllProperties(fetchedProperties);
+        setLoading(false);
+        console.log(
+          `Loaded ${fetchedProperties.length} properties from Firebase`,
+        );
+      },
+      (error) => {
+        console.error("Error with real-time properties listener:", error);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [uid]);
+
+  // Handle marker press
+  const handleMarkerPress = (event: OnPressEvent): void => {
+    const feature = event.features?.[0];
+    if (!feature || !feature.properties) {
+      return;
+    }
+
+    const propertyId = feature.properties["id"];
+    const property = filteredProperties.find((p) => p.id === propertyId);
+
+    if (property) {
+      setSelectedProperty(property);
+      setIsVisible(true);
+    }
+  };
+
+  // Close the floating tile
+  const closePropertyTile = (): void => {
+    setIsVisible(false);
+    setTimeout(() => {
+      setSelectedProperty(null);
+    }, 300);
+  };
+
+  // Close the floating tile when the route is unfocused
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        closePropertyTile();
+      };
+    }, []),
+  );
+
+  // Count active filters
+  const activeFilterCount: number = useMemo(
+    () =>
+      (filters.type.length > 0 ? 1 : 0) +
+      (filters.minPrice !== "" || filters.maxPrice !== "" ? 1 : 0) +
+      (filters.bedrooms !== null ? 1 : 0) +
+      (filters.bathrooms !== null ? 1 : 0) +
+      (filters.minContract !== "" ? 1 : 0),
+    [filters],
+  );
+
+  // Check if any filters are active
+  const hasActiveFilters: boolean = activeFilterCount > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -13,16 +286,7 @@ export default function Index() {
       <HeaderLogo />
 
       {/* Segmented & Filter Section */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          marginTop: 8,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        {/* Segmented */}
+      <View style={styles.segmentedContainer}>
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
@@ -30,40 +294,45 @@ export default function Index() {
           />
         </View>
 
-        {/* Filter buttons only, actual Content need to be added*/}
-        <TouchableOpacity
-          onPress={() => router.push("/filter")} // separated content page
-          activeOpacity={0.8}
-          style={{
-            paddingHorizontal: 14,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: "#ECEBEC",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ fontWeight: "600" }}> Filter </Text>
-        </TouchableOpacity>
+        {mode === TabMode.Properties && (
+          <TouchableOpacity
+            onPress={() => router.push("/filter")}
+            activeOpacity={0.8}
+            style={[
+              styles.filterBtn,
+              hasActiveFilters && styles.filterBtnActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.filterBtnText,
+                hasActiveFilters && styles.filterBtnTextActive,
+              ]}
+            >
+              Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Main contents to be added*/}
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      {/* Main content */}
+      <View style={{ flex: 1 }}>
         {mode === TabMode.Flatmates ? (
-          <View>
-            <Text>Flatmate list </Text>
+          <View style={styles.centerContent}>
+            <Text>Flatmate list</Text>
           </View>
         ) : (
-          <View>
-            <Text>Properties list </Text>
-          </View>
+          <PropertiesContent
+            loading={loading}
+            allProperties={allProperties}
+            filteredProperties={filteredProperties}
+            selectedProperty={selectedProperty}
+            isVisible={isVisible}
+            onMarkerPress={handleMarkerPress}
+            onClosePropertyTile={closePropertyTile}
+          />
         )}
       </View>
     </View>
   );
-}
-
-const enum TabMode {
-  Flatmates = "Flatmates",
-  Properties = "Properties",
 }
