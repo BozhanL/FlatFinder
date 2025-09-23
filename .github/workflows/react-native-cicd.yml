@@ -151,7 +151,7 @@ jobs:
       - name: 🏗 Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: oracle
+          distribution: temurin
           java-version: 21
 
       - name: 🏗 Setup Gradle
