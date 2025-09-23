@@ -121,19 +121,22 @@ export default function FilterScreen(): React.JSX.Element {
     value: string | number,
   ): void => {
     setFilters((prev) => {
-      if (category === "bedrooms" || category === "bathrooms") {
-        // Single selection for bedrooms and bathrooms
-        const isSelected = prev[category] === value;
-        return { ...prev, [category]: isSelected ? null : (value as number) };
-      } else if (category === "type") {
-        // Multi-selection for property type
-        const current = prev.type;
-        const newArray = current.includes(value as string)
-          ? current.filter((item) => item !== value)
-          : [...current, value as string];
-        return { ...prev, type: newArray };
+      switch (category) {
+        case "bedrooms":
+        case "bathrooms":
+          // Single selection for bedrooms and bathrooms
+          const isSelected = prev[category] === value;
+          return { ...prev, [category]: isSelected ? null : (value as number) };
+        case "type":
+          // Multi-selection for property type
+          const current = prev.type;
+          const newArray = current.includes(value as string)
+            ? current.filter((item) => item !== value)
+            : [...current, value as string];
+          return { ...prev, type: newArray };
+        default:
+          return prev;
       }
-      return prev;
     });
   };
 
