@@ -36,9 +36,9 @@ export default function SwipeDeck({
   onLike,
   onPass,
 }: Props): JSX.Element {
-  const [idx, setIdx] = useState(0);
-  const top = data[idx];
-  const next = data[idx + 1];
+
+  const top = data[0];
+  const next = data[1];
 
   const insets = useSafeAreaInsets();
   const translateX = useSharedValue(0);
@@ -51,7 +51,6 @@ export default function SwipeDeck({
     // reset & next card
     translateX.value = 0;
     translateY.value = 0;
-    setIdx((v) => v + 1);
   }
 
   const gesture = useMemo(
