@@ -26,11 +26,11 @@ export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   const qRef = query(
     collection(getFirestore(), "users", uid, "swipes"),
     orderBy("createdAt", "desc"),
-    qLimit(500)
+    qLimit(500),
   );
   const s = await getDocs(qRef);
   const ids = s.docs.map(
-    (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<SwipeDoc>) => d.id
+    (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<SwipeDoc>) => d.id,
   );
   return new Set(ids);
 }
@@ -42,7 +42,7 @@ export async function loadCandidates(
     area,
     maxBudget,
     limit = 30,
-  }: { area?: string; maxBudget?: number | null; limit?: number } = {}
+  }: { area?: string; maxBudget?: number | null; limit?: number } = {},
 ) {
   const swiped = await fetchSwipedSet(uid);
 
@@ -67,7 +67,7 @@ export async function loadCandidates(
   const list = s.docs
     .map(
       (
-        d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
+        d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
       ) => {
         const data = d.data() as any;
         const fm: Flatmate = {
@@ -83,7 +83,7 @@ export async function loadCandidates(
             : pickAvatarFor(d.id),
         };
         return fm;
-      }
+      },
     )
     .filter((u: Flatmate) => u.id !== uid)
     .filter((u: Flatmate) => !swiped.has(u.id));
