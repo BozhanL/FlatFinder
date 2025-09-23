@@ -9,9 +9,9 @@ import {
 import React from "react";
 
 import Index from "@/app/(tabs)";
-import * as hookMod from "@/hooks/useCandidates";
-import * as swipeMod from "@/services/swipe";
-import * as authMod from "@react-native-firebase/auth";
+import hookMod from "@/hooks/useCandidates";
+import swipeMod from "@/services/swipe";
+import authMod from "@react-native-firebase/auth";
 import { router } from "expo-router";
 
 export const swipeMock = jest.fn().mockResolvedValue(undefined);
