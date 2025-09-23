@@ -40,35 +40,3 @@ export function applyGlobalFilters(newFilters: FilterState): void {
 export function getGlobalFilters(): FilterState {
   return { ...globalFilters };
 }
-
-// Reset filters to default
-export const resetGlobalFilters = (): void => {
-  const resetFilters = { ...defaultFilters };
-  globalFilters = resetFilters;
-  if (globalApplyFilter) {
-    globalApplyFilter(resetFilters);
-  }
-};
-
-// Custom hook for using filters in React components
-export const useFilterState = (
-  onFiltersChange: (filters: FilterState) => void,
-): {
-  currentFilters: FilterState;
-  registerFilter: () => void;
-  unregisterFilter: () => void;
-} => {
-  const registerFilter = (): void => {
-    registerApplyFilter(onFiltersChange);
-  };
-
-  const unregisterFilter = (): void => {
-    unregisterApplyFilter();
-  };
-
-  return {
-    currentFilters: getGlobalFilters(),
-    registerFilter,
-    unregisterFilter,
-  };
-};
