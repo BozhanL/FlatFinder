@@ -147,9 +147,10 @@ export default function PropertyMapView({
   const { properties: allProperties, loading, error } = useProperties();
 
   // Apply filters to properties
-  const filteredProperties = useMemo(() => {
-    return applyPropertyFilters(allProperties, filters);
-  }, [allProperties, filters]);
+  const filteredProperties = useMemo(
+    () => applyPropertyFilters(allProperties, filters),
+    [allProperties, filters],
+  );
 
   // Notify parent component when properties are loaded/filtered
   useEffect(() => {
