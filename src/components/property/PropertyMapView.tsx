@@ -123,6 +123,28 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
+  postButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#2563eb",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  postButtonText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "300",
+    lineHeight: 24,
+  },
 });
 
 type PropertyMapViewProps = {
@@ -188,6 +210,12 @@ export default function PropertyMapView({
     } else {
       return `$${price}/week`;
     }
+  };
+
+  // Handle post button press
+  const handlePostProperty = (): void => {
+    // Updated to use the correct route format based on your post-property.tsx file
+    router.push("/(modals)/post-property" as any);
   };
 
   // Show error state
@@ -307,6 +335,21 @@ export default function PropertyMapView({
           </View>
         </View>
       )}
+
+      {/* Floating Post Button */}
+      <TouchableOpacity
+        style={[
+          styles.postButton,
+          {
+            bottom: selectedProperty && isVisible ? 200 : 20,
+          },
+        ]}
+        onPress={handlePostProperty}
+        activeOpacity={0.8}
+        testID="post-property-button"
+      >
+        <Text style={styles.postButtonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
