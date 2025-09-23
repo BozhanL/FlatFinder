@@ -1,10 +1,10 @@
 import { FilterState, Property } from "@/types/FilterState";
 
 // Pure filtering function - no React hooks, just logic
-export const applyPropertyFilters = (
+export function applyPropertyFilters(
   properties: Property[],
   filters: FilterState,
-): Property[] => {
+): Property[] {
   return (
     properties
       // Property type filter - if empty, show all types
