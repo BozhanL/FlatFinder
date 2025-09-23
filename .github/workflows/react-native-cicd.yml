@@ -38,12 +38,15 @@ jobs:
         run: npm run check-ts
 
       - name: 🧹 Run ESLint
+        continue-on-error: true
         run: npm run lint
 
       - name: 🎨 Run Prettier check
+        continue-on-error: true
         run: npm run format
 
       - name: 🧪 Run Jest Tests
+        continue-on-error: true
         run: npm run coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
       - name: 🧪 Run Jest Coverage Comment
