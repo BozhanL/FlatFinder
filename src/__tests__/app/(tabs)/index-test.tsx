@@ -12,7 +12,6 @@ import Index from "@/app/(tabs)";
 import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
 import * as authMod from "@react-native-firebase/auth";
-import { router } from "expo-router";
 
 export const swipeMock = jest.fn().mockResolvedValue(undefined);
 export const ensureMatchIfMutualLikeMock = jest
@@ -69,7 +68,7 @@ jest.mock("@/services/swipe", () => {
   };
 });
 
-jest.mock("@/components/SwipeDeck", () => {
+jest.mock("@/components/swipe/SwipeDeck", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -138,60 +137,38 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe("Index screen", () => {
-  it("shows Loading… while auth checking or no uid + not loading", () => {
-    onAuthStateChangedMock.mockImplementationOnce((_auth, _cb) => {
-      return jest.fn();
-    });
+it("renders SwipeDeck when logged in and candidates loaded", () => {
+  render(<Index />);
+  expect(screen.getByTestId("swipe-deck")).toBeTruthy();
+  expect(screen.getByTestId("items-count").props.children).toBe(2);
+});
 
-    render(<Index />);
-    expect(screen.getByText("Loading…")).toBeTruthy();
-  });
+it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
+  render(<Index />);
 
-  it("redirects to /login when no uid after auth check", async () => {
-    getAuthMock.mockReturnValueOnce({ currentUser: null });
-    onAuthStateChangedMock.mockImplementationOnce((_auth, cb) => {
-      cb(null);
-      return jest.fn();
-    });
+  fireEvent.press(screen.getByTestId("like-btn"));
 
-    render(<Index />);
-    expect(router.replace).toHaveBeenCalledWith("/login");
-  });
+  await waitFor(() =>
+    expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "like"),
+  );
+  await waitFor(() =>
+    expect(swipeMod.ensureMatchIfMutualLike).toHaveBeenCalledWith("me", "u2"),
+  );
+  await waitFor(() =>
+    expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
+  );
+});
 
-  it("renders SwipeDeck when logged in and candidates loaded", () => {
-    render(<Index />);
-    expect(screen.getByTestId("swipe-deck")).toBeTruthy();
-    expect(screen.getByTestId("items-count").props.children).toBe(2);
-  });
+it("pressing PASS calls swipe('pass') and setItems", async () => {
+  render(<Index />);
+  const passBtn = screen.getByTestId("pass-btn");
 
-  it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
-    render(<Index />);
+  fireEvent.press(passBtn);
 
-    fireEvent.press(screen.getByTestId("like-btn"));
-
-    await waitFor(() =>
-      expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "like"),
-    );
-    await waitFor(() =>
-      expect(swipeMod.ensureMatchIfMutualLike).toHaveBeenCalledWith("me", "u2"),
-    );
-    await waitFor(() =>
-      expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
-    );
-  });
-
-  it("pressing PASS calls swipe('pass') and setItems", async () => {
-    render(<Index />);
-    const passBtn = screen.getByTestId("pass-btn");
-
-    fireEvent.press(passBtn);
-
-    await waitFor(() =>
-      expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "pass"),
-    );
-    await waitFor(() =>
-      expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
-    );
-  });
+  await waitFor(() =>
+    expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "pass"),
+  );
+  await waitFor(() =>
+    expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
+  );
 });

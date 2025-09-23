@@ -18,7 +18,7 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-jest.mock("@/components/SwipeCard", () => {
+jest.mock("@/components/swipe/SwipeCard", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -68,12 +68,12 @@ describe("SwipeDeck", () => {
         data={[fm({ name: "Top" }, 1), fm({}, 2)]}
         onLike={like}
         onPass={pass}
-      />
+      />,
     );
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     const heartBtn = buttons[1];
     fireEvent.press(heartBtn);
@@ -91,12 +91,12 @@ describe("SwipeDeck", () => {
         data={[fm({ name: "Top" }, 1), fm({}, 2)]}
         onLike={like}
         onPass={pass}
-      />
+      />,
     );
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     const closeBtn = buttons[0];
     fireEvent.press(closeBtn);
@@ -111,7 +111,7 @@ describe("SwipeDeck", () => {
 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity
+      require("react-native").TouchableOpacity,
     );
     fireEvent.press(buttons[0]);
     fireEvent.press(buttons[1]);
