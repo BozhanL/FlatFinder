@@ -19,7 +19,7 @@ export function useCandidates(me: string | null) {
       try {
         setLoading(true);
         const rows = await loadCandidates(me, { limit: 30 });
-        if (alive) setItems(rows as any);
+        if (alive) setItems(rows);
         console.log(
           "candidates:",
           rows.map((r: any) => r.id)
