@@ -30,7 +30,7 @@ type Props = {
   onPass?: (user: Flatmate) => void;
 };
 
-export default function SwipeDeck({ data, onLike, onPass }: Props) {
+export default function SwipeDeck({ data, onLike, onPass }: Props) : JSX.Element{
   const [idx, setIdx] = useState(0);
   const top = data[idx];
   const next = data[idx + 1];
