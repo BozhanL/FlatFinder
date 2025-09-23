@@ -170,15 +170,15 @@ export default function FilterScreen(): JSX.Element {
   };
 
   const applyFilters = (): void => {
-    const applyFilter = getGlobalApplyFilter();
-    if (!applyFilter) {
+    const globalApplyFilter = getGlobalApplyFilter();
+    if (!globalApplyFilter) {
       console.error("No filter function available");
       router.back();
       return;
     }
 
     console.log("Applying filters:", filters);
-    applyFilter(filters);
+    globalApplyFilter(filters);
     router.back();
   };
 
