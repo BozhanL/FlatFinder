@@ -87,7 +87,7 @@ export const getGlobalApplyFilter = ():
   | ((filters: FilterState) => void)
   | null => globalApplyFilter;
 
-export default function Index(): React.JSX.Element {
+export default function Index(): JSX.Element {
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
