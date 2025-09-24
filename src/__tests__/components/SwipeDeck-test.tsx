@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
 
 jest.mock("react-native-reanimated", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Reanimated = require("react-native-reanimated/mock");
   Reanimated.runOnJS = (fn: any) => fn;
