@@ -1,17 +1,17 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
-import { FilterState } from "@/types/FilterState";
-import { Property } from "@/types/Prop";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import {
   getGlobalFilters,
   registerApplyFilter,
   unregisterApplyFilter,
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
-import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import type { OnPressEvent } from "@maplibre/maplibre-react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({

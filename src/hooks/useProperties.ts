@@ -1,4 +1,4 @@
-import { Property } from "@/types/Prop";
+import type { Property } from "@/types/Prop";
 import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,

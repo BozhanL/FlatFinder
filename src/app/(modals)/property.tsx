@@ -1,7 +1,7 @@
-import { Property } from "@/types/Prop";
+import type { Property } from "@/types/Prop";
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
