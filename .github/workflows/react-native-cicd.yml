@@ -101,14 +101,14 @@ jobs:
       - name: 🧪 Run Jest Coverage Comment
         if: ${{ success() || (failure() && steps.install.conclusion == 'success') }}
         id: coverage
-        uses: MishaKav/jest-coverage-comment@v1.0.28
+        uses: MishaKav/jest-coverage-comment@aa3935cf9ee61efc40d9e47dcc8a523a49a70b96
         with:
           coverage-path: ./coverage.txt
           create-new-comment: false
 
       - name: 🪪 Dynamic Badges
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: Schneegans/dynamic-badges-action@v1.7.0
+        uses: Schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 8fcf597ef6922a83da15d24d7aff8fe8
@@ -157,7 +157,7 @@ jobs:
           java-version: 21
 
       - name: 🏗 Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
 
       - name: 📦 Install dependencies
         run: npm ci
@@ -170,7 +170,7 @@ jobs:
         run: ./gradlew ${{ matrix.build.command }}
 
       - name: ✍️ Sign app APK
-        uses: r0adkll/sign-android-release@v1
+        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407
         id: sign_app
         with:
           releaseDirectory: ${{ matrix.build.location }}
