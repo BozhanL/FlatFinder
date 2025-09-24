@@ -2,6 +2,7 @@
 // IMPROVE: Enable ts check @G2CCC
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
+// IMPROVE: Update import syntax @G2CCC
 import * as swipeSvc from "@/services/swipe";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
