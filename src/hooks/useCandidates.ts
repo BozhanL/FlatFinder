@@ -4,6 +4,7 @@ import { loadCandidates } from "@/services/swipe";
 import type { Flatmate } from "@/types/flatmate";
 import { useEffect, useState } from "react";
 
+// IMPROVE: add return type, use export default @G2CCC 
 export function useCandidates(me: string | null) {
   const [items, setItems] = useState<Flatmate[]>([]);
   const [loading, setLoading] = useState(false);
