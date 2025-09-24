@@ -56,7 +56,6 @@ const enum TabMode {
   Properties = "Properties",
 }
 
-
 export default function Index(): JSX.Element {
   const [uid, setUid] = useState<string | null>(null);
   const [mode, setMode] = useState(TabMode.Flatmates);
@@ -141,7 +140,7 @@ export default function Index(): JSX.Element {
 
   const { items, setItems } = useCandidates(uid);
 
-  if (!uid) return null;
+  if (!uid) return <></>;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>

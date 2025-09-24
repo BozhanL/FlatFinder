@@ -7,22 +7,36 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import React from "react";
-
 import Index from "@/app/(tabs)";
 import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
 
-export const swipeMock = jest.fn().mockResolvedValue(undefined);
-export const ensureMatchIfMutualLikeMock = jest
-  .fn()
-  .mockResolvedValue(undefined);
-
-jest.mock("expo-router", () => {
-  const router = {
-    replace: jest.fn(),
-    push: jest.fn(),
+jest.mock("@maplibre/maplibre-react-native", () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const React = require("react");
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    Logger: { setLogCallback: jest.fn(), setLogLevel: jest.fn() },
+    MapLibreGL: {},
+    MapView: (props) => <View {...props} testID="mock-map" />,
+    Camera: (props) => <View {...props} />,
+    MarkerView: (props) => <View {...props} />,
+    Images: (props) => <View {...props} />,
+    ShapeSource: (props) => <View {...props} />,
+    SymbolLayer: (props) => <View {...props} />,
+    RasterSource: (props) => <View {...props} />,
+    RasterLayer: (props) => <View {...props} />,
+    LineLayer: (props) => <View {...props} />,
+    FillLayer: (props) => <View {...props} />,
+    UserLocation: (props) => <View {...props} />,
   };
-  return { router };
+});
+jest.mock("expo-router", () => {
+  const router = { replace: jest.fn(), push: jest.fn() };
+  const useFocusEffect = (cb) => (typeof cb === "function" ? cb() : undefined);
+  return { router, useFocusEffect };
 });
 
 jest.mock("@react-native-firebase/app", () => ({
@@ -58,7 +72,6 @@ jest.mock("@/hooks/useCandidates", () => {
 jest.mock("@/services/swipe", () => {
   const mockSwipe = jest.fn().mockResolvedValue(undefined);
   const mockEnsure = jest.fn().mockResolvedValue(undefined);
-
   return {
     __esModule: true,
     swipe: mockSwipe,
@@ -68,42 +81,37 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/swipe/SwipeDeck", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const RN = require("react-native");
-  const MockSwipeDeck = ({ data, onLike, onPass }) => {
-    return (
-      <RN.View testID="swipe-deck">
-        <RN.Text>Mock SwipeDeck</RN.Text>
-        <RN.Text testID="items-count">{data?.length ?? 0}</RN.Text>
-        <RN.TouchableOpacity
-          testID="like-btn"
-          onPress={() => data?.[0] && onLike?.(data[0])}
-        >
-          <RN.Text>LIKE</RN.Text>
-        </RN.TouchableOpacity>
-        <RN.TouchableOpacity
-          testID="pass-btn"
-          onPress={() => data?.[0] && onPass?.(data[0])}
-        >
-          <RN.Text>PASS</RN.Text>
-        </RN.TouchableOpacity>
-      </RN.View>
-    );
-  };
-
+  const MockSwipeDeck = ({ data, onLike, onPass }) => (
+    <RN.View testID="swipe-deck">
+      <RN.Text>Mock SwipeDeck</RN.Text>
+      <RN.Text testID="items-count">{data?.length ?? 0}</RN.Text>
+      <RN.TouchableOpacity
+        testID="like-btn"
+        onPress={() => data?.[0] && onLike?.(data[0])}
+      >
+        <RN.Text>LIKE</RN.Text>
+      </RN.TouchableOpacity>
+      <RN.TouchableOpacity
+        testID="pass-btn"
+        onPress={() => data?.[0] && onPass?.(data[0])}
+      >
+        <RN.Text>PASS</RN.Text>
+      </RN.TouchableOpacity>
+    </RN.View>
+  );
   MockSwipeDeck.displayName = "MockSwipeDeck";
   return { __esModule: true, default: MockSwipeDeck };
 });
 
-// Segmented
 jest.mock("@/components/Segmented", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const RN = require("react-native");
-
   const MockSegmented = () => (
     <RN.View testID="segmented">
       <RN.Text>Mock Segmented</RN.Text>
@@ -113,11 +121,10 @@ jest.mock("@/components/Segmented", () => {
   return { __esModule: true, default: MockSegmented };
 });
 
-// HeaderLogo
 jest.mock("@/components/HeaderLogo", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const RN = require("react-native");
   const MockHeaderLogo = () => (
     <RN.View testID="header-logo">
@@ -141,9 +148,7 @@ it("renders SwipeDeck when logged in and candidates loaded", () => {
 
 it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
   render(<Index />);
-
   fireEvent.press(screen.getByTestId("like-btn"));
-
   await waitFor(() =>
     expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "like"),
   );
@@ -157,10 +162,7 @@ it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () =
 
 it("pressing PASS calls swipe('pass') and setItems", async () => {
   render(<Index />);
-  const passBtn = screen.getByTestId("pass-btn");
-
-  fireEvent.press(passBtn);
-
+  fireEvent.press(screen.getByTestId("pass-btn"));
   await waitFor(() =>
     expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "pass"),
   );
