@@ -2,7 +2,7 @@ name: Firebase Rules CI/CD
 
 on:
   push:
-    branches: [main, master, firebase]
+    branches: [firebase]
     paths:
       - ".firebaserc"
       - "database.rules.json"
