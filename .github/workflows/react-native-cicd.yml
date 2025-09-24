@@ -3,24 +3,73 @@ name: React Native CI/CD
 
 on:
   push:
-    branches: [main, master]
-    paths-ignore:
-      - "**.md"
-      - "LICENSE"
-      - "docs/**"
+    branches: [main, master, sprint/**]
   pull_request:
-    branches: [main, master]
-    paths-ignore:
-      - "**.md"
-      - "LICENSE"
-      - "docs/**"
+    branches: [main, master, sprint/**]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+          check-latest: true
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run TypeScript check
+        run: npm run check-ts
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+          check-latest: true
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧹 Run ESLint
+        run: npm run lint
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+          check-latest: true
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🎨 Run Prettier check
+        run: npm run format
+
+  coverage:
     runs-on: ubuntu-latest
     permissions:
       # Required to checkout the code
@@ -40,21 +89,15 @@ jobs:
           check-latest: true
 
       - name: 📦 Install dependencies
+        id: install
         run: npm ci
 
-      - name: 🧪 Run TypeScript check
-        run: npm run check-ts
-
-      - name: 🧹 Run ESLint
-        run: npm run lint
-
-      - name: 🎨 Run Prettier check
-        run: npm run format
-
       - name: 🧪 Run Jest Tests
+        id: test
         run: npm run coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
       - name: 🧪 Run Jest Coverage Comment
+        if: ${{ success() || (failure() && steps.install.conclusion == 'success') }}
         id: coverage
         uses: MishaKav/jest-coverage-comment@v1.0.28
         with:
@@ -108,7 +151,7 @@ jobs:
       - name: 🏗 Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: oracle
+          distribution: temurin
           java-version: 21
 
       - name: 🏗 Setup Gradle
@@ -148,7 +191,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Final Results
     needs:
-      - test
+      - typescript
+      - lint
+      - format
+      - coverage
       - build
     steps:
       - name: 📦 Install jq
