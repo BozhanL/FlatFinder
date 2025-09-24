@@ -83,6 +83,7 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/swipe/SwipeDeck", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require("react");
   /* eslint-disable @typescript-eslint/no-require-imports */
