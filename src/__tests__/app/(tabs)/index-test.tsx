@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react-native";
 import React from "react";
 import Index from "@/app/(tabs)";
+// IMPROVE: Update import syntax @G2CCC
 import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
 
