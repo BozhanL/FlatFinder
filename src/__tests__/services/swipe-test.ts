@@ -1,5 +1,5 @@
 // @ts-nocheck
-
+// IMPROVE: Enable ts check @G2CCC
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
 import * as swipeSvc from "@/services/swipe";
