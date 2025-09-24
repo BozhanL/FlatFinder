@@ -12,6 +12,7 @@ import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
 
 jest.mock("@maplibre/maplibre-react-native", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require("react");
   /* eslint-disable @typescript-eslint/no-require-imports */
