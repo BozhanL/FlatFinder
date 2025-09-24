@@ -359,7 +359,7 @@ export default function PostPropertyPage(): JSX.Element {
         </View>
       </ScrollView>
 
-      {/* Submit Button - Fixed at bottom */}
+      {/* Submit Button */}
       <View style={styles.submitSection}>
         <TouchableOpacity
           style={[
