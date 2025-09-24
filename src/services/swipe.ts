@@ -70,6 +70,7 @@ export async function loadCandidates(
       (
         d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
       ) => {
+        // IMPROVE: use correct type @G2CCC
         const data = d.data() as any;
         const fm: Flatmate = {
           id: d.id,
