@@ -71,6 +71,7 @@ describe("SwipeDeck", () => {
       />,
     );
 
+    // IMPROVE: use safe variant @G2CCC 
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("react-native").TouchableOpacity,
