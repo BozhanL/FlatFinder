@@ -7,6 +7,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
+// IMPROVE: delete unused import @G2CCC 
 import React from "react";
 import Index from "@/app/(tabs)";
 // IMPROVE: Update import syntax @G2CCC
