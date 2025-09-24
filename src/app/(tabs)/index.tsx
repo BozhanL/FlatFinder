@@ -179,6 +179,7 @@ export default function Index(): JSX.Element {
           <SwipeDeck
             data={items}
             onLike={async (u) => {
+              // IMPROVE: Use enum instead of string @G2CCC
               await swipe(uid, u.id, "like");
               await ensureMatchIfMutualLike(uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
