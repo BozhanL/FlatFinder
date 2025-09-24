@@ -35,6 +35,7 @@ export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   return new Set(ids);
 }
 
+// IMPROVE: add return type @G2CCC 
 /** Load unswiped candidates */
 export async function loadCandidates(
   uid: string,
