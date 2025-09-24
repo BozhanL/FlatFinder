@@ -11,7 +11,7 @@ function hash(s: string) {
   return Math.abs(h);
 }
 
-// IMPROVE: Use ImageRequireSource as return type @G2CCC 
+// IMPROVE: Use ImageRequireSource as return type @G2CCC
 export function pickAvatarFor(uid: string): number {
   return AVATARS[hash(uid) % AVATARS.length];
 }
