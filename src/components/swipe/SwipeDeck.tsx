@@ -184,6 +184,7 @@ export default function SwipeDeck({
         pointerEvents="box-none"
       >
         <TouchableOpacity
+          // IMPROVE: Use enum instead of number @G2CCC
           onPress={() => fling(-1)}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
