@@ -19,6 +19,7 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 jest.mock("@/components/swipe/SwipeCard", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
