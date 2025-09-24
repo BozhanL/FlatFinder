@@ -1,4 +1,5 @@
 // @ts-nocheck
+// IMPROVE: Enable ts check @G2CCC
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import SwipeDeck from "@/components/swipe/SwipeDeck";
