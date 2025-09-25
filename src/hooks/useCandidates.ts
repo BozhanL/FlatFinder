@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
 import { loadCandidates } from "@/services/swipe";
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { useEffect, useState } from "react";
 
 // IMPROVE: add return type, use export default @G2CCC

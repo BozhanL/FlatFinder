@@ -1,4 +1,4 @@
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { JSX } from "react";
 import { Image, Text, View } from "react-native";
 

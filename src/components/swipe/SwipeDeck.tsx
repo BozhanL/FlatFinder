@@ -1,4 +1,4 @@
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
 import { JSX, useCallback, useMemo } from "react";
 import {

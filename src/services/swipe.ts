@@ -1,5 +1,5 @@
 import { createGroup } from "@/services/message";
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
