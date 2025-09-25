@@ -1,6 +1,10 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
+import { useCandidates } from "@/hooks/useCandidates";
+import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { FilterState } from "@/types/FilterState";
 import { Property } from "@/types/Prop";
 import {
@@ -53,6 +57,7 @@ const enum TabMode {
 }
 
 export default function Index(): JSX.Element {
+  const [uid, setUid] = useState<string | null>(null);
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
@@ -125,6 +130,18 @@ export default function Index(): JSX.Element {
   // Check if any filters are active using utility function
   const filtersActive: boolean = activeFilterCount > 0;
 
+  //Check Authentication State
+  useEffect(() => {
+    const unsub = onAuthStateChanged(getAuth(), (user) => {
+      setUid(user?.uid ?? null);
+    });
+    return unsub;
+  }, []);
+
+  const { items, setItems } = useCandidates(uid);
+
+  if (!uid) return <></>;
+
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Logo */}
@@ -157,11 +174,21 @@ export default function Index(): JSX.Element {
       </View>
 
       {/* Main content */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, position: "relative" }}>
         {mode === TabMode.Flatmates ? (
-          <View style={styles.centerContent}>
-            <Text>Flatmate list</Text>
-          </View>
+          <SwipeDeck
+            data={items}
+            onLike={async (u) => {
+              // IMPROVE: Use enum instead of string @G2CCC
+              await swipe(uid, u.id, "like");
+              await ensureMatchIfMutualLike(uid, u.id);
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+            }}
+            onPass={async (u) => {
+              await swipe(uid, u.id, "pass");
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+            }}
+          />
         ) : (
           <PropertyMapView
             filters={filters}
