@@ -1,6 +1,7 @@
 import SwipeCard from "@/components/swipe/SwipeCard";
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { render, screen } from "@testing-library/react-native";
+// IMPROVE: delete unused import @G2CCC
 import React from "react";
 
 function makeFlatmate(overrides: Partial<Flatmate> = {}): Flatmate {

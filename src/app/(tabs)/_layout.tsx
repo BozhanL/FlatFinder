@@ -31,6 +31,7 @@ export default function TabsLayout(): JSX.Element {
         tabBarHideOnKeyboard: true,
       }}
     >
+      {/* TODO: Delete when login feature finished */}
       <Tabs.Screen
         name="login"
         options={{

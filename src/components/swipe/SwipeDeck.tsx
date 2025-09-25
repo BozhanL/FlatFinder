@@ -1,4 +1,4 @@
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
 import { JSX, useCallback, useMemo } from "react";
 import {
@@ -179,10 +179,12 @@ export default function SwipeDeck({
 
       {/* Buttons at the bottom */}
       <View
+        // IMPROVE: use other value for paddingBottom
         style={[styles.fabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}
         pointerEvents="box-none"
       >
         <TouchableOpacity
+          // IMPROVE: Use enum instead of number @G2CCC
           onPress={() => fling(-1)}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}

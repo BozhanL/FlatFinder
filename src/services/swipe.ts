@@ -1,5 +1,5 @@
 import { createGroup } from "@/services/message";
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
@@ -16,19 +16,15 @@ import {
   where,
 } from "@react-native-firebase/firestore";
 
-export function matchIdFor(a: string, b: string) {
-  return [a, b].sort().join("_");
-}
-
 type SwipeDoc = {
   dir: "like" | "pass";
   createdAt?: FirebaseFirestoreTypes.Timestamp | null;
 };
 
 /** Set of swiped users */
-export async function fetchSwipedSet(me: string): Promise<Set<string>> {
+export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   const qRef = query(
-    collection(getFirestore(), "users", me, "swipes"),
+    collection(getFirestore(), "users", uid, "swipes"),
     orderBy("createdAt", "desc"),
     qLimit(500),
   );
@@ -39,18 +35,21 @@ export async function fetchSwipedSet(me: string): Promise<Set<string>> {
   return new Set(ids);
 }
 
+// IMPROVE: add return type @G2CCC
 /** Load unswiped candidates */
 export async function loadCandidates(
-  me: string,
+  uid: string,
   {
     area,
     maxBudget,
     limit = 30,
   }: { area?: string; maxBudget?: number | null; limit?: number } = {},
 ) {
-  const swiped = await fetchSwipedSet(me);
+  const swiped = await fetchSwipedSet(uid);
 
   const users = collection(getFirestore(), "users");
+  // Query constraints type not working well, use any[] instead
+  // https://github.com/invertase/react-native-firebase/issues/8611
   const constraints: any[] = [];
 
   if (area) {
@@ -73,6 +72,7 @@ export async function loadCandidates(
       (
         d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
       ) => {
+        // IMPROVE: use correct type @G2CCC
         const data = d.data() as any;
         const fm: Flatmate = {
           id: d.id,
@@ -89,7 +89,7 @@ export async function loadCandidates(
         return fm;
       },
     )
-    .filter((u: Flatmate) => u.id !== me)
+    .filter((u: Flatmate) => u.id !== uid)
     .filter((u: Flatmate) => !swiped.has(u.id));
 
   return list;
@@ -110,9 +110,6 @@ export async function ensureMatchIfMutualLike(me: string, target: string) {
   const data = back.exists() ? (back.data() as SwipeDoc) : undefined;
 
   if (data?.dir === "like") {
-    const id = matchIdFor(me, target);
-    await createGroup([me, target], id);
-    return id;
+    await createGroup([me, target]);
   }
-  return null;
 }

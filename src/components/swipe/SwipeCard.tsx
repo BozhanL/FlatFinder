@@ -1,4 +1,4 @@
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import { Pressable, Image, Text, View } from "react-native";
 
 type Props = { item: Flatmate; onPress?: () => void };

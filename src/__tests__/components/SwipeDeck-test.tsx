@@ -1,9 +1,11 @@
 // @ts-nocheck
+// IMPROVE: Enable ts check @G2CCC
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import SwipeDeck from "@/components/swipe/SwipeDeck";
 
 jest.mock("react-native-reanimated", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Reanimated = require("react-native-reanimated/mock");
   Reanimated.runOnJS = (fn: any) => fn;
@@ -19,6 +21,7 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 jest.mock("@/components/swipe/SwipeCard", () => {
+  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -71,6 +74,7 @@ describe("SwipeDeck", () => {
       />,
     );
 
+    // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("react-native").TouchableOpacity,
@@ -94,6 +98,7 @@ describe("SwipeDeck", () => {
       />,
     );
 
+    // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("react-native").TouchableOpacity,
@@ -109,6 +114,7 @@ describe("SwipeDeck", () => {
   it("does not crash when no callbacks are provided", () => {
     render(<SwipeDeck data={[fm({}, 1), fm({}, 2)]} />);
 
+    // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("react-native").TouchableOpacity,

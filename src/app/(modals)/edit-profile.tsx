@@ -1,5 +1,5 @@
 import ProfilePreview from "@/components/ProfilePreview";
-import type { Flatmate } from "@/types/flatmate";
+import type { Flatmate } from "@/types/Flatmate";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getApp } from "@react-native-firebase/app";
 import { getAuth } from "@react-native-firebase/auth";
