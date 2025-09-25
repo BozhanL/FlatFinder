@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: "com.flatfinder",
     googleServicesFile: "./google-services.json",
+    permissions: ["android.permission.POST_NOTIFICATIONS"],
   },
   web: {
     bundler: "metro",
@@ -32,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "@react-native-firebase/app",
     "@react-native-firebase/auth",
+    "@maplibre/maplibre-react-native",
     [
       "expo-splash-screen",
       {
@@ -42,13 +44,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      "./plugins/withAbiFilters.ts",
+      {
+        abiFilters: ["arm64-v8a", "x86_64"],
+      },
+    ],
+    [
       "./plugins/withGradlePropertiesWhenCI",
       {
         gradle_properties: [
-          {
-            key: "reactNativeArchitectures",
-            value: "arm64-v8a,x86_64",
-          },
           {
             key: "org.gradle.jvmargs",
             value: "-Xmx14g -XX:MaxMetaspaceSize=512m",
@@ -76,7 +80,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "node_modules/@expo-google-fonts/playfair-display/700Bold/PlayfairDisplay_700Bold.ttf",
           "node_modules/@expo-google-fonts/poppins/500Medium/Poppins_500Medium.ttf",
           "node_modules/@expo-google-fonts/poppins/600SemiBold/Poppins_600SemiBold.ttf",
+          "node_modules/@expo-google-fonts/roboto/400Regular/Roboto_400Regular.ttf",
+          "node_modules/@expo-google-fonts/roboto/500Medium/Roboto_500Medium.ttf",
         ],
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          extraMavenRepos: [
+            // https://github.com/invertase/notifee/issues/1226#issuecomment-3228701613
+            "$rootDir/../../../node_modules/@notifee/react-native/android/libs",
+          ],
+        },
       },
     ],
   ],

@@ -37,12 +37,12 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# Firebase
-google-services.json
-
 # Test
 coverage/
 report.json
+
+# IDEA
+.idea/
 
 android/
 ios/
