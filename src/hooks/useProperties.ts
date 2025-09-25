@@ -1,5 +1,4 @@
 import type { Property } from "@/types/Prop";
-import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -7,6 +6,7 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { useEffect, useState } from "react";
+import useUser from "./useUser";
 
 interface UsePropertiesResult {
   properties: Property[];
@@ -19,10 +19,10 @@ export function useProperties(): UsePropertiesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const uid = getAuth().currentUser?.uid;
+  const user = useUser();
 
   useEffect(() => {
-    if (!uid) {
+    if (!user) {
       setLoading(false);
       setError("User not authenticated");
       return;
@@ -81,7 +81,7 @@ export function useProperties(): UsePropertiesResult {
     );
 
     return () => unsubscribe();
-  }, [uid]);
+  }, [user]);
 
   return { properties, loading, error };
 }
