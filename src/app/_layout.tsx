@@ -5,6 +5,7 @@ import { initializeApp } from "@react-native-firebase/app";
 import { Stack } from "expo-router";
 import type { JSX } from "react";
 import { Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 if (Platform.OS === "web") {
@@ -29,14 +30,16 @@ export default function RootLayout(): JSX.Element {
   useInitialNotification();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(modals)"
-          options={{ presentation: "modal", headerShown: false }}
-        />
-      </Stack>
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(modals)"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+        </Stack>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
