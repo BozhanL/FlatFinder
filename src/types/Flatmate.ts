@@ -1,3 +1,6 @@
+/* istanbul ignore file */
+// This file contains only type definitions.
+// No need to test it in unit tests.
 import type { ImageSourcePropType } from "react-native";
 
 export type Flatmate = {
