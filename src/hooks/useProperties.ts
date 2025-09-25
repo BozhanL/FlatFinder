@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
 import { Property } from "@/types/Prop";
 import { getAuth } from "@react-native-firebase/auth";
 import {
