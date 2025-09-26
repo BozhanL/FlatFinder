@@ -1,3 +1,5 @@
+import type { ImageRequireSource } from "react-native";
+
 export const AVATARS = [
   require("assets/images/dummy1.png"),
   require("assets/images/dummy2.png"),
@@ -11,7 +13,6 @@ function hash(s: string) {
   return Math.abs(h);
 }
 
-// IMPROVE: Use ImageRequireSource as return type @G2CCC
-export function pickAvatarFor(uid: string): number {
+export function pickAvatarFor(uid: string): ImageRequireSource {
   return AVATARS[hash(uid) % AVATARS.length];
 }
