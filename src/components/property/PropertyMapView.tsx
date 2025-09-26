@@ -1,4 +1,4 @@
-import { useProperties } from "@/hooks/useProperties";
+import useProperties from "@/hooks/useProperties";
 import type { FilterState } from "@/types/FilterState";
 import type { Property } from "@/types/Prop";
 import { applyPropertyFilters } from "@/utils/propertyFilters";

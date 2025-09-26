@@ -2,7 +2,7 @@ import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
-import { useCandidates } from "@/hooks/useCandidates";
+import useCandidates from "@/hooks/useCandidates";
 import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import type { FilterState } from "@/types/FilterState";

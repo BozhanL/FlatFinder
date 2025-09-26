@@ -4,15 +4,15 @@ import { loadCandidates } from "@/services/swipe";
 import type { Flatmate } from "@/types/Flatmate";
 import { useEffect, useState } from "react";
 
-// IMPROVE: add return type, use export default @G2CCC
-export function useCandidates(me: string | null) {
+// IMPROVE: add return type @G2CCC
+export default function useCandidates(my_uid: string | null) {
   const [items, setItems] = useState<Flatmate[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
 
-    if (!me) {
+    if (!my_uid) {
       setItems([]);
       setLoading(false);
       return;
@@ -21,7 +21,7 @@ export function useCandidates(me: string | null) {
     (async () => {
       try {
         setLoading(true);
-        const rows = await loadCandidates(me, { limit: 30 });
+        const rows = await loadCandidates(my_uid, { limit: 30 });
         if (alive) setItems(rows);
         console.log(
           "candidates:",
@@ -34,7 +34,7 @@ export function useCandidates(me: string | null) {
     return () => {
       alive = false;
     };
-  }, [me]);
+  }, [my_uid]);
 
   return { items, loading, setItems };
 }

@@ -16,7 +16,7 @@ interface UsePropertiesResult {
   error: string | null;
 }
 
-export function useProperties(): UsePropertiesResult {
+export default function useProperties(): UsePropertiesResult {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
