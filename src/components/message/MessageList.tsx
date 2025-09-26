@@ -41,7 +41,11 @@ function renderItem(item: Group, uid: string): JSX.Element {
     >
       <View style={styles.card}>
         <Image
-          source={require("assets/images/react-logo.png")}
+          source={
+            item.avatar
+              ? { uri: item.avatar }
+              : require("assets/images/react-logo.png")
+          }
           style={styles.avatar}
         />
 

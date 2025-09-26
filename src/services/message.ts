@@ -71,10 +71,9 @@ export async function createGroup(
   return null;
 }
 
-// TODO: Implement when user profile is available @G2CCC
 export async function getUserByUidAsync(uid: string): Promise<User | null> {
   const db = getFirestore();
-  const userDoc = await getDoc(doc(db, "message_test_user", uid));
+  const userDoc = await getDoc(doc(db, "users", uid));
   if (!userDoc.exists()) {
     return null;
   }
