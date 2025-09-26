@@ -1,0 +1,42 @@
+name: Firebase Rules CI/CD
+
+on:
+  push:
+    branches: [firebase]
+    paths:
+      - ".firebaserc"
+      - "database.rules.json"
+      - "firebase.json"
+      - "firestore.indexes.json"
+      - "firestore.rules"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+          check-latest: true
+
+      - name: 📦 Install firebase
+        run: npm install -g firebase-tools
+
+      - name: ✍️ Export GOOGLE_APPLICATION_CREDENTIALS
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_TOKEN }}
+        run: echo $GCP_SA_KEY > /opt/gcp_key.json
+
+      - name: 📦 Deploy to Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /opt/gcp_key.json
+        run: firebase deploy
