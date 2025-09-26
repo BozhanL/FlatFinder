@@ -11,3 +11,7 @@
 ## Sequence Diagram (By Bozhan)
 
 ![UML Sequence Diagram](UML%20Sequence%20Diagram.svg)
+
+## Development environment (By Bozhan)
+
+![Development environment](Development%20environment.svg)
