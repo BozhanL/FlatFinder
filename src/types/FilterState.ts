@@ -1,23 +1,12 @@
-export interface Property {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  price: number;
-  type?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  contract?: number;
-  description?: string;
-  address?: string;
-  imageUrl?: string;
-}
+/* istanbul ignore file */
+// This file contains only type definitions.
+// No need to test it in unit tests.
 
-export interface FilterState {
+export type FilterState = {
   type: string[];
   minPrice: string;
   maxPrice: string;
   bedrooms: number | null;
   bathrooms: number | null;
   minContract: string;
-}
+};

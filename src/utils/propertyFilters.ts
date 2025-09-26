@@ -1,10 +1,11 @@
-import { FilterState, Property } from "@/types/FilterState";
+import { FilterState } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 
 // Pure filtering function - no React hooks, just logic
-export const applyPropertyFilters = (
+export function applyPropertyFilters(
   properties: Property[],
   filters: FilterState,
-): Property[] => {
+): Property[] {
   return (
     properties
       // Property type filter - if empty, show all types
@@ -46,10 +47,10 @@ export const applyPropertyFilters = (
         );
       })
   );
-};
+}
 
 // Count active filters
-export const countActiveFilters = (filters: FilterState): number => {
+export function countActiveFilters(filters: FilterState): number {
   return (
     (filters.type.length > 0 ? 1 : 0) +
     (filters.minPrice !== "" || filters.maxPrice !== "" ? 1 : 0) +
@@ -57,9 +58,9 @@ export const countActiveFilters = (filters: FilterState): number => {
     (filters.bathrooms !== null ? 1 : 0) +
     (filters.minContract !== "" ? 1 : 0)
   );
-};
+}
 
 // Check if any filters are active
-export const hasActiveFilters = (filters: FilterState): boolean => {
+export function hasActiveFilters(filters: FilterState): boolean {
   return countActiveFilters(filters) > 0;
-};
+}

@@ -11,4 +11,5 @@ export type Group = {
   lastMessage: string | null;
   lastSender: string | null;
   lastNotified: Timestamp;
+  avatar?: string | null;
 };

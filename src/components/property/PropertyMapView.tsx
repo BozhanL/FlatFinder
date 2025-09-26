@@ -1,5 +1,6 @@
 import { useProperties } from "@/hooks/useProperties";
-import { FilterState, Property } from "@/types/FilterState";
+import { FilterState } from "@/types/FilterState";
+import { Property } from "@/types/Prop";
 import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,
@@ -24,6 +25,7 @@ import {
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
+// https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
 Logger.setLogCallback((log) => {
   const { message } = log;
 
@@ -168,9 +170,10 @@ export default function PropertyMapView({
   const { properties: allProperties, loading, error } = useProperties();
 
   // Apply filters to properties
-  const filteredProperties = useMemo(() => {
-    return applyPropertyFilters(allProperties, filters);
-  }, [allProperties, filters]);
+  const filteredProperties = useMemo(
+    () => applyPropertyFilters(allProperties, filters),
+    [allProperties, filters],
+  );
 
   // Notify parent component when properties are loaded/filtered
   useEffect(() => {

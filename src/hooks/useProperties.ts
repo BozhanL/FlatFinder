@@ -1,4 +1,6 @@
-import { Property } from "@/types/FilterState";
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
+import { Property } from "@/types/Prop";
 import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
@@ -14,7 +16,7 @@ interface UsePropertiesResult {
   error: string | null;
 }
 
-export const useProperties = (): UsePropertiesResult => {
+export function useProperties(): UsePropertiesResult {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,4 +86,4 @@ export const useProperties = (): UsePropertiesResult => {
   }, [uid]);
 
   return { properties, loading, error };
-};
+}
