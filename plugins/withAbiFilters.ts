@@ -1,6 +1,6 @@
 // https://gist.github.com/Randall71/695f5ced1123dcce484b985484a2a167
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   withAppBuildGradle,
   withGradleProperties,
 } from "expo/config-plugins";

@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-import { Group } from "@/types/Group";
 import { getUserByUidAsync } from "@/services/message";
+import type { Group } from "@/types/Group";
 import {
   collection,
   FirebaseFirestoreTypes,

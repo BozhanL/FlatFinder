@@ -1,13 +1,13 @@
 import { useProperties } from "@/hooks/useProperties";
-import { FilterState } from "@/types/FilterState";
-import { Property } from "@/types/Prop";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,
   Images,
   Logger,
   MapView,
-  OnPressEvent,
+  type OnPressEvent,
   RasterLayer,
   RasterSource,
   ShapeSource,
