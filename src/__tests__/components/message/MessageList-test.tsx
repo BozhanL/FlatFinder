@@ -1,7 +1,7 @@
 import MessageList, {
   __test__ as MessageListPrivate,
 } from "@/components/message/MessageList";
-import { Group } from "@/types/Group";
+import type { Group } from "@/types/Group";
 import { Timestamp } from "@react-native-firebase/firestore";
 import { render, screen } from "@testing-library/react-native";
 

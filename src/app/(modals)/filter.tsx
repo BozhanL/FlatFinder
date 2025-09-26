@@ -1,11 +1,11 @@
-import { FilterState } from "@/types/FilterState";
+import type { FilterState } from "@/types/FilterState";
 import {
   applyGlobalFilters,
   getGlobalFilters,
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import { Stack, router } from "expo-router";
-import { JSX, useState } from "react";
+import { type JSX, useState } from "react";
 import {
   ScrollView,
   StyleSheet,

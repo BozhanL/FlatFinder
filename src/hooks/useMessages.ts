@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
 import { getUserByUidAsync } from "@/services/message";
-import { Group } from "@/types/Group";
-import { Message } from "@/types/Message";
+import type { Group } from "@/types/Group";
+import type { Message } from "@/types/Message";
 import {
   FirebaseFirestoreTypes,
   collection,
@@ -11,7 +11,7 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { IMessage, User } from "react-native-gifted-chat";
+import type { IMessage, User } from "react-native-gifted-chat";
 
 export default function useMessages(
   gid: string,

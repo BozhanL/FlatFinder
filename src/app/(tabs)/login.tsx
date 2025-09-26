@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "@react-native-firebase/auth";
-import { JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,

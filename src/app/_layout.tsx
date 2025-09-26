@@ -2,7 +2,7 @@ import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";
 import { Stack } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
