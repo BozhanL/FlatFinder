@@ -120,8 +120,10 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
+    name: build (${{ matrix.build.name }}, ${{ matrix.os }})
     strategy:
       matrix:
+        os: ["ubuntu-latest", "windows-latest"]
         build:
           - name: debug-apk
             command: assembleDebug
@@ -138,7 +140,6 @@ jobs:
           - name: release-aab
             command: bundleRelease
             location: ./android/app/build/outputs/bundle/release/
-        os: ["ubuntu-latest", "windows-latest"]
 
     steps:
       - name: 🏗 Checkout repository
