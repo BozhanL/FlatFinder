@@ -173,7 +173,7 @@ export default function Index(): JSX.Element {
             onLike={async (u) => {
               // IMPROVE: Use enum instead of string @G2CCC
               await swipe(user.uid, u.id, "like");
-              await ensureMatchIfMutualLike(user?.uid, u.id);
+              await ensureMatchIfMutualLike(user.uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
             onPass={async (u) => {
