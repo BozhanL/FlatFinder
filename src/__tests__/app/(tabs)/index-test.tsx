@@ -1,5 +1,6 @@
 // @ts-nocheck
 // IMPROVE: Enable ts check @G2CCC
+import Index from "@/app/(tabs)";
 import {
   cleanup,
   fireEvent,
@@ -7,9 +8,6 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-// IMPROVE: delete unused import @G2CCC
-import React from "react";
-import Index from "@/app/(tabs)";
 // IMPROVE: Update import syntax @G2CCC
 import * as hookMod from "@/hooks/useCandidates";
 import * as swipeMod from "@/services/swipe";
@@ -61,7 +59,7 @@ jest.mock("@/hooks/useCandidates", () => {
   const setItemsMock = jest.fn();
   return {
     __esModule: true,
-    useCandidates: () => ({
+    default: () => ({
       loading: false,
       items: [
         { id: "u2", uid: "u2", name: "User2" },
