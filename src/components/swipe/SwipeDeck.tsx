@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { type JSX, useCallback, useMemo } from "react";
+import type { JSX } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -42,44 +42,37 @@ export default function SwipeDeck({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const commitSwipe = useCallback(
-    (dir: 1 | -1) => {
-      if (!top) return;
-      if (dir === 1) onLike?.(top);
-      else onPass?.(top);
-      // reset & next card
-      translateX.value = 0;
-      translateY.value = 0;
-    },
-    [top, onLike, onPass, translateX, translateY],
-  );
+  const commitSwipe = (dir: 1 | -1) => {
+    if (!top) return;
+    if (dir === 1) onLike?.(top);
+    else onPass?.(top);
+    // reset & next card
+    translateX.value = 0;
+    translateY.value = 0;
+  };
 
-  const gesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .onChange((e) => {
-          translateX.value = e.translationX;
-          translateY.value = e.translationY;
-        })
-        .onEnd(() => {
-          if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
-            translateX.value = withTiming(
-              dir * SCREEN_W * 1.2,
-              { duration: 180 },
-              () => {
-                runOnJS(commitSwipe)(dir);
-              },
-            );
-          } else {
-            translateX.value = withSpring(0);
-            translateY.value = withSpring(0);
-          }
-        }),
-    [translateX, translateY, commitSwipe],
-  );
+  const gesture = Gesture.Pan()
+    .onChange((e) => {
+      translateX.value = e.translationX;
+      translateY.value = e.translationY;
+    })
+    .onEnd(() => {
+      if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
+        const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
+        translateX.value = withTiming(
+          dir * SCREEN_W * 1.2,
+          { duration: 180 },
+          () => {
+            runOnJS(commitSwipe)(dir);
+          },
+        );
+      } else {
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+      }
+    });
 
-  function fling(dir: 1 | -1) {
+  const fling = (dir: 1 | -1) => {
     if (!top) return;
     translateX.value = withTiming(
       dir * SCREEN_W * 1.2,
@@ -88,7 +81,7 @@ export default function SwipeDeck({
         runOnJS(commitSwipe)(dir);
       },
     );
-  }
+  };
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
