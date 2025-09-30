@@ -47,52 +47,48 @@ export default function SwipeDeck({
     if (dir === 1) onLike?.(top);
     else onPass?.(top);
     // reset & next card
-    translateX.value = 0;
-    translateY.value = 0;
+    translateX.set(0);
+    translateY.set(0);
   };
 
   const gesture = Gesture.Pan()
     .onChange((e) => {
-      translateX.value = e.translationX;
-      translateY.value = e.translationY;
+      translateX.set(e.translationX);
+      translateY.set(e.translationY);
     })
     .onEnd(() => {
-      if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-        const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
-        translateX.value = withTiming(
-          dir * SCREEN_W * 1.2,
-          { duration: 180 },
-          () => {
+      if (Math.abs(translateX.get()) > SWIPE_THRESHOLD) {
+        const dir: 1 | -1 = translateX.get() > 0 ? 1 : -1;
+        translateX.set(
+          withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
             runOnJS(commitSwipe)(dir);
-          },
+          }),
         );
       } else {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
+        translateX.set(withSpring(0));
+        translateY.set(withSpring(0));
       }
     });
 
   const fling = (dir: 1 | -1) => {
     if (!top) return;
-    translateX.value = withTiming(
-      dir * SCREEN_W * 1.2,
-      { duration: 180 },
-      () => {
+    translateX.set(
+      withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
         runOnJS(commitSwipe)(dir);
-      },
+      }),
     );
   };
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
+    const opacity = interpolate(translateX.get(), [0, SWIPE_THRESHOLD], [0, 1]);
     return { opacity };
   });
 
   //unlike animate
   const nopeBadgeStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
-      translateX.value,
+      translateX.get(),
       [0, -SWIPE_THRESHOLD],
       [0, 1],
     );
@@ -102,7 +98,7 @@ export default function SwipeDeck({
   const nextStyle = useAnimatedStyle(() => {
     // For the next card at the back
     const scale = interpolate(
-      Math.abs(translateX.value),
+      Math.abs(translateX.get()),
       [0, SWIPE_THRESHOLD],
       [0.95, 1],
     );
@@ -110,11 +106,11 @@ export default function SwipeDeck({
   });
 
   const topStyle = useAnimatedStyle(() => {
-    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    const rotate = (translateX.get() / SCREEN_W) * ROTATE;
     return {
       transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
+        { translateX: translateX.get() },
+        { translateY: translateY.get() },
         { rotate: `${rotate}deg` },
       ],
     };
