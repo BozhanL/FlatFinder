@@ -118,7 +118,7 @@
     "pretty-format": "^29.7.0",
     "react-test-renderer": "~19.0.0",
     "tsx": "^4.20.4",
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0"
   },
   "private": true
