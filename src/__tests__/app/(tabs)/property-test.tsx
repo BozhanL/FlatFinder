@@ -35,31 +35,31 @@ describe("PropertyDetailsPage", () => {
     render(<PropertyDetailsPage />);
 
     // Check that title exists
-    await waitFor(() =>
+    await waitFor(() => {
       expect(screen.getByTestId("property-title")).toHaveTextContent(
         "Test Property",
-      ),
-    );
+      );
+    });
   });
 
   it("renders property details correctly", async () => {
     render(<PropertyDetailsPage />);
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(screen.getByTestId("property-title")).toHaveTextContent(
         "Test Property",
-      ),
-    );
+      );
+    });
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(screen.getByTestId("property-price")).toHaveTextContent(
         "$500/week",
-      ),
-    );
+      );
+    });
 
-    await waitFor(() =>
-      expect(screen.getByTestId("property-type")).toHaveTextContent("rental"),
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId("property-type")).toHaveTextContent("rental");
+    });
 
     await screen.findByText("test property");
     await screen.findByText("123 Test St");

@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "@react-native-firebase/auth";
-import { JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -43,7 +43,7 @@ export default function ProfileScreen(): JSX.Element {
     return <Login />;
   }
 
-  async function handleCreateGroup() {
+  async function handleCreateGroup(): Promise<void> {
     const groupId = await createGroup(groupMembers.split(","));
     if (groupId) {
       Alert.alert("Group created!", `Group ID: ${groupId}`);
@@ -53,9 +53,9 @@ export default function ProfileScreen(): JSX.Element {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderLogo />
-      <Button title="Logout" onPress={logout} />
+      <Button title="Logout" onPress={() => void logout()} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
-      <Button title="Create Group" onPress={handleCreateGroup} />
+      <Button title="Create Group" onPress={() => void handleCreateGroup()} />
     </View>
   );
 }
@@ -70,19 +70,23 @@ function Login(): JSX.Element {
       <TextInput
         placeholder="Email"
         value={email}
-        onChangeText={(t) => setEmail(t)}
+        onChangeText={(t) => {
+          setEmail(t);
+        }}
       />
       <TextInput
         placeholder="Password"
         value={password}
-        onChangeText={(newText) => setPassword(newText)}
+        onChangeText={(newText) => {
+          setPassword(newText);
+        }}
         secureTextEntry
       />
-      <Button title="Login" onPress={() => handleLogin(email, password)} />
+      <Button title="Login" onPress={() => void handleLogin(email, password)} />
     </View>
   );
 }
 
-async function handleLogin(email: string, password: string) {
+async function handleLogin(email: string, password: string): Promise<void> {
   await signInWithEmailAndPassword(getAuth(), email, password);
 }

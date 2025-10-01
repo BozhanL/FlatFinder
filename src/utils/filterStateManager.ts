@@ -1,4 +1,4 @@
-import { FilterState } from "@/types/FilterState";
+import type { FilterState } from "@/types/FilterState";
 
 // Default filter state
 const defaultFilters: FilterState = {

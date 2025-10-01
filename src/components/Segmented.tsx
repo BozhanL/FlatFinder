@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
@@ -6,7 +6,7 @@ type Props = {
   onChange?: (value: string) => void;
 };
 
-export default function Segmented({ options, onChange }: Props) {
+export default function Segmented({ options, onChange }: Props): JSX.Element {
   const [selected, setSelected] = useState(options[0]);
 
   return (

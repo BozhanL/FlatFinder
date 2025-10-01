@@ -1,10 +1,11 @@
-import React from "react";
+import type { FC } from "react";
 import { View } from "react-native";
 
-export const MapView: React.FC<any> = (props) => <View {...props} />;
-export const RasterSource: React.FC<any> = (props) => <View {...props} />;
-export const RasterLayer: React.FC<any> = (props) => <View {...props} />;
-export const Camera: React.FC<any> = (props) => <View {...props} />;
-export const Images: React.FC<any> = (props) => <View {...props} />;
-export const ShapeSource: React.FC<any> = (props) => <View {...props} />;
-export const SymbolLayer: React.FC<any> = (props) => <View {...props} />;
+export const MapView: FC = (props) => <View {...props} />;
+export const RasterSource: FC = (props) => <View {...props} />;
+export const RasterLayer: FC = (props) => <View {...props} />;
+export const Camera: FC = (props) => <View {...props} />;
+export const Images: FC = (props) => <View {...props} />;
+export const ShapeSource: FC = (props) => <View {...props} />;
+export const SymbolLayer: FC = (props) => <View {...props} />;
+export const Logger = { setLogCallback: jest.fn(), setLogLevel: jest.fn() };

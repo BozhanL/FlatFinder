@@ -14,14 +14,14 @@ jest.mock("@react-native-firebase/firestore", () => {
   return {
     ...orig,
     doc: jest.fn((...args) => {
-      return { id: "jestDocId", ...args };
+      return { id: "jestDocId", args };
     }),
     getDoc: jest.fn(),
     getFirestore: jest.fn(() => {
       return "db";
     }),
     collection: jest.fn((...args) => {
-      return { id: "jestCollectionId", ...args };
+      return { id: "jestCollectionId", args };
     }),
     serverTimestamp: jest.fn(() => {
       return orig.Timestamp.fromMillis(0);
@@ -81,26 +81,34 @@ describe("@/services/notification.ts", () => {
 
     // Test with currentPathname in NO_PUSH_PATH
     await onMessageReceived(me, NO_PUSH_PATH[0]);
+    // It has been mocked, so safe to access unbound method
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(notifee.displayNotification).toHaveBeenCalledTimes(0);
     (notifee.displayNotification as jest.Mock).mockClear();
 
     // Test with currentPathname not in NO_PUSH_PATH but no notifee data
     await onMessageReceived(me, "/");
+    // It has been mocked, so safe to access unbound method
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(notifee.displayNotification).toHaveBeenCalledTimes(0);
     (notifee.displayNotification as jest.Mock).mockClear();
 
     // Test with currentPathname not in NO_PUSH_PATH with notifee data
     await onMessageReceived({ ...me, data }, "/");
+    // It has been mocked, so safe to access unbound method
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(notifee.displayNotification).toHaveBeenCalledTimes(1);
     (notifee.displayNotification as jest.Mock).mockClear();
 
     // Test without currentPathname not in NO_PUSH_PATH with notifee data
     await onMessageReceived({ ...me, data });
+    // It has been mocked, so safe to access unbound method
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(notifee.displayNotification).toHaveBeenCalledTimes(1);
     (notifee.displayNotification as jest.Mock).mockClear();
   });
 
-  test("Test foregroundEvent()", async () => {
+  test("Test foregroundEvent()", () => {
     const push = jest.fn();
     router.push = push;
 
@@ -112,7 +120,7 @@ describe("@/services/notification.ts", () => {
           badgeIconType: 2,
           category: AndroidCategory.MESSAGE,
           channelId: "messages",
-          chronometerDirection: "up" as "up",
+          chronometerDirection: "up" as const,
           circularLargeIcon: false,
           colorized: false,
           defaults: [-1],
@@ -177,7 +185,7 @@ describe("@/services/notification.ts", () => {
           badgeIconType: 2,
           category: AndroidCategory.MESSAGE,
           channelId: "messages",
-          chronometerDirection: "up" as "up",
+          chronometerDirection: "up" as const,
           circularLargeIcon: false,
           colorized: false,
           defaults: [-1],

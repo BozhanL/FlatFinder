@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { JSX, useCallback, useMemo } from "react";
+import type { JSX } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -24,10 +24,10 @@ const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
 const ROTATE = 15; // degrees
 
-type Props = {
+export type Props = {
   data: Flatmate[];
-  onLike?: (user: Flatmate) => void;
-  onPass?: (user: Flatmate) => void;
+  onLike?: (user: Flatmate) => Promise<void>;
+  onPass?: (user: Flatmate) => Promise<void>;
 };
 
 export default function SwipeDeck({
@@ -42,64 +42,57 @@ export default function SwipeDeck({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const commitSwipe = useCallback(
-    (dir: 1 | -1) => {
-      if (!top) return;
-      if (dir === 1) onLike?.(top);
-      else onPass?.(top);
-      // reset & next card
-      translateX.value = 0;
-      translateY.value = 0;
-    },
-    [top, onLike, onPass, translateX, translateY],
-  );
+  const commitSwipe = (dir: 1 | -1): void => {
+    if (!top) {
+      return;
+    } else if (dir === 1) {
+      void onLike?.(top);
+    } else {
+      void onPass?.(top);
+    }
+    // reset & next card
+    translateX.set(0);
+    translateY.set(0);
+  };
 
-  const gesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .onChange((e) => {
-          translateX.value = e.translationX;
-          translateY.value = e.translationY;
-        })
-        .onEnd(() => {
-          if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
-            translateX.value = withTiming(
-              dir * SCREEN_W * 1.2,
-              { duration: 180 },
-              () => {
-                runOnJS(commitSwipe)(dir);
-              },
-            );
-          } else {
-            translateX.value = withSpring(0);
-            translateY.value = withSpring(0);
-          }
-        }),
-    [translateX, translateY, commitSwipe],
-  );
+  const gesture = Gesture.Pan()
+    .onChange((e) => {
+      translateX.set(e.translationX);
+      translateY.set(e.translationY);
+    })
+    .onEnd(() => {
+      if (Math.abs(translateX.get()) > SWIPE_THRESHOLD) {
+        const dir: 1 | -1 = translateX.get() > 0 ? 1 : -1;
+        translateX.set(
+          withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
+            runOnJS(commitSwipe)(dir);
+          }),
+        );
+      } else {
+        translateX.set(withSpring(0));
+        translateY.set(withSpring(0));
+      }
+    });
 
-  function fling(dir: 1 | -1) {
+  const fling = (dir: 1 | -1): void => {
     if (!top) return;
-    translateX.value = withTiming(
-      dir * SCREEN_W * 1.2,
-      { duration: 180 },
-      () => {
+    translateX.set(
+      withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
         runOnJS(commitSwipe)(dir);
-      },
+      }),
     );
-  }
+  };
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
+    const opacity = interpolate(translateX.get(), [0, SWIPE_THRESHOLD], [0, 1]);
     return { opacity };
   });
 
   //unlike animate
   const nopeBadgeStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
-      translateX.value,
+      translateX.get(),
       [0, -SWIPE_THRESHOLD],
       [0, 1],
     );
@@ -109,7 +102,7 @@ export default function SwipeDeck({
   const nextStyle = useAnimatedStyle(() => {
     // For the next card at the back
     const scale = interpolate(
-      Math.abs(translateX.value),
+      Math.abs(translateX.get()),
       [0, SWIPE_THRESHOLD],
       [0.95, 1],
     );
@@ -117,11 +110,11 @@ export default function SwipeDeck({
   });
 
   const topStyle = useAnimatedStyle(() => {
-    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    const rotate = (translateX.get() / SCREEN_W) * ROTATE;
     return {
       transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
+        { translateX: translateX.get() },
+        { translateY: translateY.get() },
         { rotate: `${rotate}deg` },
       ],
     };
@@ -185,7 +178,9 @@ export default function SwipeDeck({
       >
         <TouchableOpacity
           // IMPROVE: Use enum instead of number @G2CCC
-          onPress={() => fling(-1)}
+          onPress={() => {
+            fling(-1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
         >
@@ -193,7 +188,9 @@ export default function SwipeDeck({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => fling(1)}
+          onPress={() => {
+            fling(1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}
         >

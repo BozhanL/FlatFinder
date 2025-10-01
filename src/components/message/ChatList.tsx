@@ -1,14 +1,14 @@
 import useMessages from "@/hooks/useMessages";
 import { sendMessage } from "@/services/message";
-import { JSX } from "react";
+import type { JSX } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
   Bubble,
-  BubbleProps,
+  type BubbleProps,
   Day,
-  DayProps,
+  type DayProps,
   GiftedChat,
-  IMessage,
+  type IMessage,
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -33,7 +33,7 @@ export default function ChatList({
     );
   }
 
-  const renderBubble = (props: BubbleProps<IMessage>) => {
+  const renderBubble = (props: BubbleProps<IMessage>): JSX.Element => {
     return (
       <Bubble
         {...props}
@@ -49,7 +49,7 @@ export default function ChatList({
     );
   };
 
-  const renderDay = (props: DayProps) => {
+  const renderDay = (props: DayProps): JSX.Element => {
     return (
       <Day
         {...props}
@@ -63,7 +63,7 @@ export default function ChatList({
     <GiftedChat
       messages={sortedMessages}
       onSend={(msgs) => {
-        msgs.forEach((m) => sendMessage(m, gid));
+        msgs.forEach((m) => void sendMessage(m, gid));
       }}
       renderAvatarOnTop={true}
       showUserAvatar={true}

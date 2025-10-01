@@ -11,5 +11,5 @@ if (
   Platform.OS === "web" &&
   Constants.expoConfig?.extra?.["firebaseWebConfig"]
 ) {
-  initializeApp(Constants.expoConfig.extra["firebaseWebConfig"]);
+  await initializeApp(Constants.expoConfig.extra["firebaseWebConfig"]);
 }
