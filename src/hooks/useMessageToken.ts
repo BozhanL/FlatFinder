@@ -24,13 +24,9 @@ export default function useMessageToken() {
 
     const uid = user.uid;
     const m = getMessaging();
-    getToken(m).then((token) => {
-      registerToken(uid, token);
-    });
+    void getToken(m).then((token) => registerToken(uid, token));
 
-    return onTokenRefresh(m, (token) => {
-      registerToken(uid, token);
-    });
+    return onTokenRefresh(m, (token) => registerToken(uid, token));
   }, [user]);
 }
 

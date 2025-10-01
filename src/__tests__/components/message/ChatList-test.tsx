@@ -33,7 +33,7 @@ jest.mock("@/hooks/useMessages", () =>
   }),
 );
 
-jest.mock("@/services/message", () => {});
+jest.mock("@/services/message");
 jest.mock("react-native-safe-area-context", () => {
   return {
     useSafeAreaInsets: jest.fn(() => {

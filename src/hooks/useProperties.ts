@@ -10,11 +10,11 @@ import {
 import { useEffect, useState } from "react";
 import useUser from "./useUser";
 
-interface UsePropertiesResult {
+type UsePropertiesResult = {
   properties: Property[];
   loading: boolean;
   error: string | null;
-}
+};
 
 export default function useProperties(): UsePropertiesResult {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -35,39 +35,35 @@ export default function useProperties(): UsePropertiesResult {
 
     const unsubscribe = onSnapshot(
       propertiesCollection,
-      (snapshot) => {
+      (snapshot: FirebaseFirestoreTypes.QuerySnapshot) => {
         setLoading(true);
         setError(null);
 
         const fetchedProperties: Property[] = [];
 
-        snapshot.forEach(
-          (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-            const data = doc.data();
+        snapshot.forEach((doc) => {
+          const data = doc.data();
 
-            if (data) {
-              // Extract coordinates from GeoPoint data
-              const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined =
-                data["coordinates"];
-              const latitude = coordinates?.latitude;
-              const longitude = coordinates?.longitude;
+          // Extract coordinates from GeoPoint data
+          const coordinates: FirebaseFirestoreTypes.GeoPoint | undefined =
+            data["coordinates"];
+          const latitude = coordinates?.latitude;
+          const longitude = coordinates?.longitude;
 
-              const property: Property = {
-                id: doc.id,
-                title: data["title"] || "Untitled Property",
-                latitude: latitude || 0,
-                longitude: longitude || 0,
-                price: data["price"] || 0,
-                type: data["type"] || "rental",
-                bedrooms: data["bedrooms"] || undefined,
-                bathrooms: data["bathrooms"] || undefined,
-                contract: data["contract"] || undefined,
-              };
+          const property: Property = {
+            id: doc.id,
+            title: data["title"] || "Untitled Property",
+            latitude: latitude || 0,
+            longitude: longitude || 0,
+            price: data["price"] || 0,
+            type: data["type"] || "rental",
+            bedrooms: data["bedrooms"] || undefined,
+            bathrooms: data["bathrooms"] || undefined,
+            contract: data["contract"] || undefined,
+          };
 
-              fetchedProperties.push(property);
-            }
-          },
-        );
+          fetchedProperties.push(property);
+        });
 
         setProperties(fetchedProperties);
         setLoading(false);
@@ -82,7 +78,9 @@ export default function useProperties(): UsePropertiesResult {
       },
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, [user]);
 
   return { properties, loading, error };

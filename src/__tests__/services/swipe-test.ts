@@ -1,8 +1,5 @@
-// @ts-nocheck
-// IMPROVE: Enable ts check @G2CCC
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
-// IMPROVE: Update import syntax @G2CCC
 import * as swipeSvc from "@/services/swipe";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
@@ -35,7 +32,7 @@ jest.mock("@react-native-firebase/firestore", () => {
 
   const getDocs = jest.fn(async (_q) => ({ docs: [] }));
   const getDoc = jest.fn(async (_ref) => ({ exists: () => false }));
-  const setDoc = jest.fn(async () => {});
+  const setDoc = jest.fn();
   const serverTimestamp = jest.fn(() => ({ __server_ts: true }));
 
   return {
@@ -60,7 +57,7 @@ jest.mock("@/utils/avatar", () => ({
 }));
 
 jest.mock("@/services/message", () => ({
-  createGroup: jest.fn(async () => {}),
+  createGroup: jest.fn(),
 }));
 
 const collectionMock = collection as jest.Mock;
@@ -203,7 +200,7 @@ describe("loadCandidates", () => {
     expect(orderByMock).not.toHaveBeenCalledWith("budget", "asc");
     expect(Array.isArray(res)).toBe(true);
     expect(res.length).toBe(1);
-    expect(res[0].id).toBe("a");
+    expect(res[0]?.id).toBe("a");
   });
 });
 

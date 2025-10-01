@@ -90,8 +90,8 @@ export default function Index(): JSX.Element {
 
   // Handle marker press
   const handleMarkerPress = (event: OnPressEvent): void => {
-    const feature = event.features?.[0];
-    if (!feature || !feature.properties) {
+    const feature = event.features[0];
+    if (!feature?.properties) {
       return;
     }
 
@@ -144,13 +144,17 @@ export default function Index(): JSX.Element {
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
-            onChange={(val) => setMode(val as TabMode)}
+            onChange={(val) => {
+              setMode(val as TabMode);
+            }}
           />
         </View>
 
         {/* Show filter button on both tabs */}
         <TouchableOpacity
-          onPress={() => router.push("/filter")}
+          onPress={() => {
+            router.push("/filter");
+          }}
           activeOpacity={0.8}
           style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
         >

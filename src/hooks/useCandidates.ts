@@ -10,7 +10,7 @@ export default function useCandidates(my_uid: string | null) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let alive = true;
+    let alive = true as boolean;
 
     if (!my_uid) {
       setItems([]);
@@ -18,14 +18,14 @@ export default function useCandidates(my_uid: string | null) {
       return;
     }
 
-    (async () => {
+    void (async () => {
       try {
         setLoading(true);
         const rows = await loadCandidates(my_uid, { limit: 30 });
         if (alive) setItems(rows);
         console.log(
           "candidates:",
-          rows.map((r: any) => r.id),
+          rows.map((r) => r.id),
         );
       } finally {
         if (alive) setLoading(false);

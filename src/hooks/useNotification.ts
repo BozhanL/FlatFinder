@@ -12,11 +12,11 @@ export default function useNotification() {
   const path = usePathname();
 
   useEffect(() => {
-    notifee.requestPermission();
+    void notifee.requestPermission();
   }, []);
 
   useEffect(() => {
-    notifee.createChannel({
+    void notifee.createChannel({
       id: "messages",
       name: "Messages",
       lights: true,

@@ -1,6 +1,7 @@
-// @ts-nocheck
-// IMPROVE: Enable ts check @G2CCC
 import Index from "@/app/(tabs)";
+import type { Props as SwipeDeckProps } from "@/components/swipe/SwipeDeck";
+import hookMod from "@/hooks/useCandidates";
+import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import {
   cleanup,
   fireEvent,
@@ -8,36 +9,12 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-// IMPROVE: Update import syntax @G2CCC
-import * as hookMod from "@/hooks/useCandidates";
-import * as swipeMod from "@/services/swipe";
+import type { EffectCallback } from "expo-router";
 
-jest.mock("@maplibre/maplibre-react-native", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const React = require("react");
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const { View } = require("react-native");
-  return {
-    __esModule: true,
-    Logger: { setLogCallback: jest.fn(), setLogLevel: jest.fn() },
-    MapLibreGL: {},
-    MapView: (props) => <View {...props} testID="mock-map" />,
-    Camera: (props) => <View {...props} />,
-    MarkerView: (props) => <View {...props} />,
-    Images: (props) => <View {...props} />,
-    ShapeSource: (props) => <View {...props} />,
-    SymbolLayer: (props) => <View {...props} />,
-    RasterSource: (props) => <View {...props} />,
-    RasterLayer: (props) => <View {...props} />,
-    LineLayer: (props) => <View {...props} />,
-    FillLayer: (props) => <View {...props} />,
-    UserLocation: (props) => <View {...props} />,
-  };
-});
 jest.mock("expo-router", () => {
   const router = { replace: jest.fn(), push: jest.fn() };
-  const useFocusEffect = (cb) => (typeof cb === "function" ? cb() : undefined);
+  const useFocusEffect = (cb: EffectCallback) =>
+    typeof cb === "function" ? cb() : undefined;
   return { router, useFocusEffect };
 });
 
@@ -67,7 +44,6 @@ jest.mock("@/hooks/useCandidates", () => {
       ],
       setItems: setItemsMock,
     }),
-    __TEST__: { setItemsMock },
   };
 });
 
@@ -83,58 +59,46 @@ jest.mock("@/services/swipe", () => {
 });
 
 jest.mock("@/components/swipe/SwipeDeck", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const React = require("react");
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const RN = require("react-native");
-  const MockSwipeDeck = ({ data, onLike, onPass }) => (
-    <RN.View testID="swipe-deck">
-      <RN.Text>Mock SwipeDeck</RN.Text>
-      <RN.Text testID="items-count">{data?.length ?? 0}</RN.Text>
-      <RN.TouchableOpacity
+  const { View, Text, TouchableOpacity } = jest.requireActual("react-native");
+  const MockSwipeDeck = ({ data, onLike, onPass }: SwipeDeckProps) => (
+    <View testID="swipe-deck">
+      <Text>Mock SwipeDeck</Text>
+      <Text testID="items-count">{data.length}</Text>
+      <TouchableOpacity
         testID="like-btn"
-        onPress={() => data?.[0] && onLike?.(data[0])}
+        onPress={() => data[0] && onLike?.(data[0])}
       >
-        <RN.Text>LIKE</RN.Text>
-      </RN.TouchableOpacity>
-      <RN.TouchableOpacity
+        <Text>LIKE</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         testID="pass-btn"
-        onPress={() => data?.[0] && onPass?.(data[0])}
+        onPress={() => data[0] && onPass?.(data[0])}
       >
-        <RN.Text>PASS</RN.Text>
-      </RN.TouchableOpacity>
-    </RN.View>
+        <Text>PASS</Text>
+      </TouchableOpacity>
+    </View>
   );
   MockSwipeDeck.displayName = "MockSwipeDeck";
   return { __esModule: true, default: MockSwipeDeck };
 });
 
 jest.mock("@/components/Segmented", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const React = require("react");
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const RN = require("react-native");
+  const { View, Text } = jest.requireActual("react-native");
   const MockSegmented = () => (
-    <RN.View testID="segmented">
-      <RN.Text>Mock Segmented</RN.Text>
-    </RN.View>
+    <View testID="segmented">
+      <Text>Mock Segmented</Text>
+    </View>
   );
   MockSegmented.displayName = "MockSegmented";
   return { __esModule: true, default: MockSegmented };
 });
 
 jest.mock("@/components/HeaderLogo", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const React = require("react");
-  /* eslint-disable @typescript-eslint/no-require-imports */
-  const RN = require("react-native");
+  const { View, Text } = jest.requireActual("react-native");
   const MockHeaderLogo = () => (
-    <RN.View testID="header-logo">
-      <RN.Text>Logo</RN.Text>
-    </RN.View>
+    <View testID="header-logo">
+      <Text>Logo</Text>
+    </View>
   );
   MockHeaderLogo.displayName = "MockHeaderLogo";
   return { __esModule: true, default: MockHeaderLogo };
@@ -154,24 +118,24 @@ it("renders SwipeDeck when logged in and candidates loaded", () => {
 it("pressing LIKE calls swipe, ensureMatchIfMutualLike and setItems", async () => {
   render(<Index />);
   fireEvent.press(screen.getByTestId("like-btn"));
-  await waitFor(() =>
-    expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "like"),
-  );
-  await waitFor(() =>
-    expect(swipeMod.ensureMatchIfMutualLike).toHaveBeenCalledWith("me", "u2"),
-  );
-  await waitFor(() =>
-    expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
-  );
+  await waitFor(() => {
+    expect(swipe).toHaveBeenCalledWith("me", "u2", "like");
+  });
+  await waitFor(() => {
+    expect(ensureMatchIfMutualLike).toHaveBeenCalledWith("me", "u2");
+  });
+  await waitFor(() => {
+    expect(hookMod(null).setItems).toHaveBeenCalled();
+  });
 });
 
 it("pressing PASS calls swipe('pass') and setItems", async () => {
   render(<Index />);
   fireEvent.press(screen.getByTestId("pass-btn"));
-  await waitFor(() =>
-    expect(swipeMod.swipe).toHaveBeenCalledWith("me", "u2", "pass"),
-  );
-  await waitFor(() =>
-    expect((hookMod as any).__TEST__.setItemsMock).toHaveBeenCalled(),
-  );
+  await waitFor(() => {
+    expect(swipe).toHaveBeenCalledWith("me", "u2", "pass");
+  });
+  await waitFor(() => {
+    expect(hookMod(null).setItems).toHaveBeenCalled();
+  });
 });

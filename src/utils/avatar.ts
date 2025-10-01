@@ -1,6 +1,8 @@
 import type { ImageRequireSource } from "react-native";
 
-export const AVATARS = [
+const DEFAULT_AVATAR: ImageRequireSource = require("assets/images/dummy1.png");
+
+const AVATARS: ImageRequireSource[] = [
   require("assets/images/dummy1.png"),
   require("assets/images/dummy2.png"),
   require("assets/images/dummy3.png"),
@@ -14,5 +16,5 @@ function hash(s: string) {
 }
 
 export function pickAvatarFor(uid: string): ImageRequireSource {
-  return AVATARS[hash(uid) % AVATARS.length];
+  return AVATARS[hash(uid) % AVATARS.length] ?? DEFAULT_AVATAR;
 }

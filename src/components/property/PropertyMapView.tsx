@@ -30,8 +30,8 @@ Logger.setLogCallback((log) => {
   const { message } = log;
 
   if (
-    message.match("Request failed due to a permanent error: Canceled") ||
-    message.match("Request failed due to a permanent error: Socket Closed")
+    /Request failed due to a permanent error: Canceled/.exec(message) ||
+    /Request failed due to a permanent error: Socket Closed/.exec(message)
   ) {
     return true;
   }
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface PropertyMapViewProps {
+type PropertyMapViewProps = {
   filters: FilterState;
   selectedProperty: Property | null;
   isVisible: boolean;
@@ -135,7 +135,7 @@ interface PropertyMapViewProps {
     allProperties: Property[],
     filteredProperties: Property[],
   ) => void;
-}
+};
 
 export default function PropertyMapView({
   filters,
@@ -204,7 +204,9 @@ export default function PropertyMapView({
       <MapView
         style={styles.map}
         testID="map-view"
-        onDidFinishLoadingMap={() => console.log("Map finished loading")}
+        onDidFinishLoadingMap={() => {
+          console.log("Map finished loading");
+        }}
       >
         {/* RasterSource for OSM tiles */}
         <RasterSource

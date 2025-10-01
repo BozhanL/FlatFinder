@@ -32,7 +32,7 @@ export default function useMessages(
       groupRef,
       (doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
         const data = doc.data() as Group;
-        Promise.all(
+        void Promise.all(
           data.members.map(async (m) => {
             if (!usercache.has(m)) {
               const userDoc = await getUserByUidAsync(m);
@@ -41,7 +41,9 @@ export default function useMessages(
               }
             }
           }),
-        ).finally(() => setLoading(false));
+        ).finally(() => {
+          setLoading(false);
+        });
       },
     );
   }, [gid, usercache]);

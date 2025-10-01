@@ -8,11 +8,11 @@ const styles = StyleSheet.create({
   },
 });
 
-interface StateDisplayProps {
+type StateDisplayProps = {
   type: "loading" | "empty" | "filtered";
   message?: string;
   subtitle?: string;
-}
+};
 
 export default function StateDisplay({
   type,

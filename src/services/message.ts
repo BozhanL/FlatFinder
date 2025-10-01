@@ -3,6 +3,7 @@ import type { Message } from "@/types/Message";
 import {
   collection,
   doc,
+  FirebaseFirestoreTypes,
   getDoc,
   getFirestore,
   runTransaction,
@@ -49,7 +50,9 @@ export async function createGroup(
 
   try {
     const p = await runTransaction<string>(db, async (transaction) => {
-      const groupRef = doc(collection(db, "groups"));
+      const groupRef: FirebaseFirestoreTypes.DocumentReference = doc(
+        collection(db, "groups"),
+      );
 
       const g: Group = {
         id: groupRef.id,
@@ -60,7 +63,7 @@ export async function createGroup(
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
       };
-      await transaction.set(groupRef, g);
+      transaction.set(groupRef, g);
       return groupRef.id;
     });
     return p;

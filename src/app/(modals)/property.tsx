@@ -212,7 +212,7 @@ export default function PropertyDetailsPage(): JSX.Element {
       }
     };
 
-    fetchPropertyDetails();
+    void fetchPropertyDetails();
   }, [id]);
 
   const formatPrice = (price: number, type?: string): string => {

@@ -24,10 +24,10 @@ const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
 const ROTATE = 15; // degrees
 
-type Props = {
+export type Props = {
   data: Flatmate[];
-  onLike?: (user: Flatmate) => void;
-  onPass?: (user: Flatmate) => void;
+  onLike?: (user: Flatmate) => Promise<void>;
+  onPass?: (user: Flatmate) => Promise<void>;
 };
 
 export default function SwipeDeck({
@@ -43,9 +43,13 @@ export default function SwipeDeck({
   const translateY = useSharedValue(0);
 
   const commitSwipe = (dir: 1 | -1) => {
-    if (!top) return;
-    if (dir === 1) onLike?.(top);
-    else onPass?.(top);
+    if (!top) {
+      return;
+    } else if (dir === 1) {
+      void onLike?.(top);
+    } else {
+      void onPass?.(top);
+    }
     // reset & next card
     translateX.set(0);
     translateY.set(0);
@@ -174,7 +178,9 @@ export default function SwipeDeck({
       >
         <TouchableOpacity
           // IMPROVE: Use enum instead of number @G2CCC
-          onPress={() => fling(-1)}
+          onPress={() => {
+            fling(-1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
         >
@@ -182,7 +188,9 @@ export default function SwipeDeck({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => fling(1)}
+          onPress={() => {
+            fling(1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}
         >

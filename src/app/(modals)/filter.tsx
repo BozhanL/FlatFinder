@@ -191,7 +191,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.type.includes(type) && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("type", type)}
+                  onPress={() => {
+                    toggleFilter("type", type);
+                  }}
                 >
                   <Text
                     style={[
@@ -215,7 +217,9 @@ export default function FilterScreen(): JSX.Element {
                 style={styles.priceInput}
                 placeholder="Min price"
                 value={filters.minPrice}
-                onChangeText={(value) => updatePriceFilter("minPrice", value)}
+                onChangeText={(value) => {
+                  updatePriceFilter("minPrice", value);
+                }}
                 keyboardType="numeric"
               />
               <Text style={styles.priceLabel}>to</Text>
@@ -223,7 +227,9 @@ export default function FilterScreen(): JSX.Element {
                 style={styles.priceInput}
                 placeholder="Max price"
                 value={filters.maxPrice}
-                onChangeText={(value) => updatePriceFilter("maxPrice", value)}
+                onChangeText={(value) => {
+                  updatePriceFilter("maxPrice", value);
+                }}
                 keyboardType="numeric"
               />
             </View>
@@ -240,7 +246,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.bedrooms === bedrooms && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("bedrooms", bedrooms)}
+                  onPress={() => {
+                    toggleFilter("bedrooms", bedrooms);
+                  }}
                 >
                   <Text
                     style={[
@@ -267,7 +275,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.bathrooms === bathrooms && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("bathrooms", bathrooms)}
+                  onPress={() => {
+                    toggleFilter("bathrooms", bathrooms);
+                  }}
                 >
                   <Text
                     style={[

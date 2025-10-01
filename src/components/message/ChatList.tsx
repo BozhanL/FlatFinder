@@ -63,7 +63,7 @@ export default function ChatList({
     <GiftedChat
       messages={sortedMessages}
       onSend={(msgs) => {
-        msgs.forEach((m) => sendMessage(m, gid));
+        msgs.forEach((m) => void sendMessage(m, gid));
       }}
       renderAvatarOnTop={true}
       showUserAvatar={true}

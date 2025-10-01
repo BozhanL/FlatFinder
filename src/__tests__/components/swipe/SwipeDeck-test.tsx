@@ -1,14 +1,10 @@
-// @ts-nocheck
-// IMPROVE: Enable ts check @G2CCC
+import type { Props as SwipeCardProps } from "@/components/swipe/SwipeCard";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
-import SwipeDeck from "@/components/swipe/SwipeDeck";
-
 jest.mock("react-native-reanimated", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Reanimated = require("react-native-reanimated/mock");
-  Reanimated.runOnJS = (fn: any) => fn;
+  const Reanimated = jest.requireActual("react-native-reanimated/mock");
+  Reanimated.runOnJS = jest.fn((fn) => fn);
   return Reanimated;
 });
 
@@ -21,13 +17,9 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 jest.mock("@/components/swipe/SwipeCard", () => {
-  // IMPROVE: Remove check bypass @G2CCC
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Text, View } = require("react-native");
-  return function SwipeCard(props) {
-    const { item } = props || {};
+  const { Text, View } = jest.requireActual("react-native");
+  return function SwipeCard(props: SwipeCardProps) {
+    const { item } = props;
     return (
       <View testID={`card-${item.id}`}>
         <Text>{item.name}</Text>
@@ -76,8 +68,7 @@ describe("SwipeDeck", () => {
 
     // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
+      jest.requireActual("react-native").TouchableOpacity,
     );
     const heartBtn = buttons[1];
     fireEvent.press(heartBtn);
@@ -100,8 +91,7 @@ describe("SwipeDeck", () => {
 
     // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
+      jest.requireActual("react-native").TouchableOpacity,
     );
     const closeBtn = buttons[0];
     fireEvent.press(closeBtn);
@@ -116,8 +106,7 @@ describe("SwipeDeck", () => {
 
     // IMPROVE: use safe variant @G2CCC
     const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
+      jest.requireActual("react-native").TouchableOpacity,
     );
     fireEvent.press(buttons[0]);
     fireEvent.press(buttons[1]);
