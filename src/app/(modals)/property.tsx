@@ -163,7 +163,7 @@ export default function PropertyDetailsPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPropertyDetails = async () => {
+    const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
         setError("Property ID not found");
         return;

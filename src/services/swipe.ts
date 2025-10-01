@@ -92,13 +92,20 @@ export async function loadCandidates(
 }
 
 /**record like/pass */
-export async function swipe(me: string, target: string, dir: "like" | "pass") {
+export async function swipe(
+  me: string,
+  target: string,
+  dir: "like" | "pass",
+): Promise<void> {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
   await setDoc(ref, { dir, createdAt: serverTimestamp() }, { merge: true });
 }
 
 /** Create match between users if mutual like*/
-export async function ensureMatchIfMutualLike(me: string, target: string) {
+export async function ensureMatchIfMutualLike(
+  me: string,
+  target: string,
+): Promise<void> {
   //check if the user liked me
   const backRef = doc(getFirestore(), "users", target, "swipes", me);
   const back = await getDoc(backRef);

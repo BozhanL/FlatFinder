@@ -14,7 +14,7 @@ import {
 
 export const NO_PUSH_PATH = ["/message", "/chat"];
 
-export async function deregisterToken() {
+export async function deregisterToken(): Promise<void> {
   const token = await getToken(getMessaging());
 
   const db = getFirestore();
@@ -23,13 +23,13 @@ export async function deregisterToken() {
   await deleteDoc(docRef);
 }
 
-export function foregroundMessageHandler(path: string) {
+export function foregroundMessageHandler(path: string): () => void {
   return onMessage(getMessaging(), (message) =>
     onMessageReceived(message, path),
   );
 }
 
-export function backgroundMessageHandler() {
+export function backgroundMessageHandler(): void {
   notifee.onBackgroundEvent(backgroundEvent);
 
   setBackgroundMessageHandler(getMessaging(), onMessageReceived);
@@ -38,7 +38,7 @@ export function backgroundMessageHandler() {
 export async function onMessageReceived(
   message: FirebaseMessagingTypes.RemoteMessage,
   currentPathname?: string,
-) {
+): Promise<void> {
   console.log("FCM Message:", message);
 
   if (currentPathname && NO_PUSH_PATH.includes(currentPathname)) {
@@ -51,7 +51,10 @@ export async function onMessageReceived(
   }
 }
 
-export function foregroundEvent({ type, detail: { notification } }: Event) {
+export function foregroundEvent({
+  type,
+  detail: { notification },
+}: Event): void {
   console.log("Foreground Event:", type, notification);
   if (type === EventType.PRESS) {
     if (notification) {
@@ -72,10 +75,10 @@ export function foregroundEvent({ type, detail: { notification } }: Event) {
   }
 }
 
-export async function backgroundEvent({
+export function backgroundEvent({
   type,
   detail: { notification },
-}: Event) {
+}: Event): Promise<void> {
   console.log("Background Event:", type, notification);
 
   // I think it is fine to call useNavigationContainerRef here.
@@ -99,4 +102,6 @@ export async function backgroundEvent({
       }
     }
   }
+
+  return Promise.resolve();
 }

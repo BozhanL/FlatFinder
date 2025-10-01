@@ -30,8 +30,8 @@ jest.mock("@react-native-firebase/firestore", () => {
 
   const query = jest.fn((...parts) => ({ __type: "query", parts }));
 
-  const getDocs = jest.fn(async (_q) => ({ docs: [] }));
-  const getDoc = jest.fn(async (_ref) => ({ exists: () => false }));
+  const getDocs = jest.fn((_q) => ({ docs: [] }));
+  const getDoc = jest.fn((_ref) => ({ exists: () => false }));
   const setDoc = jest.fn();
   const serverTimestamp = jest.fn(() => ({ __server_ts: true }));
 

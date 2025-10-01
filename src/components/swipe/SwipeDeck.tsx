@@ -42,7 +42,7 @@ export default function SwipeDeck({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const commitSwipe = (dir: 1 | -1) => {
+  const commitSwipe = (dir: 1 | -1): void => {
     if (!top) {
       return;
     } else if (dir === 1) {
@@ -74,7 +74,7 @@ export default function SwipeDeck({
       }
     });
 
-  const fling = (dir: 1 | -1) => {
+  const fling = (dir: 1 | -1): void => {
     if (!top) return;
     translateX.set(
       withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {

@@ -8,7 +8,7 @@ import notifee, { AndroidImportance } from "@notifee/react-native";
 import { usePathname } from "expo-router";
 import { useEffect } from "react";
 
-export default function useNotification() {
+export default function useNotification(): void {
   const path = usePathname();
 
   useEffect(() => {

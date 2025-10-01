@@ -33,7 +33,7 @@ export default function useProperties(): UsePropertiesResult {
     const db = getFirestore();
     const propertiesCollection = collection(db, "properties");
 
-    const unsubscribe = onSnapshot(
+    return onSnapshot(
       propertiesCollection,
       (snapshot: FirebaseFirestoreTypes.QuerySnapshot) => {
         setLoading(true);
@@ -77,10 +77,6 @@ export default function useProperties(): UsePropertiesResult {
         setLoading(false);
       },
     );
-
-    return () => {
-      unsubscribe();
-    };
   }, [user]);
 
   return { properties, loading, error };

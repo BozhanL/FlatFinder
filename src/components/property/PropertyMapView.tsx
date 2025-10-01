@@ -7,14 +7,14 @@ import {
   Images,
   Logger,
   MapView,
-  type OnPressEvent,
   RasterLayer,
   RasterSource,
   ShapeSource,
   SymbolLayer,
+  type OnPressEvent,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -144,7 +144,7 @@ export default function PropertyMapView({
   onMarkerPress,
   onClosePropertyTile,
   onPropertiesLoad,
-}: PropertyMapViewProps) {
+}: PropertyMapViewProps): JSX.Element {
   const { properties: allProperties, loading, error } = useProperties();
 
   // Apply filters to properties

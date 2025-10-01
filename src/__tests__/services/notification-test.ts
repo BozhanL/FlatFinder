@@ -108,7 +108,7 @@ describe("@/services/notification.ts", () => {
     (notifee.displayNotification as jest.Mock).mockClear();
   });
 
-  test("Test foregroundEvent()", async () => {
+  test("Test foregroundEvent()", () => {
     const push = jest.fn();
     router.push = push;
 
@@ -168,7 +168,7 @@ describe("@/services/notification.ts", () => {
     push.mockClear();
   });
 
-  test("Test backgroundEvent()", async () => {
+  test("Test backgroundEvent()", () => {
     const isReady = jest.fn(() => true);
     (useNavigationContainerRef as jest.Mock).mockImplementation(() => {
       return { isReady };
@@ -211,19 +211,19 @@ describe("@/services/notification.ts", () => {
     };
 
     // Test EventType other than PRESS
-    await backgroundEvent({ type: EventType.DELIVERED, detail });
+    backgroundEvent({ type: EventType.DELIVERED, detail });
     expect(push).toHaveBeenCalledTimes(0);
     push.mockClear();
 
     // Test PRESS EventType
-    await backgroundEvent({ type: EventType.PRESS, detail });
+    backgroundEvent({ type: EventType.PRESS, detail });
     expect(push).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith("/message");
     push.mockClear();
 
     // Test with gid, gname, uid in data
     detail.notification.data = { gid: "gid", gname: "gname", uid: "uid" };
-    await backgroundEvent({ type: EventType.PRESS, detail });
+    backgroundEvent({ type: EventType.PRESS, detail });
     expect(push).toHaveBeenCalledTimes(2);
     expect(push).toHaveBeenCalledWith("/message");
     expect(push).toHaveBeenCalledWith({
@@ -234,7 +234,7 @@ describe("@/services/notification.ts", () => {
 
     // Test when ref.isReady() is false
     isReady.mockImplementation(() => false);
-    await backgroundEvent({ type: EventType.DELIVERED, detail });
+    backgroundEvent({ type: EventType.DELIVERED, detail });
     expect(push).toHaveBeenCalledTimes(0);
     push.mockClear();
   });

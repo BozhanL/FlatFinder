@@ -22,7 +22,6 @@ export default defineConfig([
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/require-await": "off",
 
       "@typescript-eslint/prefer-nullish-coalescing": "off",
 
@@ -31,6 +30,7 @@ export default defineConfig([
         "error",
         { allowNumber: true },
       ],
+      "@typescript-eslint/explicit-function-return-type": "error",
     },
   },
   {
@@ -44,6 +44,9 @@ export default defineConfig([
   {
     // Test files only
     files: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
-    rules: { "@typescript-eslint/no-unsafe-return": "off" },
+    rules: {
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/explicit-function-return-type": "off",
+    },
   },
 ]);

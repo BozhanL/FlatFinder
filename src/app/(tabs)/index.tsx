@@ -115,7 +115,7 @@ export default function Index(): JSX.Element {
   // Close the floating tile when the route is unfocused
   useFocusEffect(
     useCallback(() => {
-      return () => {
+      return (): void => {
         closePropertyTile();
       };
     }, []),

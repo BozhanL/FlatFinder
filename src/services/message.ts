@@ -12,11 +12,11 @@ import {
 } from "@react-native-firebase/firestore";
 import type { IMessage, User } from "react-native-gifted-chat";
 
-export async function sendMessage(msg: IMessage, gid: string) {
+export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
   const db = getFirestore();
 
   try {
-    await runTransaction(db, async (transaction) => {
+    await runTransaction(db, (transaction) => {
       const groupRef = doc(db, "groups", gid);
       const docref = doc(collection(db, "messages", gid, "messages"));
 
@@ -32,6 +32,7 @@ export async function sendMessage(msg: IMessage, gid: string) {
         lastSender: msg.user._id,
         lastTimestamp: serverTimestamp(),
       });
+      return Promise.resolve();
     });
     console.log("Transaction successfully committed!");
   } catch (e) {
@@ -49,7 +50,7 @@ export async function createGroup(
   const db = getFirestore();
 
   try {
-    const p = await runTransaction<string>(db, async (transaction) => {
+    const p = await runTransaction<string>(db, (transaction) => {
       const groupRef: FirebaseFirestoreTypes.DocumentReference = doc(
         collection(db, "groups"),
       );
@@ -64,7 +65,7 @@ export async function createGroup(
         lastNotified: Timestamp.fromMillis(0),
       };
       transaction.set(groupRef, g);
-      return groupRef.id;
+      return Promise.resolve(groupRef.id);
     });
     return p;
   } catch (e) {

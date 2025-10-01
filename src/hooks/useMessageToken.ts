@@ -14,7 +14,7 @@ import {
 } from "@react-native-firebase/messaging";
 import { useEffect } from "react";
 
-export default function useMessageToken() {
+export default function useMessageToken(): void {
   const user = useUser();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function useMessageToken() {
   }, [user]);
 }
 
-async function registerToken(uid: string, token: string) {
+async function registerToken(uid: string, token: string): Promise<void> {
   const db = getFirestore();
   const docRef = doc(db, "notifications", token);
   console.log("Register token:", token, "for user:", uid);

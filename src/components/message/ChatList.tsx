@@ -33,7 +33,7 @@ export default function ChatList({
     );
   }
 
-  const renderBubble = (props: BubbleProps<IMessage>) => {
+  const renderBubble = (props: BubbleProps<IMessage>): JSX.Element => {
     return (
       <Bubble
         {...props}
@@ -49,7 +49,7 @@ export default function ChatList({
     );
   };
 
-  const renderDay = (props: DayProps) => {
+  const renderDay = (props: DayProps): JSX.Element => {
     return (
       <Day
         {...props}

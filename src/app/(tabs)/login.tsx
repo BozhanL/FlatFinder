@@ -43,7 +43,7 @@ export default function ProfileScreen(): JSX.Element {
     return <Login />;
   }
 
-  async function handleCreateGroup() {
+  async function handleCreateGroup(): Promise<void> {
     const groupId = await createGroup(groupMembers.split(","));
     if (groupId) {
       Alert.alert("Group created!", `Group ID: ${groupId}`);
@@ -87,6 +87,6 @@ function Login(): JSX.Element {
   );
 }
 
-async function handleLogin(email: string, password: string) {
+async function handleLogin(email: string, password: string): Promise<void> {
   await signInWithEmailAndPassword(getAuth(), email, password);
 }

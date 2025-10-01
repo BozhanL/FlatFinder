@@ -38,7 +38,7 @@ describe("@/components/message/MessageList", () => {
     ).toBeVisible();
   });
 
-  test("Test formatTimestamp", async () => {
+  test("Test formatTimestamp", () => {
     const current = Timestamp.now();
 
     {
@@ -117,7 +117,7 @@ describe("@/components/message/MessageList", () => {
     }
   });
 
-  test("Test renderItem", async () => {
+  test("Test renderItem", () => {
     const item: Group = {
       id: "gid",
       name: "name",

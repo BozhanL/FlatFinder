@@ -2,10 +2,15 @@
 // This file mainly contains code for IO, and unable to be tested in unit tests.
 import { loadCandidates } from "@/services/swipe";
 import type { Flatmate } from "@/types/Flatmate";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-// IMPROVE: add return type @G2CCC
-export default function useCandidates(my_uid: string | null) {
+type CandidatesResult = {
+  items: Flatmate[];
+  loading: boolean;
+  setItems: Dispatch<SetStateAction<Flatmate[]>>;
+};
+
+export default function useCandidates(my_uid: string | null): CandidatesResult {
   const [items, setItems] = useState<Flatmate[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +23,7 @@ export default function useCandidates(my_uid: string | null) {
       return;
     }
 
-    void (async () => {
+    void (async (): Promise<void> => {
       try {
         setLoading(true);
         const rows = await loadCandidates(my_uid, { limit: 30 });
@@ -31,7 +36,7 @@ export default function useCandidates(my_uid: string | null) {
         if (alive) setLoading(false);
       }
     })();
-    return () => {
+    return (): void => {
       alive = false;
     };
   }, [my_uid]);
