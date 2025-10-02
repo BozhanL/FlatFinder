@@ -101,7 +101,7 @@ jobs:
       - name: 🧪 Run Jest Coverage Comment
         if: ${{ success() || (failure() && steps.install.conclusion == 'success') }}
         id: coverage
-        uses: MishaKav/jest-coverage-comment@aa3935cf9ee61efc40d9e47dcc8a523a49a70b96
+        uses: MishaKav/jest-coverage-comment@174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f
         with:
           coverage-path: ./coverage.txt
           create-new-comment: false
