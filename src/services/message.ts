@@ -2,6 +2,7 @@ import type { Group } from "@/types/Group";
 import type { Message } from "@/types/Message";
 import {
   collection,
+  deleteDoc,
   doc,
   FirebaseFirestoreTypes,
   getDoc,
@@ -73,6 +74,23 @@ export async function createGroup(
   }
 
   return null;
+}
+
+export async function deleteGroup(gid: string): Promise<void> {
+  const db = getFirestore();
+  const docRef = doc(db, "groups", gid);
+  await deleteDoc(docRef);
+}
+
+export async function getGroup(gid: string): Promise<Group | null> {
+  const db = getFirestore();
+  const groupDoc = await getDoc(doc(db, "groups", gid));
+  if (!groupDoc.exists()) {
+    return null;
+  }
+
+  const data = groupDoc.data() as Group;
+  return data;
 }
 
 // TODO: Implement when user profile is available @G2CCC
