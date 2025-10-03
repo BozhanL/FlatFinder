@@ -43,12 +43,10 @@ export default function ChatHeaderButton({
           <View style={styles.dropdownContainer}>
             <TouchableOpacity
               onPress={() => {
-                void blockUser(gid, uid).then(() =>
-                  deleteGroup(gid).then(() => {
-                    setShowList(false);
-                    router.back();
-                  }),
-                );
+                setShowList(false);
+                router.back();
+                void blockUser(gid, uid);
+                void deleteGroup(gid);
               }}
             >
               <Text style={styles.dropdownItem}>Block</Text>

@@ -6,13 +6,13 @@ describe("@/components/message/ChatHeaderButton", () => {
     jest.clearAllMocks();
   });
 
-  test("Test ChatHeaderButton invisible", async () => {
+  test("Test ChatHeaderButton invisible", () => {
     render(<ChatHeaderButton gid={"gid"} uid={"uid"} />);
 
     expect(screen.getByTestId("show-chat-header-button")).toBeVisible();
   });
 
-  test("Test ChatHeaderButton visible", async () => {
+  test("Test ChatHeaderButton visible", () => {
     render(<ChatHeaderButton gid={"gid"} uid={"uid"} />);
 
     const showListButton = screen.getByTestId("show-chat-header-button");
