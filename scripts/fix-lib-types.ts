@@ -27,7 +27,13 @@ const PROBLEMATIC_PACKAGES: PackageConfig[] = [
       "overflowMenu/vendor/Divider.tsx",
       "overflowMenu/vendor/Menu.tsx",
       "overflowMenu/vendor/MenuItem.tsx",
+      "overflowMenu/OverflowMenuContext.tsx",
     ],
+  },
+  {
+    name: "react-native-safe-area-context",
+    sourceDir: "src",
+    problemPaths: ["SafeAreaContext.tsx"],
   },
 ];
 
