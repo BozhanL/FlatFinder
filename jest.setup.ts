@@ -1,7 +1,7 @@
 // https://github.com/invertase/react-native-firebase/blob/main/jest.setup.ts
 import { jest } from "@jest/globals";
 import ReactNative from "react-native";
-import { setUpTests } from "react-native-reanimated";
+import { setUpTests as reanimatedSetUpTests } from "react-native-reanimated";
 import mockSafeAreaContext from "react-native-safe-area-context/jest/mock";
 
 // Avoid log pollution with emulator URL remap messages during testing
@@ -124,7 +124,7 @@ jest.mock(
   }),
 );
 
-setUpTests();
+reanimatedSetUpTests();
 
 jest.mock("react-native-lightbox-v2", () => "Lightbox");
 jest.mock("react-native-keyboard-controller", () =>
