@@ -12,6 +12,8 @@
     "url": "https://github.com/BozhanL/FlatFinder/issues"
   },
   "scripts": {
+    "postinstall": "tsx scripts/fix-lib-types.ts",
+    "prepush": "npm run check-ts && npm run lint && npm run format && npm run coverage",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
