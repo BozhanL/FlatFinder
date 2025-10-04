@@ -6,7 +6,8 @@ import {
   getFirestore,
 } from "@react-native-firebase/firestore";
 import { Stack, router } from "expo-router";
-import React, { JSX, useEffect, useRef, useState } from "react";
+import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -204,7 +205,7 @@ interface PlaceSuggestion {
   type: string;
 }
 
-export default function PostPropertyPage(): JSX.Element {
+export default function PostPropertyPage(): React.JSX.Element {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     type: "rental",
