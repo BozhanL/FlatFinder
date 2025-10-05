@@ -12,10 +12,6 @@ jest.mock("@expo/vector-icons", () => ({
   AntDesign: () => null,
 }));
 
-jest.mock("react-native-safe-area-context", () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
 jest.mock("@/components/swipe/SwipeCard", () => {
   const { Text, View } = jest.requireActual("react-native");
   return function SwipeCard(props: SwipeCardProps) {

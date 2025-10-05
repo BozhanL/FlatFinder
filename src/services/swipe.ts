@@ -1,4 +1,4 @@
-import { createGroup } from "@/services/message";
+import { createGroup, getGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
@@ -114,5 +114,19 @@ export async function ensureMatchIfMutualLike(
 
   if (data?.dir === "like") {
     await createGroup([me, target]);
+  }
+}
+
+export async function blockUser(gid: string, uid: string): Promise<void> {
+  const group = await getGroup(gid);
+  if (!group) {
+    console.error("Group not found:", gid);
+    return;
+  } else if (group.members.length !== 2) {
+    console.warn("Group does not have exactly two members:", gid);
+  }
+
+  for (const otherUid of group.members.filter((id) => id !== uid)) {
+    await swipe(uid, otherUid, "pass");
   }
 }

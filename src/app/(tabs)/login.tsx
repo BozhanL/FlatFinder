@@ -56,6 +56,8 @@ export default function ProfileScreen(): JSX.Element {
       <Button title="Logout" onPress={() => void logout()} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
       <Button title="Create Group" onPress={() => void handleCreateGroup()} />
+      <Text>UID: {user.uid}</Text>
+      <Text>Email: {user.email}</Text>
     </View>
   );
 }
