@@ -30,8 +30,6 @@ export default function RootLayout() {
 }
 */
 
-
-
 /*
 
 //code i need to overwrite in comments
@@ -51,10 +49,10 @@ export default function RootLayout() {
 
 */
 
-import auth from '@react-native-firebase/auth';
-import { Slot, SplashScreen } from 'expo-router';
-import { useEffect, useState } from 'react';
-import AuthScreen from './auth/AuthScreen';
+import auth from "@react-native-firebase/auth";
+import { Slot, SplashScreen } from "expo-router";
+import { useEffect, useState } from "react";
+import AuthScreen from "./auth/AuthScreen";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
