@@ -1,60 +1,39 @@
-/*
-import { initializeApp } from "@react-native-firebase/app";
+import useInitialNotification from "@/hooks/useInitialNotification";
+import useMessageToken from "@/hooks/useMessageToken";
+import useNotification from "@/hooks/useNotification";
 import { Stack } from "expo-router";
-
-export default function RootLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
-  );
-}
-
-
-}
-
-export default function RootLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
-  );
-}
-*/
-
-
-
-/*
-
-//code i need to overwrite in comments
-import { Stack } from "expo-router";
-
-export default function RootLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="(modals)"
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
-  );
-}
-
-*/
+import type { JSX } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
 
 import auth from '@react-native-firebase/auth';
 import { Slot, SplashScreen } from 'expo-router';
 import { useEffect, useState } from 'react';
 import AuthScreen from './auth/AuthScreen';
+
+export default function RootLayout(): JSX.Element {
+  useNotification();
+  useMessageToken();
+  useInitialNotification();
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <HeaderButtonsProvider stackType={"native"}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="(modals)"
+              options={{ presentation: "modal", headerShown: false }}
+            />
+          </Stack>
+        </SafeAreaView>
+      </HeaderButtonsProvider>
+    </GestureHandlerRootView>
+  );
+}
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
