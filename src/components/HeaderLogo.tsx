@@ -1,6 +1,7 @@
+import type { JSX } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-export default function HeaderLogo() {
+export default function HeaderLogo(): JSX.Element {
   return (
     <View style={styles.wrap}>
       <Text style={styles.logo}>FlatFinder</Text>
