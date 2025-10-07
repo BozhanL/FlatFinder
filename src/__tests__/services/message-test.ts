@@ -105,7 +105,7 @@ describe("@/services/message.ts", () => {
         id: "jestDocId",
         message: "test",
         sender: "uid",
-        received: false,
+        received: null,
         timestamp: Timestamp.fromMillis(0),
       },
     );
@@ -124,7 +124,7 @@ describe("@/services/message.ts", () => {
     );
     expect(updateDoc).toHaveBeenCalledWith(
       (doc as jest.Mock).mock.results[0]?.value,
-      { received: true },
+      { received: Timestamp.fromMillis(0) },
     );
   });
 });
