@@ -1,13 +1,11 @@
 // https://docs.expo.dev/guides/using-eslint/
 import expoConfig from "eslint-config-expo/flat.js";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import testingLibrary from "eslint-plugin-testing-library";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
   expoConfig,
-  eslintPluginPrettierRecommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   {
