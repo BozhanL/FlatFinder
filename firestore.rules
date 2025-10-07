@@ -19,9 +19,14 @@ service cloud.firestore {
         return request.auth.uid == data.sender;
       }
 
+      function allowUpdateReceived(n,o) {
+        return n.diff(o).affectedKeys().hasOnly(['received']) && n.received == true;
+      }
+
       match /messages/{document=**} {
         allow read: if isMember();
         allow write: if isMember() && isCreator(request.resource.data);
+        allow update: if isMember() && allowUpdateReceived(request.resource.data, resource.data);
       }
     }
 
