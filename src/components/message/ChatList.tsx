@@ -1,4 +1,6 @@
+import useIsTyping from "@/hooks/useIsTyping";
 import useMessages from "@/hooks/useMessages";
+import useOnTyping from "@/hooks/useOnTyping";
 import { markMessagesAsReceived, sendMessage } from "@/services/message";
 import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
 import type { JSX } from "react";
@@ -25,6 +27,8 @@ export default function ChatList({
   uid: string;
 }): JSX.Element {
   const { sortedMessages, loading, usercache } = useMessages(gid, gname);
+  const onTyping = useOnTyping(gid, uid);
+  const isTyping = useIsTyping(gid, uid);
 
   const insets = useSafeAreaInsets();
 
@@ -35,7 +39,7 @@ export default function ChatList({
       </View>
     );
   }
-
+  console.log(isTyping);
   return (
     <GiftedChat
       messages={sortedMessages}
@@ -50,6 +54,8 @@ export default function ChatList({
       renderBubble={renderBubble}
       renderDay={renderDay}
       renderMessage={renderMessage}
+      onInputTextChanged={onTyping}
+      isTyping={isTyping}
     />
   );
 }
