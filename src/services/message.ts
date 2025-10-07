@@ -53,7 +53,7 @@ export async function markMessagesAsReceived(
     const docref = doc(db, "messages", gid, "messages", mid);
     await updateDoc(docref, { received: true });
   } catch (e) {
-    console.error("Transaction failed: ", e);
+    console.error("Failed to mark message as received: ", e);
   }
 }
 
