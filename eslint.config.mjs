@@ -47,4 +47,13 @@ export default defineConfig([
       "@typescript-eslint/explicit-function-return-type": "off",
     },
   },
+  {
+    // https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import
+    rules: {
+      "import/named": "off",
+      "import/namespace": "off",
+      "import/default": "off",
+      "import/no-named-as-default-member": "off",
+    },
+  },
 ]);
