@@ -48,6 +48,13 @@ export default defineConfig([
     },
   },
   {
+    // This check will cause linter halt.
+    // Maybe related to https://github.com/typescript-eslint/typescript-eslint/pull/11605
+    rules: {
+      "@typescript-eslint/no-deprecated": "off",
+    },
+  },
+  {
     // https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import
     rules: {
       "import/named": "off",
