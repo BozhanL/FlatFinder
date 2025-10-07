@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
 import { getDatabase, onValue, ref } from "@react-native-firebase/database";
 import { useEffect, useState } from "react";
 
