@@ -82,8 +82,9 @@ export default function useMessages(
         name: gname,
         user: usercache.get(msg.sender) || { _id: msg.sender },
         sent: true,
-        received: msg.received,
+        received: msg.received !== null,
         gid: gid,
+        seenTimestamp: msg.received,
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return m;

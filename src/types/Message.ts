@@ -8,5 +8,5 @@ export type Message = {
   sender: string;
   message: string;
   timestamp: Timestamp;
-  received: boolean; // True if the message has been received by any other user
+  received: Timestamp | null;
 };

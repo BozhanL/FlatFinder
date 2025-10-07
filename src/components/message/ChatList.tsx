@@ -3,8 +3,11 @@ import useMessages from "@/hooks/useMessages";
 import useOnTyping from "@/hooks/useOnTyping";
 import { markMessagesAsReceived, sendMessage } from "@/services/message";
 import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
+import dayjs from "dayjs";
+import "dayjs/locale/en-nz";
+import relativeTime from "dayjs/plugin/relativeTime";
 import type { JSX } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import {
   Bubble,
   type BubbleProps,
@@ -16,6 +19,8 @@ import {
   type MessageProps,
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+dayjs.extend(relativeTime);
 
 export default function ChatList({
   gid,
@@ -56,6 +61,7 @@ export default function ChatList({
       renderMessage={renderMessage}
       onInputTextChanged={onTyping}
       isTyping={isTyping}
+      locale={"en-nz"}
     />
   );
 }
@@ -71,6 +77,42 @@ function renderDay(props: DayProps): JSX.Element {
 }
 
 function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
+  const uid = props.user?._id;
+
+  const renderTicks = (
+    currentMessage: GiftedChatMessage,
+  ): JSX.Element | null => {
+    if (uid && currentMessage.user._id !== uid) {
+      return null;
+    } else if (currentMessage.received && currentMessage.seenTimestamp) {
+      const timestamp = currentMessage.seenTimestamp;
+      const dayJsObject = dayjs(timestamp.toDate());
+      const timeStr = dayJsObject.fromNow();
+
+      return (
+        <View style={styles.tickView}>
+          <Text
+            style={[styles.tick, props.tickStyle]}
+          >{`Seen: ${timeStr}`}</Text>
+        </View>
+      );
+    } else if (currentMessage.sent) {
+      return (
+        <View style={styles.tickView}>
+          <Text style={[styles.tick, props.tickStyle]}>{"✓"}</Text>
+        </View>
+      );
+    } else if (currentMessage.pending) {
+      return (
+        <View style={styles.tickView}>
+          <Text style={[styles.tick, props.tickStyle]}>{"🕓"}</Text>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Bubble
       {...props}
@@ -82,6 +124,7 @@ function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
           backgroundColor: "#DADADA",
         },
       }}
+      renderTicks={renderTicks}
     />
   );
 }
@@ -99,3 +142,15 @@ function renderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
 
   return <Message {...props} />;
 }
+
+const styles = StyleSheet.create({
+  tickView: {
+    flexDirection: "row",
+    marginRight: 10,
+  },
+  tick: {
+    fontSize: 10,
+    backgroundColor: "transparent",
+    color: "white",
+  },
+});

@@ -27,7 +27,7 @@ export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
         message: msg.text,
         sender: msg.user._id.toString(),
         timestamp: serverTimestamp() as Timestamp,
-        received: false,
+        received: null,
       };
       transaction.set(docref, m);
       transaction.update(groupRef, {
@@ -51,7 +51,7 @@ export async function markMessagesAsReceived(
 
   try {
     const docref = doc(db, "messages", gid, "messages", mid);
-    await updateDoc(docref, { received: true });
+    await updateDoc(docref, { received: serverTimestamp() as Timestamp });
   } catch (e) {
     console.error("Failed to mark message as received: ", e);
   }
