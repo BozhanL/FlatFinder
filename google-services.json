@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "245824951682",
+    "firebase_url": "https://flatfinder-5b5c8-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "flatfinder-5b5c8",
     "storage_bucket": "flatfinder-5b5c8.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.flatfinder"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "245824951682-f9bf5u5roosv7i88msi9icqmv3sb74jj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.flatfinder",
+            "certificate_hash": "e9101bdedc6d5f13706a8bc43ac5789cc6204e6c"
+          }
+        },
+        {
+          "client_id": "245824951682-5f4jdid4ri95nl1qjh9qivkkbga2nem3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB8JzprO1Cgi8LhSIoCKHJ8xgGGyjw2olI"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "245824951682-5f4jdid4ri95nl1qjh9qivkkbga2nem3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
