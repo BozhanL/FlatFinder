@@ -44,7 +44,6 @@ export default function ChatList({
       </View>
     );
   }
-  console.log(isTyping);
   return (
     <GiftedChat
       messages={sortedMessages}
