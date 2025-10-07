@@ -21,6 +21,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 dayjs.extend(relativeTime);
+dayjs.locale("en-nz");
 
 export default function ChatList({
   gid,
