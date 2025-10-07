@@ -7,14 +7,13 @@ export default function useIsTyping(gid: string, uid: string): boolean {
   useEffect(() => {
     const db = getDatabase();
     const groupRef = ref(db, `typing/${gid}`);
-    console.log(groupRef);
+
     return onValue(
       groupRef,
       (snapshot) => {
         let typing = false;
-        console.log(snapshot.toJSON());
+
         snapshot.forEach((child) => {
-          console.log(child.key);
           if (child.key !== uid && child.val() === true) {
             typing = true;
             return true; // stop iterating
@@ -22,6 +21,7 @@ export default function useIsTyping(gid: string, uid: string): boolean {
 
           return undefined;
         });
+
         setIsTyping(typing);
       },
       (e) => {
