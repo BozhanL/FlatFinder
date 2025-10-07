@@ -1,5 +1,6 @@
 import useMessages from "@/hooks/useMessages";
-import { sendMessage } from "@/services/message";
+import { markMessagesAsReceived, sendMessage } from "@/services/message";
+import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
 import type { JSX } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
@@ -9,6 +10,8 @@ import {
   type DayProps,
   GiftedChat,
   type IMessage,
+  Message,
+  type MessageProps,
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -33,32 +36,6 @@ export default function ChatList({
     );
   }
 
-  const renderBubble = (props: BubbleProps<IMessage>): JSX.Element => {
-    return (
-      <Bubble
-        {...props}
-        wrapperStyle={{
-          right: {
-            backgroundColor: "#4A4459",
-          },
-          left: {
-            backgroundColor: "#DADADA",
-          },
-        }}
-      />
-    );
-  };
-
-  const renderDay = (props: DayProps): JSX.Element => {
-    return (
-      <Day
-        {...props}
-        wrapperStyle={{ backgroundColor: "transparent" }}
-        textStyle={{ color: "#79747E" }}
-      />
-    );
-  };
-
   return (
     <GiftedChat
       messages={sortedMessages}
@@ -72,6 +49,47 @@ export default function ChatList({
       bottomOffset={-insets.bottom}
       renderBubble={renderBubble}
       renderDay={renderDay}
+      renderMessage={renderMessage}
     />
   );
+}
+
+function renderDay(props: DayProps): JSX.Element {
+  return (
+    <Day
+      {...props}
+      wrapperStyle={{ backgroundColor: "transparent" }}
+      textStyle={{ color: "#79747E" }}
+    />
+  );
+}
+
+function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
+  return (
+    <Bubble
+      {...props}
+      wrapperStyle={{
+        right: {
+          backgroundColor: "#4A4459",
+        },
+        left: {
+          backgroundColor: "#DADADA",
+        },
+      }}
+    />
+  );
+}
+
+function renderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
+  if (
+    props.currentMessage.received !== true &&
+    props.currentMessage.user._id !== props.user._id
+  ) {
+    void markMessagesAsReceived(
+      props.currentMessage.gid,
+      props.currentMessage._id.toString(),
+    );
+  }
+
+  return <Message {...props} />;
 }

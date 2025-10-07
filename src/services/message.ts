@@ -10,6 +10,7 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
+  updateDoc,
 } from "@react-native-firebase/firestore";
 import type { IMessage, User } from "react-native-gifted-chat";
 
@@ -26,6 +27,7 @@ export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
         message: msg.text,
         sender: msg.user._id.toString(),
         timestamp: serverTimestamp() as Timestamp,
+        received: false,
       };
       transaction.set(docref, m);
       transaction.update(groupRef, {
@@ -37,7 +39,21 @@ export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
     });
     console.log("Transaction successfully committed!");
   } catch (e) {
-    console.log("Transaction failed: ", e);
+    console.error("Transaction failed: ", e);
+  }
+}
+
+export async function markMessagesAsReceived(
+  gid: string,
+  mid: string,
+): Promise<void> {
+  const db = getFirestore();
+
+  try {
+    const docref = doc(db, "messages", gid, "messages", mid);
+    await updateDoc(docref, { received: true });
+  } catch (e) {
+    console.error("Transaction failed: ", e);
   }
 }
 
@@ -70,7 +86,7 @@ export async function createGroup(
     });
     return p;
   } catch (e) {
-    console.log("Transaction failed: ", e);
+    console.error("Transaction failed: ", e);
   }
 
   return null;
