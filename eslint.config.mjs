@@ -52,7 +52,7 @@ export default defineConfig([
   {
     rules: {
       // This check will cause linter halt.
-      // Maybe releated to https://github.com/typescript-eslint/typescript-eslint/pull/11605
+      // Maybe related to https://github.com/typescript-eslint/typescript-eslint/pull/11605
       "@typescript-eslint/no-deprecated": "off",
     },
   },
