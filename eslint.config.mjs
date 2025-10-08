@@ -49,4 +49,11 @@ export default defineConfig([
       "@typescript-eslint/explicit-function-return-type": "off",
     },
   },
+  {
+    rules: {
+      // This check will cause linter halt.
+      // Maybe related to https://github.com/typescript-eslint/typescript-eslint/pull/11605
+      "@typescript-eslint/no-deprecated": "off",
+    },
+  },
 ]);
