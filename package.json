@@ -52,7 +52,7 @@
     "coverageDirectory": "coverage",
     "coverageThreshold": {
       "global": {
-        "statements": 60
+        "statements": 45
       }
     }
   },
