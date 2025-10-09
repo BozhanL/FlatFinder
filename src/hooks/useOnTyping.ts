@@ -26,6 +26,7 @@ export default function useOnTyping(
       async function f(): Promise<void> {
         // Only set typing when there is text
         if (text.length === 0) {
+          debouncedStopTyping.flush();
           return;
         }
 
