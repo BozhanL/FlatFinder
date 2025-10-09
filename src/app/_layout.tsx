@@ -13,9 +13,7 @@ import AuthScreen from "./auth/AuthScreen";
 
 void SplashScreen.preventAutoHideAsync();
 
-
-const AuthenticatedAppProviders = (): JSX.Element => { 
- 
+const AuthenticatedAppProviders = (): JSX.Element => {
   useNotification();
   useMessageToken();
   useInitialNotification();
@@ -37,15 +35,12 @@ const AuthenticatedAppProviders = (): JSX.Element => {
   );
 };
 
-
 export default function RootAuthLayout(): JSX.Element | null {
-
   const user = useUser();
   const isInitializing = user === undefined;
 
   useEffect(() => {
     if (!isInitializing) {
-      
       void SplashScreen.hideAsync(); // Line 58
     }
   }, [isInitializing]);
