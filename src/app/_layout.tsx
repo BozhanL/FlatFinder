@@ -44,7 +44,7 @@ const AuthenticatedAppProviders = (): JSX.Element => {
  * The single default export that handles authentication state and renders
  * either the main app or the auth screen. This now uses the useUser hook.
  */
-export default function RootAuthLayout(): JSX.Element | null{
+export default function RootAuthLayout(): JSX.Element | null {
   // Use the existing useUser hook.
   // user will be: undefined (loading), null (logged out), or User (logged in)
   const user = useUser();
