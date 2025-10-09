@@ -79,6 +79,8 @@ function renderDay(props: DayProps): JSX.Element {
 function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
   const uid = props.user?._id;
 
+  // IMPROVE: This function may cause bubble re-render, but currently unable to reproduce this issue
+  // Use useCallback to memoize the function if this bug happens
   const renderTicks = (
     currentMessage: GiftedChatMessage,
   ): JSX.Element | null => {
