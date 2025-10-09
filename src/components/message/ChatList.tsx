@@ -6,8 +6,15 @@ import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
 import dayjs from "dayjs";
 import "dayjs/locale/en-nz";
 import relativeTime from "dayjs/plugin/relativeTime";
-import type { JSX } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { type JSX, useCallback } from "react";
+import {
+  ActivityIndicator,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  View,
+} from "react-native";
 import {
   Bubble,
   type BubbleProps,
@@ -56,9 +63,9 @@ export default function ChatList({
       user={usercache.get(uid) || { _id: uid }}
       inverted={true}
       bottomOffset={-insets.bottom}
-      renderBubble={renderBubble}
-      renderDay={renderDay}
-      renderMessage={renderMessage}
+      renderBubble={useRenderBubble}
+      renderDay={useRenderDay}
+      renderMessage={useRenderMessage}
       onInputTextChanged={onTyping}
       isTyping={isTyping}
       locale={"en-nz"}
@@ -66,7 +73,7 @@ export default function ChatList({
   );
 }
 
-function renderDay(props: DayProps): JSX.Element {
+function useRenderDay(props: DayProps): JSX.Element {
   return (
     <Day
       {...props}
@@ -76,42 +83,11 @@ function renderDay(props: DayProps): JSX.Element {
   );
 }
 
-function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
+function useRenderBubble(props: BubbleProps<IMessage>): JSX.Element {
   const uid = props.user?._id;
+  const tickStyle = props.tickStyle;
 
-  const renderTicks = (
-    currentMessage: GiftedChatMessage,
-  ): JSX.Element | null => {
-    if (uid && currentMessage.user._id !== uid) {
-      return null;
-    } else if (currentMessage.received && currentMessage.seenTimestamp) {
-      const timestamp = currentMessage.seenTimestamp;
-      const dayJsObject = dayjs(timestamp.toDate());
-      const timeStr = dayJsObject.fromNow();
-
-      return (
-        <View style={styles.tickView}>
-          <Text
-            style={[styles.tick, props.tickStyle]}
-          >{`Seen: ${timeStr}`}</Text>
-        </View>
-      );
-    } else if (currentMessage.sent) {
-      return (
-        <View style={styles.tickView}>
-          <Text style={[styles.tick, props.tickStyle]}>{"✓"}</Text>
-        </View>
-      );
-    } else if (currentMessage.pending) {
-      return (
-        <View style={styles.tickView}>
-          <Text style={[styles.tick, props.tickStyle]}>{"🕓"}</Text>
-        </View>
-      );
-    }
-
-    return null;
-  };
+  const renderTicks = useRenderTicks(uid, tickStyle);
 
   return (
     <Bubble
@@ -129,7 +105,45 @@ function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
   );
 }
 
-function renderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
+function useRenderTicks(
+  uid?: string | number ,
+  tickStyle?: StyleProp<TextStyle>,
+): (currentMessage: GiftedChatMessage) => JSX.Element | null {
+  function f(currentMessage: GiftedChatMessage): JSX.Element | null {
+    if (uid && currentMessage.user._id !== uid) {
+      return null;
+    } else if (currentMessage.received && currentMessage.seenTimestamp) {
+      const timestamp = currentMessage.seenTimestamp;
+      const dayJsObject = dayjs(timestamp.toDate());
+      const timeStr = dayJsObject.fromNow();
+      console.debug("renderTicks seen at", timeStr);
+
+      return (
+        <View style={styles.tickView}>
+          <Text style={[styles.tick, tickStyle]}>{`Seen: ${timeStr}`}</Text>
+        </View>
+      );
+    } else if (currentMessage.sent) {
+      return (
+        <View style={styles.tickView}>
+          <Text style={[styles.tick, tickStyle]}>{"✓"}</Text>
+        </View>
+      );
+    } else if (currentMessage.pending) {
+      return (
+        <View style={styles.tickView}>
+          <Text style={[styles.tick, tickStyle]}>{"🕓"}</Text>
+        </View>
+      );
+    }
+
+    return null;
+  }
+
+  return useCallback(f, [uid, tickStyle]);
+}
+
+function useRenderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
   if (
     props.currentMessage.received !== true &&
     props.currentMessage.user._id !== props.user._id
