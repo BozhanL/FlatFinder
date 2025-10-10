@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-import type { Property } from "@/types/Property";
+import type { Property } from "@/types/Prop";
 import {
   collection,
   FirebaseFirestoreTypes,

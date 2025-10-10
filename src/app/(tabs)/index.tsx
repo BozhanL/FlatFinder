@@ -6,7 +6,7 @@ import useCandidates from "@/hooks/useCandidates";
 import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import type { FilterState } from "@/types/FilterState";
-import type { Property } from "@/types/Property";
+import type { Property } from "@/types/Prop";
 import {
   getGlobalFilters,
   registerApplyFilter,

@@ -1,4 +1,4 @@
-import type { Property } from "@/types/Property";
+import type { Property } from "@/types/Prop";
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { type JSX, useEffect, useState } from "react";
