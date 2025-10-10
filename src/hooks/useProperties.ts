@@ -25,17 +25,10 @@ export default function useProperties(): UsePropertiesResult {
   const user = useUser();
 
   useEffect(() => {
-    // Mark that authentication has been checked
-    if (user !== undefined) {
-      setAuthChecked(true);
-    }
-
     // Wait for auth to be checked before showing error
-    if (!authChecked) {
+    if (user === undefined) {
       return;
-    }
-
-    if (!user) {
+    } else if (!user) {
       setLoading(false);
       setError("User not authenticated");
       return;
