@@ -260,12 +260,7 @@ describe("PostPropertyPage", () => {
       fireEvent.changeText(addressInput, "123 Test");
       fireEvent(addressInput, "focus");
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
-        },
-        { timeout: 1000 },
-      );
+      expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
       // Clear the address
       fireEvent.changeText(addressInput, "");
