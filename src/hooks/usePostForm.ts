@@ -50,7 +50,7 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
     if (!formData.price.trim()) newErrors["price"] = "Price is required";
     if (!formData.address.trim()) newErrors["address"] = "Address is required";
 
-    if (formData.price && isNaN(Number(formData.price))) {
+    if (formData.price && !isFinite(Number(formData.price))) {
       newErrors["price"] = "Must be a number";
     }
 
