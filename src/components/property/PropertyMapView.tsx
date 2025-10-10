@@ -39,6 +39,18 @@ Logger.setLogCallback((log) => {
   return false;
 });
 
+interface PropertyMapViewProps {
+  filters: FilterState;
+  selectedProperty: Property | null;
+  isVisible: boolean;
+  onMarkerPress: (event: OnPressEvent) => void;
+  onClosePropertyTile: () => void;
+  onPropertiesLoad?: (
+    allProperties: Property[],
+    filteredProperties: Property[],
+  ) => void;
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -146,18 +158,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
-
-type PropertyMapViewProps = {
-  filters: FilterState;
-  selectedProperty: Property | null;
-  isVisible: boolean;
-  onMarkerPress: (event: OnPressEvent) => void;
-  onClosePropertyTile: () => void;
-  onPropertiesLoad?: (
-    allProperties: Property[],
-    filteredProperties: Property[],
-  ) => void;
-};
 
 export default function PropertyMapView({
   filters,
