@@ -3,8 +3,7 @@ import { usePropertyForm } from "@/hooks/usePostForm";
 import { styles } from "@/styles/posting-style";
 import type { PlaceSuggestion } from "@/types/Post";
 import { Stack } from "expo-router";
-import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
