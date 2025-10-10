@@ -221,12 +221,7 @@ expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
       fireEvent.changeText(addressInput, "123 Test");
       fireEvent(addressInput, "focus");
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
-        },
-        { timeout: 1000 },
-      );
+expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
       const suggestion = screen.getByText(/123 Test St, Auckland/);
       fireEvent.press(suggestion);
