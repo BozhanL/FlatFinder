@@ -5,7 +5,6 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import React from "react";
 import { Alert } from "react-native";
 
 jest.mock("@react-native-firebase/auth", () => ({
