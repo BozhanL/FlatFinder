@@ -45,7 +45,7 @@ export default function useAddressSearch(
         )}&limit=5&countrycodes=nz&addressdetails=1`,
         {
           headers: {
-            "User-Agent": "PropertyApp/1.0",
+            "User-Agent": "FlatFinder/1.0",
           },
         },
       );
