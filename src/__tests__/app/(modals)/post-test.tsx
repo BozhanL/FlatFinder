@@ -1,14 +1,13 @@
 // Mock useUser FIRST before any imports
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
 } from "@testing-library/react-native";
+import { act } from "react";
 import { Alert } from "react-native";
-
 jest.mock("@/hooks/useUser", () => ({
   __esModule: true,
   default: () => ({ uid: "test-user-123" }),
