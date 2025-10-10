@@ -162,7 +162,7 @@ describe("PostPropertyPage", () => {
       const addressInput = screen.getByTestId("address-input");
       fireEvent.changeText(addressInput, "12");
 
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      act(() => jest.runAllTimers());
 
       expect(global.fetch).not.toHaveBeenCalled();
     });
