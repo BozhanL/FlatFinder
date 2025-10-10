@@ -267,7 +267,7 @@ describe("PostPropertyPage", () => {
       // Clear the address
       fireEvent.changeText(addressInput, "");
 
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      act(() => jest.runAllTimers());
 
       // Suggestions should be cleared
       expect(screen.queryByText(/123 Test St, Auckland/)).toBeNull();
