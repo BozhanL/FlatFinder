@@ -81,7 +81,7 @@ export default function useProperties(): UsePropertiesResult {
         setLoading(false);
       },
     );
-  }, [user, authChecked]);
+  }, [user]);
 
   return { properties, loading, error };
 }
