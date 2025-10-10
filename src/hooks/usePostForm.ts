@@ -46,7 +46,7 @@ export default function usePropertyForm(): UsePropertyFormReturn {
 
     if (!formData.title.trim()) {newErrors["title"] = "Title is required";}
     if (!formData.description.trim())
-      newErrors["description"] = "Description is required";
+      {newErrors["description"] = "Description is required";}
     if (!formData.price.trim()) newErrors["price"] = "Price is required";
     if (!formData.address.trim()) newErrors["address"] = "Address is required";
 
