@@ -1,244 +1,42 @@
-import { getAuth } from "@react-native-firebase/auth";
-import {
-  GeoPoint,
-  addDoc,
-  collection,
-  getFirestore,
-} from "@react-native-firebase/firestore";
-import { Stack, router } from "expo-router";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { usePropertyForm } from "@/hooks/usePostForm";
+import { styles } from "@/styles/posting-style";
+import type { PlaceSuggestion } from "@/types/Post";
+import { Stack } from "expo-router";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  keyboardContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    flex: 1,
-  },
-  scrollContentContainer: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fff",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  typeSelector: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 8,
-  },
-  typeButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#f8f9fa",
-    flex: 1,
-    alignItems: "center",
-  },
-  typeButtonActive: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb",
-  },
-  typeButtonText: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-  typeButtonTextActive: {
-    color: "#fff",
-  },
-  addressContainer: {
-    position: "relative",
-    zIndex: 1000,
-    marginBottom: 20,
-  },
-  suggestionsContainer: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderTopWidth: 0,
-    borderColor: "#ddd",
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    maxHeight: 150,
-    zIndex: 1001,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  suggestionItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  suggestionText: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 18,
-  },
-  locationDisplay: {
-    backgroundColor: "#f8f9fa",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
-  },
-  coordinatesText: {
-    fontSize: 12,
-    color: "#999",
-  },
-  clearLocationButton: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: "#e74c3c",
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-  clearLocationText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  submitSection: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    paddingBottom: Platform.OS === "ios" ? 34 : 16,
-  },
-  submitButton: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  submitButtonTextDisabled: {
-    color: "#999",
-  },
-  errorText: {
-    color: "#e74c3c",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  loadingText: {
-    color: "#666",
-    fontStyle: "italic",
-    marginTop: 4,
-    fontSize: 14,
-  },
-});
-
-type FormData = {
-  title: string;
-  type: "rental" | "sale";
-  price: string;
-  description: string;
-  address: string;
-  latitude: string;
-  longitude: string;
-  bedrooms: string;
-  bathrooms: string;
-  minContractLength: string;
-};
-
-type FormErrors = Record<string, string>;
-
-type PlaceSuggestion = {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type: string;
-};
-
-type NominatimResult = {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type: string;
-};
-
 export default function PostPropertyPage(): React.JSX.Element {
-  const [formData, setFormData] = useState<FormData>({
-    title: "",
-    type: "rental",
-    price: "",
-    description: "",
-    address: "",
-    latitude: "",
-    longitude: "",
-    bedrooms: "",
-    bathrooms: "",
-    minContractLength: "",
-  });
+  const {
+    formData,
+    errors,
+    isSubmitting,
+    isFormValid,
+    updateField,
+    handleSubmit,
+  } = usePropertyForm();
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addressSuggestions, setAddressSuggestions] = useState<
-    PlaceSuggestion[]
-  >([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const {
+    suggestions,
+    showSuggestions,
+    isLoading: isLoadingLocation,
+    selectAddress,
+    clearSuggestions,
+    setShowSuggestions,
+  } = useAddressSearch(formData.address);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const addressInputRef = useRef<TextInput>(null);
-
-  const updateField = (field: keyof FormData, value: string): void => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
   // Handle keyboard events
   useEffect(() => {
@@ -267,169 +65,24 @@ export default function PostPropertyPage(): React.JSX.Element {
       keyboardDidHideListener.remove();
       keyboardDidShowListener.remove();
     };
-  }, []);
+  }, [setShowSuggestions]);
 
-  // Debounced search for address suggestions
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (formData.address.length > 2) {
-        void searchAddresses(formData.address);
-      } else {
-        setAddressSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 500);
-
-    return (): void => {
-      clearTimeout(timeoutId);
-    };
-  }, [formData.address]);
-
-  const searchAddresses = async (query: string): Promise<void> => {
-    setIsLoadingLocation(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query,
-        )}&limit=5&countrycodes=nz&addressdetails=1`,
-        {
-          headers: {
-            "User-Agent": "PropertyApp/1.0",
-          },
-        },
-      );
-
-      if (response.ok) {
-        const results = (await response.json()) as NominatimResult[];
-        const suggestions: PlaceSuggestion[] = results.map((result) => ({
-          place_id: result.place_id,
-          display_name: result.display_name,
-          lat: result.lat,
-          lon: result.lon,
-          type: result.type,
-        }));
-
-        setAddressSuggestions(suggestions);
-        setShowSuggestions(suggestions.length > 0);
-      } else {
-        console.error("Geocoding API error:", response.status);
-      }
-    } catch (error) {
-      console.error("Error searching addresses:", error);
-    } finally {
-      setIsLoadingLocation(false);
-    }
-  };
-
-  const selectAddress = (suggestion: PlaceSuggestion): void => {
-    updateField("address", suggestion.display_name);
-    updateField("latitude", suggestion.lat);
-    updateField("longitude", suggestion.lon);
-    setShowSuggestions(false);
-    setAddressSuggestions([]);
-    Keyboard.dismiss();
+  const handleAddressSelect = (
+    lat: string,
+    lon: string,
+    address: string,
+  ): void => {
+    updateField("address", address);
+    updateField("latitude", lat);
+    updateField("longitude", lon);
   };
 
   const clearLocation = (): void => {
     updateField("address", "");
     updateField("latitude", "");
     updateField("longitude", "");
-    setShowSuggestions(false);
-    setAddressSuggestions([]);
+    clearSuggestions();
   };
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.title.trim()) newErrors["title"] = "Title is required";
-    if (!formData.description.trim())
-      newErrors["description"] = "Description is required";
-    if (!formData.price.trim()) newErrors["price"] = "Price is required";
-    if (!formData.address.trim()) newErrors["address"] = "Address is required";
-
-    if (formData.price && isNaN(Number(formData.price))) {
-      newErrors["price"] = "Must be a number";
-    }
-
-    if (
-      formData.address.trim() &&
-      (!formData.latitude || !formData.longitude)
-    ) {
-      newErrors["address"] = "Please select an address from the suggestions";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (): Promise<void> => {
-    if (!validateForm()) {
-      return;
-    }
-
-    const user = getAuth().currentUser;
-    if (!user) {
-      Alert.alert("Error", "You must be logged in to post a property");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const db = getFirestore();
-      const propertiesCollection = collection(db, "properties");
-
-      const propertyData = {
-        title: formData.title.trim(),
-        type: formData.type,
-        price: Number(formData.price),
-        description: formData.description.trim(),
-        address: formData.address.trim(),
-        coordinates: new GeoPoint(
-          Number(formData.latitude),
-          Number(formData.longitude),
-        ),
-        latitude: Number(formData.latitude),
-        longitude: Number(formData.longitude),
-        bedrooms: Number(formData.bedrooms),
-        bathrooms: Number(formData.bathrooms),
-        ...(formData.type === "rental" && {
-          contract: Number(formData.minContractLength),
-        }),
-        createdBy: user.uid,
-        createdAt: new Date(),
-      };
-
-      const docRef = await addDoc(propertiesCollection, propertyData);
-
-      console.log("Property posted with ID:", docRef.id);
-
-      Alert.alert("Success!", "Your property has been posted successfully.", [
-        {
-          text: "OK",
-          onPress: (): void => {
-            router.back();
-          },
-        },
-      ]);
-    } catch (error) {
-      console.error("Error posting property:", error);
-      Alert.alert("Error", "Failed to post property. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const isFormValid =
-    formData.title.trim() &&
-    formData.description.trim() &&
-    formData.price.trim() &&
-    formData.address.trim() &&
-    formData.bedrooms.trim() &&
-    formData.bathrooms.trim() &&
-    (formData.type === "sale" || formData.minContractLength.trim()) &&
-    formData.latitude &&
-    formData.longitude;
 
   return (
     <View style={styles.container}>
@@ -453,6 +106,7 @@ export default function PostPropertyPage(): React.JSX.Element {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContentContainer}
         >
+          {/* Property Title */}
           <Text style={styles.inputLabel}>Property Title *</Text>
           <TextInput
             style={styles.input}
@@ -467,6 +121,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["title"]}</Text>
           )}
 
+          {/* Property Type */}
           <Text style={styles.inputLabel}>Property Type *</Text>
           <View style={styles.typeSelector}>
             <TouchableOpacity
@@ -509,6 +164,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
+          {/* Price */}
           <Text style={styles.inputLabel}>
             Price * {formData.type === "rental" ? "(per week)" : ""}
           </Text>
@@ -526,6 +182,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["price"]}</Text>
           )}
 
+          {/* Property Details Section */}
           <Text
             style={[
               styles.inputLabel,
@@ -535,6 +192,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             Property Details
           </Text>
 
+          {/* Bedrooms */}
           <Text style={styles.inputLabel}>Bedrooms *</Text>
           <TextInput
             style={styles.input}
@@ -547,6 +205,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             testID="bedrooms-input"
           />
 
+          {/* Bathrooms */}
           <Text style={styles.inputLabel}>Bathrooms *</Text>
           <TextInput
             style={styles.input}
@@ -559,6 +218,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             testID="bathrooms-input"
           />
 
+          {/* Minimum Contract Length - only show for rentals */}
           {formData.type === "rental" && (
             <>
               <Text style={styles.inputLabel}>
@@ -577,6 +237,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             </>
           )}
 
+          {/* Description */}
           <Text style={styles.inputLabel}>Description *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
@@ -592,6 +253,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["description"]}</Text>
           )}
 
+          {/* Address Search */}
           <Text style={styles.inputLabel}>Address *</Text>
           <View style={styles.addressContainer}>
             <TextInput
@@ -604,7 +266,7 @@ export default function PostPropertyPage(): React.JSX.Element {
               placeholder="Start typing an address... (e.g., 123 Queen Street, Auckland)"
               testID="address-input"
               onFocus={(): void => {
-                setShowSuggestions(addressSuggestions.length > 0);
+                setShowSuggestions(suggestions.length > 0);
                 setTimeout(() => {
                   scrollViewRef.current?.scrollTo({
                     y: 350,
@@ -619,14 +281,15 @@ export default function PostPropertyPage(): React.JSX.Element {
               <Text style={styles.loadingText}>Searching addresses...</Text>
             )}
 
-            {showSuggestions && addressSuggestions.length > 0 && (
+            {/* Address Suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
               <View style={styles.suggestionsContainer}>
-                {addressSuggestions.map((item) => (
+                {suggestions.map((item: PlaceSuggestion) => (
                   <TouchableOpacity
                     key={item.place_id.toString()}
                     style={styles.suggestionItem}
                     onPress={(): void => {
-                      selectAddress(item);
+                      selectAddress(item, handleAddressSelect);
                     }}
                   >
                     <Text style={styles.suggestionText} numberOfLines={2}>
@@ -638,6 +301,7 @@ export default function PostPropertyPage(): React.JSX.Element {
             )}
           </View>
 
+          {/* Location Display */}
           {formData.latitude && formData.longitude && (
             <View style={styles.locationDisplay}>
               <Text style={styles.locationText}>Selected Location:</Text>
@@ -659,6 +323,7 @@ export default function PostPropertyPage(): React.JSX.Element {
           )}
         </ScrollView>
 
+        {/* Submit Button */}
         <View style={styles.submitSection}>
           <TouchableOpacity
             style={[

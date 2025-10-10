@@ -131,6 +131,165 @@ describe("PostPropertyPage", () => {
     });
   });
 
+  describe("Address Search", () => {
+    it("should trigger address search after typing", async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              place_id: 1,
+              display_name: "123 Test St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+          ]),
+      });
+
+      render(<PostPropertyPage />);
+
+      const addressInput = screen.getByTestId("address-input");
+      fireEvent.changeText(addressInput, "123 Test St");
+
+      await waitFor(
+        () => {
+          expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining("nominatim.openstreetmap.org"),
+            expect.objectContaining({
+              headers: {
+                "User-Agent": "PropertyApp/1.0",
+              },
+            }),
+          );
+        },
+        { timeout: 1000 },
+      );
+    });
+
+    it("should not search when query is too short", async () => {
+      render(<PostPropertyPage />);
+
+      const addressInput = screen.getByTestId("address-input");
+      fireEvent.changeText(addressInput, "12");
+
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("should display address suggestions", async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              place_id: 1,
+              display_name: "123 Test St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+            {
+              place_id: 2,
+              display_name: "456 Queen St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+          ]),
+      });
+
+      render(<PostPropertyPage />);
+
+      const addressInput = screen.getByTestId("address-input");
+      fireEvent.changeText(addressInput, "Auckland");
+      fireEvent(addressInput, "focus");
+
+      await waitFor(
+        () => {
+          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
+        },
+        { timeout: 1000 },
+      );
+
+      expect(screen.getByText(/456 Queen St, Auckland/)).toBeTruthy();
+    });
+
+    it("should select an address from suggestions", async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              place_id: 1,
+              display_name: "123 Test St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+          ]),
+      });
+
+      render(<PostPropertyPage />);
+
+      const addressInput = screen.getByTestId("address-input");
+      fireEvent.changeText(addressInput, "123 Test");
+      fireEvent(addressInput, "focus");
+
+      await waitFor(
+        () => {
+          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
+        },
+        { timeout: 1000 },
+      );
+
+      const suggestion = screen.getByText(/123 Test St, Auckland/);
+      fireEvent.press(suggestion);
+
+      await waitFor(() => {
+        expect(addressInput.props.value).toBe("123 Test St, Auckland");
+      });
+    });
+
+    it("should clear suggestions when address is cleared", async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              place_id: 1,
+              display_name: "123 Test St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+          ]),
+      });
+
+      render(<PostPropertyPage />);
+
+      const addressInput = screen.getByTestId("address-input");
+      fireEvent.changeText(addressInput, "123 Test");
+      fireEvent(addressInput, "focus");
+
+      await waitFor(
+        () => {
+          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
+        },
+        { timeout: 1000 },
+      );
+
+      // Clear the address
+      fireEvent.changeText(addressInput, "");
+
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      // Suggestions should be cleared
+      expect(screen.queryByText(/123 Test St, Auckland/)).toBeNull();
+    });
+  });
+
   describe("Form Submission", () => {
     it("should successfully submit property data to Firestore", async () => {
       render(<PostPropertyPage />);
