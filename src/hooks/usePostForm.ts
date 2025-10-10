@@ -100,7 +100,7 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
           contract: Number(formData.minContractLength),
         }),
         createdBy: user.uid,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(propertiesCollection, propertyData);
