@@ -32,7 +32,7 @@ type UsePropertyFormReturn = {
   handleSubmit: () => Promise<void>;
 };
 
-export const usePropertyForm = (): UsePropertyFormReturn => {
+export default function usePropertyForm(): UsePropertyFormReturn {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
