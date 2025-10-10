@@ -14,9 +14,9 @@ type UseAddressSearchReturn = {
   setShowSuggestions: (show: boolean) => void;
 };
 
-export const useAddressSearch = (
+export default function useAddressSearch(
   addressQuery: string,
-): UseAddressSearchReturn => {
+): UseAddressSearchReturn {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
