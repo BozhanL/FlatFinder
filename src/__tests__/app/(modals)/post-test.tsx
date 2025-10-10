@@ -34,18 +34,6 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-const originalWarn = console.warn;
-const originalError = console.error;
-
-beforeAll(() => {
-  console.warn = jest.fn();
-  console.error = jest.fn();
-});
-
-afterAll(() => {
-  console.warn = originalWarn;
-  console.error = originalError;
-});
 
 // Mock fetch for geocoding
 global.fetch = jest.fn(() =>
