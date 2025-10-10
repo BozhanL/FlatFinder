@@ -1,18 +1,18 @@
 // Mock useUser FIRST before any imports
+import PostPropertyPage from "@/app/(modals)/post-property";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import { Alert } from "react-native";
+
 jest.mock("@/hooks/useUser", () => ({
   __esModule: true,
   default: () => ({ uid: "test-user-123" }),
 }));
-
-import PostPropertyPage from "@/app/(modals)/post-property";
-import {
-    act,
-    fireEvent,
-    render,
-    screen,
-    waitFor,
-} from "@testing-library/react-native";
-import { Alert } from "react-native";
 
 jest.mock("@react-native-firebase/firestore", () => ({
   __esModule: true,
@@ -160,13 +160,15 @@ describe("PostPropertyPage", () => {
       );
     });
 
-    it("should not search when query is too short", async () => {
+    it("should not search when query is too short", () => {
       render(<PostPropertyPage />);
 
       const addressInput = screen.getByTestId("address-input");
       fireEvent.changeText(addressInput, "12");
 
-      act(() => jest.runAllTimers());
+      act(() => {
+        jest.runAllTimers();
+      });
 
       expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -261,7 +263,9 @@ describe("PostPropertyPage", () => {
       // Clear the address
       fireEvent.changeText(addressInput, "");
 
-      act(() => jest.runAllTimers());
+      act(() => {
+        jest.runAllTimers();
+      });
 
       // Suggestions should be cleared
       expect(screen.queryByText(/123 Test St, Auckland/)).toBeNull();
