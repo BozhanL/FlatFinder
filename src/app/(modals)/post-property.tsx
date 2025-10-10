@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 
-export default function PostPropertyPage(): React.JSX.Element {
+export default function PostPropertyPage(): JSX.Element {
   const {
     formData,
     errors,
