@@ -1,10 +1,9 @@
-import { useAddressSearch } from "@/hooks/useAddressSearch";
-import { usePropertyForm } from "@/hooks/usePostForm";
+import useAddressSearch from "@/hooks/useAddressSearch";
+import usePropertyForm from "@/hooks/usePostForm";
 import { styles } from "@/styles/posting-style";
 import type { PlaceSuggestion } from "@/types/PostProperty";
 import { Stack } from "expo-router";
-import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -16,7 +15,7 @@ import {
   View,
 } from "react-native";
 
-export default function PostPropertyPage(): React.JSX.Element {
+export default function PostPropertyPage(): JSX.Element {
   const {
     formData,
     errors,

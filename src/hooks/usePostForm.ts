@@ -1,10 +1,11 @@
+import useUser from "@/hooks/useUser";
 import type { FormData, FormErrors } from "@/types/PostProperty";
-import { getAuth } from "@react-native-firebase/auth";
 import {
-    GeoPoint,
-    addDoc,
-    collection,
-    getFirestore,
+  GeoPoint,
+  addDoc,
+  collection,
+  getFirestore,
+  serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -32,7 +33,8 @@ type UsePropertyFormReturn = {
   handleSubmit: () => Promise<void>;
 };
 
-export const usePropertyForm = (): UsePropertyFormReturn => {
+export default function usePropertyForm(): UsePropertyFormReturn {
+  const user = useUser();
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,21 +46,103 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.title.trim()) newErrors["title"] = "Title is required";
-    if (!formData.description.trim())
-      newErrors["description"] = "Description is required";
-    if (!formData.price.trim()) newErrors["price"] = "Price is required";
-    if (!formData.address.trim()) newErrors["address"] = "Address is required";
-
-    if (formData.price && isNaN(Number(formData.price))) {
-      newErrors["price"] = "Must be a number";
+    // Required text fields
+    if (!formData.title.trim()) {
+      newErrors["title"] = "Title is required";
+    } else if (formData.title.trim().length > 100) {
+      newErrors["title"] = "Title must be under 100 characters";
     }
 
+    if (!formData.description.trim()) {
+      newErrors["description"] = "Description is required";
+    } else if (formData.description.trim().length < 10) {
+      newErrors["description"] = "Description must be at least 10 characters";
+    }
+
+    if (!formData.address.trim()) {
+      newErrors["address"] = "Address is required";
+    }
+
+    // Price validation
+    if (!formData.price.trim()) {
+      newErrors["price"] = "Price is required";
+    } else {
+      const priceNum = Number(formData.price);
+      if (!Number.isFinite(priceNum)) {
+        newErrors["price"] = "Price must be a valid number";
+      } else if (priceNum <= 0) {
+        newErrors["price"] = "Price must be greater than 0";
+      } else if (priceNum > 100000000) {
+        newErrors["price"] = "Price seems unrealistic";
+      }
+    }
+
+    // Bedrooms validation
+    if (!formData.bedrooms.trim()) {
+      newErrors["bedrooms"] = "Bedrooms is required";
+    } else {
+      const bedroomsNum = Number(formData.bedrooms);
+      if (!Number.isFinite(bedroomsNum)) {
+        newErrors["bedrooms"] = "Bedrooms must be a valid number";
+      } else if (!Number.isInteger(bedroomsNum)) {
+        newErrors["bedrooms"] = "Bedrooms must be a whole number";
+      } else if (bedroomsNum < 0) {
+        newErrors["bedrooms"] = "Bedrooms cannot be negative";
+      } else if (bedroomsNum > 50) {
+        newErrors["bedrooms"] = "Maximum 50 bedrooms";
+      }
+    }
+
+    // Bathrooms validation
+    if (!formData.bathrooms.trim()) {
+      newErrors["bathrooms"] = "Bathrooms is required";
+    } else {
+      const bathroomsNum = Number(formData.bathrooms);
+      if (!Number.isFinite(bathroomsNum)) {
+        newErrors["bathrooms"] = "Bathrooms must be a valid number";
+      } else if (bathroomsNum < 0) {
+        newErrors["bathrooms"] = "Bathrooms cannot be negative";
+      } else if (bathroomsNum > 20) {
+        newErrors["bathrooms"] = "Maximum 20 bathrooms";
+      }
+    }
+
+    // Contract length validation (for rentals only)
+    if (formData.type === "rental") {
+      if (!formData.minContractLength.trim()) {
+        newErrors["minContractLength"] =
+          "Contract length is required for rentals";
+      } else {
+        const contractNum = Number(formData.minContractLength);
+        if (!Number.isFinite(contractNum)) {
+          newErrors["minContractLength"] =
+            "Contract length must be a valid number";
+        } else if (!Number.isInteger(contractNum)) {
+          newErrors["minContractLength"] =
+            "Contract length must be whole weeks";
+        } else if (contractNum <= 0) {
+          newErrors["minContractLength"] =
+            "Contract length must be greater than 0";
+        } else if (contractNum > 520) {
+          newErrors["minContractLength"] = "Maximum 520 weeks (10 years)";
+        }
+      }
+    }
+
+    // Coordinate validation
     if (
       formData.address.trim() &&
       (!formData.latitude || !formData.longitude)
     ) {
       newErrors["address"] = "Please select an address from the suggestions";
+    } else if (formData.latitude && formData.longitude) {
+      const lat = Number(formData.latitude);
+      const lon = Number(formData.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        newErrors["address"] = "Invalid coordinates";
+      } else if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        newErrors["address"] = "Coordinates out of valid range";
+      }
     }
 
     setErrors(newErrors);
@@ -70,7 +154,6 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
       return;
     }
 
-    const user = getAuth().currentUser;
     if (!user) {
       Alert.alert("Error", "You must be logged in to post a property");
       return;
@@ -82,6 +165,7 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
       const db = getFirestore();
       const propertiesCollection = collection(db, "properties");
 
+      // At this point, validation guarantees these are valid numbers
       const propertyData = {
         title: formData.title.trim(),
         type: formData.type,
@@ -100,7 +184,7 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
           contract: Number(formData.minContractLength),
         }),
         createdBy: user.uid,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(propertiesCollection, propertyData);
@@ -143,4 +227,4 @@ export const usePropertyForm = (): UsePropertyFormReturn => {
     updateField,
     handleSubmit,
   };
-};
+}

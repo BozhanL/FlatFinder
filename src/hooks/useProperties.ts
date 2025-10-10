@@ -20,22 +20,14 @@ export default function useProperties(): UsePropertiesResult {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   const user = useUser();
 
   useEffect(() => {
-    // Mark that authentication has been checked
-    if (user !== undefined) {
-      setAuthChecked(true);
-    }
-
     // Wait for auth to be checked before showing error
-    if (!authChecked) {
+    if (user === undefined) {
       return;
-    }
-
-    if (!user) {
+    } else if (!user) {
       setLoading(false);
       setError("User not authenticated");
       return;
@@ -88,7 +80,7 @@ export default function useProperties(): UsePropertiesResult {
         setLoading(false);
       },
     );
-  }, [user, authChecked]);
+  }, [user]);
 
   return { properties, loading, error };
 }

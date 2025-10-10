@@ -1,5 +1,6 @@
 import type { NominatimResult, PlaceSuggestion } from "@/types/PostProperty";
-import { useEffect, useState } from "react";
+import _ from "lodash";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard } from "react-native";
 
 type UseAddressSearchReturn = {
@@ -14,29 +15,14 @@ type UseAddressSearchReturn = {
   setShowSuggestions: (show: boolean) => void;
 };
 
-export const useAddressSearch = (
+export default function useAddressSearch(
   addressQuery: string,
-): UseAddressSearchReturn => {
+): UseAddressSearchReturn {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (addressQuery.length > 2) {
-        void searchAddresses(addressQuery);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 500);
-
-    return (): void => {
-      clearTimeout(timeoutId);
-    };
-  }, [addressQuery]);
-
-  const searchAddresses = async (query: string): Promise<void> => {
+  const searchAddresses = useCallback(async (query: string): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -45,7 +31,7 @@ export const useAddressSearch = (
         )}&limit=5&countrycodes=nz&addressdetails=1`,
         {
           headers: {
-            "User-Agent": "PropertyApp/1.0",
+            "User-Agent": "FlatFinder/1.0",
           },
         },
       );
@@ -70,7 +56,25 @@ export const useAddressSearch = (
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const debouncedSearch = useMemo(
+    () => _.debounce(searchAddresses, 500),
+    [searchAddresses],
+  );
+
+  useEffect(() => {
+    if (addressQuery.length > 2) {
+      void debouncedSearch(addressQuery);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+
+    return (): void => {
+      debouncedSearch.cancel();
+    };
+  }, [addressQuery, debouncedSearch]);
 
   const selectAddress = (
     suggestion: PlaceSuggestion,
@@ -95,4 +99,4 @@ export const useAddressSearch = (
     clearSuggestions,
     setShowSuggestions,
   };
-};
+}

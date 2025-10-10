@@ -1,19 +1,18 @@
+// Mock useUser FIRST before any imports
+jest.mock("@/hooks/useUser", () => ({
+  __esModule: true,
+  default: () => ({ uid: "test-user-123" }),
+}));
+
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
 } from "@testing-library/react-native";
-import React from "react";
 import { Alert } from "react-native";
-
-jest.mock("@react-native-firebase/auth", () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    currentUser: { uid: "test-user-123" },
-  })),
-}));
 
 jest.mock("@react-native-firebase/firestore", () => ({
   __esModule: true,
@@ -22,6 +21,11 @@ jest.mock("@react-native-firebase/firestore", () => ({
       add: jest.fn(() => Promise.resolve({ id: "test-doc-id" })),
     })),
   })),
+  collection: jest.fn(() => ({})),
+  addDoc: jest.fn(() => Promise.resolve({ id: "test-doc-id" })),
+  GeoPoint: jest.fn((lat, lon) => ({ latitude: lat, longitude: lon })),
+  getFirestore: jest.fn(() => ({})),
+  serverTimestamp: jest.fn(() => new Date()),
 }));
 
 jest.mock("expo-router", () => ({
@@ -34,19 +38,6 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-const originalWarn = console.warn;
-const originalError = console.error;
-
-beforeAll(() => {
-  console.warn = jest.fn();
-  console.error = jest.fn();
-});
-
-afterAll(() => {
-  console.warn = originalWarn;
-  console.error = originalError;
-});
-
 // Mock fetch for geocoding
 global.fetch = jest.fn(() =>
   Promise.resolve({
@@ -54,6 +45,8 @@ global.fetch = jest.fn(() =>
     json: () => Promise.resolve([]),
   }),
 ) as jest.Mock;
+
+jest.useFakeTimers();
 
 describe("PostPropertyPage", () => {
   beforeEach(() => {
@@ -158,7 +151,7 @@ describe("PostPropertyPage", () => {
             expect.stringContaining("nominatim.openstreetmap.org"),
             expect.objectContaining({
               headers: {
-                "User-Agent": "PropertyApp/1.0",
+                "User-Agent": "FlatFinder/1.0",
               },
             }),
           );
@@ -173,7 +166,7 @@ describe("PostPropertyPage", () => {
       const addressInput = screen.getByTestId("address-input");
       fireEvent.changeText(addressInput, "12");
 
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      act(() => jest.runAllTimers());
 
       expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -206,12 +199,7 @@ describe("PostPropertyPage", () => {
       fireEvent.changeText(addressInput, "Auckland");
       fireEvent(addressInput, "focus");
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
-        },
-        { timeout: 1000 },
-      );
+      expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
       expect(screen.getByText(/456 Queen St, Auckland/)).toBeTruthy();
     });
@@ -237,12 +225,7 @@ describe("PostPropertyPage", () => {
       fireEvent.changeText(addressInput, "123 Test");
       fireEvent(addressInput, "focus");
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
-        },
-        { timeout: 1000 },
-      );
+      expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
       const suggestion = screen.getByText(/123 Test St, Auckland/);
       fireEvent.press(suggestion);
@@ -273,17 +256,12 @@ describe("PostPropertyPage", () => {
       fireEvent.changeText(addressInput, "123 Test");
       fireEvent(addressInput, "focus");
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/123 Test St, Auckland/)).toBeTruthy();
-        },
-        { timeout: 1000 },
-      );
+      expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
       // Clear the address
       fireEvent.changeText(addressInput, "");
 
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      act(() => jest.runAllTimers());
 
       // Suggestions should be cleared
       expect(screen.queryByText(/123 Test St, Auckland/)).toBeNull();
