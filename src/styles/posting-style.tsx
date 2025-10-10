@@ -1,3 +1,6 @@
+/* istanbul ignore file */
+// This file contains only StyleSheet.
+// No need to test it in unit tests.
 import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
