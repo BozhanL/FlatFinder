@@ -20,7 +20,6 @@ export default function useProperties(): UsePropertiesResult {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   const user = useUser();
 
