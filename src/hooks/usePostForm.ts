@@ -44,7 +44,7 @@ export default function usePropertyForm(): UsePropertyFormReturn {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.title.trim()) newErrors["title"] = "Title is required";
+    if (!formData.title.trim()) {newErrors["title"] = "Title is required";}
     if (!formData.description.trim())
       newErrors["description"] = "Description is required";
     if (!formData.price.trim()) newErrors["price"] = "Price is required";
