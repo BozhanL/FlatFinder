@@ -1,7 +1,7 @@
-import { Property } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -163,7 +163,7 @@ export default function PropertyDetailsPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPropertyDetails = async () => {
+    const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
         setError("Property ID not found");
         return;
@@ -212,7 +212,7 @@ export default function PropertyDetailsPage(): JSX.Element {
       }
     };
 
-    fetchPropertyDetails();
+    void fetchPropertyDetails();
   }, [id]);
 
   const formatPrice = (price: number, type?: string): string => {

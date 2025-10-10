@@ -33,14 +33,7 @@ jest.mock("@/hooks/useMessages", () =>
   }),
 );
 
-jest.mock("@/services/message", () => {});
-jest.mock("react-native-safe-area-context", () => {
-  return {
-    useSafeAreaInsets: jest.fn(() => {
-      return { top: 0, bottom: 0, left: 0, right: 0 };
-    }),
-  };
-});
+jest.mock("@/services/message");
 
 describe("@/components/message/ChatList", () => {
   beforeEach(() => {

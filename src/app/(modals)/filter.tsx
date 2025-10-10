@@ -1,11 +1,11 @@
-import { FilterState } from "@/types/FilterState";
+import type { FilterState } from "@/types/FilterState";
 import {
   applyGlobalFilters,
   getGlobalFilters,
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import { Stack, router } from "expo-router";
-import { JSX, useEffect, useState } from "react";
+import { type JSX, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -109,11 +109,6 @@ const styles = StyleSheet.create({
 export default function FilterScreen(): JSX.Element {
   const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
 
-  // Load current filters when component mounts
-  useEffect(() => {
-    setFilters(getGlobalFilters());
-  }, []);
-
   const propertyTypes = ["rental", "sale"];
   const bedroomOptions = [1, 2, 3, 4, 5];
   const bathroomOptions = [1, 2, 3, 4];
@@ -196,7 +191,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.type.includes(type) && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("type", type)}
+                  onPress={() => {
+                    toggleFilter("type", type);
+                  }}
                 >
                   <Text
                     style={[
@@ -220,7 +217,9 @@ export default function FilterScreen(): JSX.Element {
                 style={styles.priceInput}
                 placeholder="Min price"
                 value={filters.minPrice}
-                onChangeText={(value) => updatePriceFilter("minPrice", value)}
+                onChangeText={(value) => {
+                  updatePriceFilter("minPrice", value);
+                }}
                 keyboardType="numeric"
               />
               <Text style={styles.priceLabel}>to</Text>
@@ -228,7 +227,9 @@ export default function FilterScreen(): JSX.Element {
                 style={styles.priceInput}
                 placeholder="Max price"
                 value={filters.maxPrice}
-                onChangeText={(value) => updatePriceFilter("maxPrice", value)}
+                onChangeText={(value) => {
+                  updatePriceFilter("maxPrice", value);
+                }}
                 keyboardType="numeric"
               />
             </View>
@@ -245,7 +246,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.bedrooms === bedrooms && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("bedrooms", bedrooms)}
+                  onPress={() => {
+                    toggleFilter("bedrooms", bedrooms);
+                  }}
                 >
                   <Text
                     style={[
@@ -272,7 +275,9 @@ export default function FilterScreen(): JSX.Element {
                     styles.filterChip,
                     filters.bathrooms === bathrooms && styles.filterChipActive,
                   ]}
-                  onPress={() => toggleFilter("bathrooms", bathrooms)}
+                  onPress={() => {
+                    toggleFilter("bathrooms", bathrooms);
+                  }}
                 >
                   <Text
                     style={[

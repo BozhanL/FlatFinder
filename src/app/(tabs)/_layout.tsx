@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 
 export default function TabsLayout(): JSX.Element {
   return (
@@ -31,6 +31,28 @@ export default function TabsLayout(): JSX.Element {
         tabBarHideOnKeyboard: true,
       }}
     >
+      {/* TODO: Delete when login feature finished */}
+      <Tabs.Screen
+        name="login"
+        options={{
+          title: "Login",
+          tabBarIcon: ({ color, focused }) => {
+            return focused ? (
+              <MaterialCommunityIcons
+                name="home-variant"
+                size={24}
+                color={color}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="home-variant-outline"
+                size={24}
+                color={color}
+              />
+            );
+          },
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{

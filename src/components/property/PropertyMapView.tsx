@@ -1,19 +1,20 @@
-import { useProperties } from "@/hooks/useProperties";
-import { FilterState, Property } from "@/types/FilterState";
+import useProperties from "@/hooks/useProperties";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,
   Images,
   Logger,
   MapView,
-  OnPressEvent,
   RasterLayer,
   RasterSource,
   ShapeSource,
   SymbolLayer,
+  type OnPressEvent,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -24,12 +25,13 @@ import {
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
+// https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852
 Logger.setLogCallback((log) => {
   const { message } = log;
 
   if (
-    message.match("Request failed due to a permanent error: Canceled") ||
-    message.match("Request failed due to a permanent error: Socket Closed")
+    /Request failed due to a permanent error: Canceled/.exec(message) ||
+    /Request failed due to a permanent error: Socket Closed/.exec(message)
   ) {
     return true;
   }
@@ -164,13 +166,14 @@ export default function PropertyMapView({
   onMarkerPress,
   onClosePropertyTile,
   onPropertiesLoad,
-}: PropertyMapViewProps) {
+}: PropertyMapViewProps): JSX.Element {
   const { properties: allProperties, loading, error } = useProperties();
 
   // Apply filters to properties
-  const filteredProperties = useMemo(() => {
-    return applyPropertyFilters(allProperties, filters);
-  }, [allProperties, filters]);
+  const filteredProperties = useMemo(
+    () => applyPropertyFilters(allProperties, filters),
+    [allProperties, filters],
+  );
 
   // Notify parent component when properties are loaded/filtered
   useEffect(() => {
@@ -229,7 +232,9 @@ export default function PropertyMapView({
       <MapView
         style={styles.map}
         testID="map-view"
-        onDidFinishLoadingMap={() => console.log("Map finished loading")}
+        onDidFinishLoadingMap={() => {
+          console.log("Map finished loading");
+        }}
       >
         {/* RasterSource for OSM tiles */}
         <RasterSource

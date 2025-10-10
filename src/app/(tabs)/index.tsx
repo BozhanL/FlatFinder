@@ -1,16 +1,21 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
-import { FilterState, Property } from "@/types/FilterState";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
+import useCandidates from "@/hooks/useCandidates";
+import useUser from "@/hooks/useUser";
+import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import {
   getGlobalFilters,
   registerApplyFilter,
   unregisterApplyFilter,
 } from "@/utils/filterStateManager";
-import { countActiveFilters, hasActiveFilters } from "@/utils/propertyFilters";
-import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import { countActiveFilters } from "@/utils/propertyFilters";
+import type { OnPressEvent } from "@maplibre/maplibre-react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
@@ -52,6 +57,7 @@ const enum TabMode {
 }
 
 export default function Index(): JSX.Element {
+  const user = useUser();
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
@@ -84,8 +90,8 @@ export default function Index(): JSX.Element {
 
   // Handle marker press
   const handleMarkerPress = (event: OnPressEvent): void => {
-    const feature = event.features?.[0];
-    if (!feature || !feature.properties) {
+    const feature = event.features[0];
+    if (!feature?.properties) {
       return;
     }
 
@@ -109,7 +115,7 @@ export default function Index(): JSX.Element {
   // Close the floating tile when the route is unfocused
   useFocusEffect(
     useCallback(() => {
-      return () => {
+      return (): void => {
         closePropertyTile();
       };
     }, []),
@@ -122,10 +128,11 @@ export default function Index(): JSX.Element {
   );
 
   // Check if any filters are active using utility function
-  const filtersActive: boolean = useMemo(
-    () => hasActiveFilters(filters),
-    [filters],
-  );
+  const filtersActive: boolean = activeFilterCount > 0;
+
+  const { items, setItems } = useCandidates(user?.uid || null);
+
+  if (!user) return <></>;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -137,13 +144,17 @@ export default function Index(): JSX.Element {
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
-            onChange={(val) => setMode(val as TabMode)}
+            onChange={(val) => {
+              setMode(val as TabMode);
+            }}
           />
         </View>
 
         {/* Show filter button on both tabs */}
         <TouchableOpacity
-          onPress={() => router.push("/filter")}
+          onPress={() => {
+            router.push("/filter");
+          }}
           activeOpacity={0.8}
           style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
         >
@@ -159,11 +170,21 @@ export default function Index(): JSX.Element {
       </View>
 
       {/* Main content */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, position: "relative" }}>
         {mode === TabMode.Flatmates ? (
-          <View style={styles.centerContent}>
-            <Text>Flatmate list</Text>
-          </View>
+          <SwipeDeck
+            data={items}
+            onLike={async (u) => {
+              // IMPROVE: Use enum instead of string @G2CCC
+              await swipe(user.uid, u.id, "like");
+              await ensureMatchIfMutualLike(user.uid, u.id);
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+            }}
+            onPass={async (u) => {
+              await swipe(user.uid, u.id, "pass");
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+            }}
+          />
         ) : (
           <PropertyMapView
             filters={filters}

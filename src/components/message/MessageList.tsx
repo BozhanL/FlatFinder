@@ -1,15 +1,15 @@
 import useGroups from "@/hooks/useGroups";
-import { Group } from "@/types/Group";
+import type { Group } from "@/types/Group";
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 import {
+  FlatList,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  VirtualizedList,
 } from "react-native";
 
 export default function MessageList({ uid }: { uid: string }): JSX.Element {
@@ -18,12 +18,9 @@ export default function MessageList({ uid }: { uid: string }): JSX.Element {
   return (
     <View style={{ flex: 1 }}>
       <Text style={[styles.section_header]}>Message</Text>
-      <VirtualizedList
+      <FlatList
         data={sortedGroups}
-        renderItem={({ item }: { item: Group }) => renderItem(item, uid)}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => renderItem(item, uid)}
       />
     </View>
   );
@@ -53,11 +50,9 @@ function renderItem(item: Group, uid: string): JSX.Element {
           </Text>
         </View>
 
-        {item.lastTimestamp && (
-          <Text style={styles.timestamp}>
-            {formatTimestamp(item.lastTimestamp)}
-          </Text>
-        )}
+        <Text style={styles.timestamp}>
+          {formatTimestamp(item.lastTimestamp)}
+        </Text>
       </View>
     </TouchableOpacity>
   );

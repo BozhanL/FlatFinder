@@ -1,21 +1,23 @@
-import { Group } from "@/types/Group";
-import { Message } from "@/types/Message";
+import type { Group } from "@/types/Group";
+import type { Message } from "@/types/Message";
 import {
   collection,
+  deleteDoc,
   doc,
+  FirebaseFirestoreTypes,
   getDoc,
   getFirestore,
   runTransaction,
   serverTimestamp,
   Timestamp,
 } from "@react-native-firebase/firestore";
-import { IMessage, User } from "react-native-gifted-chat";
+import type { IMessage, User } from "react-native-gifted-chat";
 
-export async function sendMessage(msg: IMessage, gid: string) {
+export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
   const db = getFirestore();
 
   try {
-    await runTransaction(db, async (transaction) => {
+    await runTransaction(db, (transaction) => {
       const groupRef = doc(db, "groups", gid);
       const docref = doc(collection(db, "messages", gid, "messages"));
 
@@ -31,6 +33,7 @@ export async function sendMessage(msg: IMessage, gid: string) {
         lastSender: msg.user._id,
         lastTimestamp: serverTimestamp(),
       });
+      return Promise.resolve();
     });
     console.log("Transaction successfully committed!");
   } catch (e) {
@@ -48,8 +51,10 @@ export async function createGroup(
   const db = getFirestore();
 
   try {
-    const p = await runTransaction<string>(db, async (transaction) => {
-      const groupRef = doc(collection(db, "groups"));
+    const p = await runTransaction<string>(db, (transaction) => {
+      const groupRef: FirebaseFirestoreTypes.DocumentReference = doc(
+        collection(db, "groups"),
+      );
 
       const g: Group = {
         id: groupRef.id,
@@ -60,8 +65,8 @@ export async function createGroup(
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
       };
-      await transaction.set(groupRef, g);
-      return groupRef.id;
+      transaction.set(groupRef, g);
+      return Promise.resolve(groupRef.id);
     });
     return p;
   } catch (e) {
@@ -69,6 +74,23 @@ export async function createGroup(
   }
 
   return null;
+}
+
+export async function deleteGroup(gid: string): Promise<void> {
+  const db = getFirestore();
+  const docRef = doc(db, "groups", gid);
+  await deleteDoc(docRef);
+}
+
+export async function getGroup(gid: string): Promise<Group | null> {
+  const db = getFirestore();
+  const groupDoc = await getDoc(doc(db, "groups", gid));
+  if (!groupDoc.exists()) {
+    return null;
+  }
+
+  const data = groupDoc.data() as Group;
+  return data;
 }
 
 // TODO: Implement when user profile is available @G2CCC
