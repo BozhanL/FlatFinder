@@ -42,6 +42,8 @@ global.fetch = jest.fn(() =>
   }),
 ) as jest.Mock;
 
+jest.useFakeTimers();
+
 describe("PostPropertyPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
