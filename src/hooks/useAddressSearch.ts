@@ -1,4 +1,4 @@
-import type { NominatimResult, PlaceSuggestion } from "@/types/Post";
+import type { NominatimResult, PlaceSuggestion } from "@/types/PostProperty";
 import { useEffect, useState } from "react";
 import { Keyboard } from "react-native";
 

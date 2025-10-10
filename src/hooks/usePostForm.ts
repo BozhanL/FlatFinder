@@ -1,10 +1,10 @@
-import type { FormData, FormErrors } from "@/types/Post";
+import type { FormData, FormErrors } from "@/types/PostProperty";
 import { getAuth } from "@react-native-firebase/auth";
 import {
-  GeoPoint,
-  addDoc,
-  collection,
-  getFirestore,
+    GeoPoint,
+    addDoc,
+    collection,
+    getFirestore,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import { useState } from "react";

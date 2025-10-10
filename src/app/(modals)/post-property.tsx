@@ -1,7 +1,7 @@
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { usePropertyForm } from "@/hooks/usePostForm";
 import { styles } from "@/styles/posting-style";
-import type { PlaceSuggestion } from "@/types/Post";
+import type { PlaceSuggestion } from "@/types/PostProperty";
 import { Stack } from "expo-router";
 import * as React from "react";
 import { useEffect, useRef } from "react";
