@@ -1,10 +1,10 @@
 // Mock useUser FIRST before any imports
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 import { act } from "react";
 import { Alert } from "react-native";
