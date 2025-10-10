@@ -39,7 +39,7 @@ Logger.setLogCallback((log) => {
   return false;
 });
 
-interface PropertyMapViewProps {
+type PropertyMapViewProps = {
   filters: FilterState;
   selectedProperty: Property | null;
   isVisible: boolean;
@@ -49,7 +49,7 @@ interface PropertyMapViewProps {
     allProperties: Property[],
     filteredProperties: Property[],
   ) => void;
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -215,7 +215,7 @@ export default function PropertyMapView({
   // Handle post button press
   const handlePostProperty = (): void => {
     // Updated to use the correct route format based on your post-property.tsx file
-    router.push("/(modals)/post-property" as any);
+    router.push("/(modals)/post-property");
   };
 
   // Show error state

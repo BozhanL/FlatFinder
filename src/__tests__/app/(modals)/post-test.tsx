@@ -1,9 +1,9 @@
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 import React from "react";
 import { Alert } from "react-native";
@@ -58,7 +58,7 @@ global.fetch = jest.fn(() =>
 describe("PostPropertyPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    jest.spyOn(Alert, "alert").mockImplementation();
   });
 
   afterEach(() => {
@@ -113,7 +113,8 @@ describe("PostPropertyPage", () => {
         ? rentalButton.props.style
         : [rentalButton.props.style];
       const hasActiveRentalStyle = rentalStyle.some(
-        (style: any) => style?.backgroundColor === "#2563eb",
+        (style: { backgroundColor?: string } | null | undefined) =>
+          style?.backgroundColor === "#2563eb",
       );
       expect(hasActiveRentalStyle).toBe(true);
 
@@ -123,7 +124,8 @@ describe("PostPropertyPage", () => {
         ? saleButton.props.style
         : [saleButton.props.style];
       const hasActiveSaleStyle = saleStyle.some(
-        (style: any) => style?.backgroundColor === "#2563eb",
+        (style: { backgroundColor?: string } | null | undefined) =>
+          style?.backgroundColor === "#2563eb",
       );
       expect(hasActiveSaleStyle).toBe(true);
     });
@@ -147,20 +149,26 @@ describe("PostPropertyPage", () => {
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => [
-          {
-            place_id: 1,
-            display_name: "123 Test St, Auckland",
-            lat: "-36.8485",
-            lon: "174.7633",
-            type: "residential",
-          },
-        ],
+        json: () =>
+          Promise.resolve([
+            {
+              place_id: 1,
+              display_name: "123 Test St, Auckland",
+              lat: "-36.8485",
+              lon: "174.7633",
+              type: "residential",
+            },
+          ]),
       });
 
       fireEvent.changeText(addressInput, "123 Test");
 
-      await waitFor(() => {}, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(addressInput).toBeTruthy();
+        },
+        { timeout: 1000 },
+      );
 
       const submitButton = screen.getByTestId("submit-button");
       expect(submitButton.props.accessibilityState.disabled).toBe(true);

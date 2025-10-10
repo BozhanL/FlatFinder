@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     padding: 16,
-    paddingBottom: 100, // Extra space for keyboard
+    paddingBottom: 100,
   },
   inputLabel: {
     fontSize: 16,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   addressContainer: {
     position: "relative",
     zIndex: 1000,
-    marginBottom: 20, // Fixed spacing
+    marginBottom: 20,
   },
   suggestionsContainer: {
     position: "absolute",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
-    maxHeight: 150, // Reduced height
+    maxHeight: 150,
     zIndex: 1001,
     elevation: 5,
     shadowColor: "#000",
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface FormData {
+type FormData = {
   title: string;
   type: "rental" | "sale";
   price: string;
@@ -191,19 +191,25 @@ interface FormData {
   bedrooms: string;
   bathrooms: string;
   minContractLength: string;
-}
+};
 
-interface FormErrors {
-  [key: string]: string;
-}
+type FormErrors = Record<string, string>;
 
-interface PlaceSuggestion {
+type PlaceSuggestion = {
   place_id: number;
   display_name: string;
   lat: string;
   lon: string;
   type: string;
-}
+};
+
+type NominatimResult = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+};
 
 export default function PostPropertyPage(): React.JSX.Element {
   const [formData, setFormData] = useState<FormData>({
@@ -230,7 +236,7 @@ export default function PostPropertyPage(): React.JSX.Element {
   const scrollViewRef = useRef<ScrollView>(null);
   const addressInputRef = useRef<TextInput>(null);
 
-  const updateField = (field: keyof FormData, value: string) => {
+  const updateField = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -238,12 +244,11 @@ export default function PostPropertyPage(): React.JSX.Element {
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      () => {
-        // Scroll to address input when keyboard shows if it's focused
+      (): void => {
         if (addressInputRef.current?.isFocused()) {
           setTimeout(() => {
             scrollViewRef.current?.scrollTo({
-              y: 300, // Scroll to address section
+              y: 300,
               animated: true,
             });
           }, 100);
@@ -253,14 +258,14 @@ export default function PostPropertyPage(): React.JSX.Element {
 
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      () => {
+      (): void => {
         setShowSuggestions(false);
       },
     );
 
-    return () => {
-      keyboardDidHideListener?.remove();
-      keyboardDidShowListener?.remove();
+    return (): void => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
     };
   }, []);
 
@@ -268,17 +273,19 @@ export default function PostPropertyPage(): React.JSX.Element {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (formData.address.length > 2) {
-        searchAddresses(formData.address);
+        void searchAddresses(formData.address);
       } else {
         setAddressSuggestions([]);
         setShowSuggestions(false);
       }
     }, 500);
 
-    return () => clearTimeout(timeoutId);
+    return (): void => {
+      clearTimeout(timeoutId);
+    };
   }, [formData.address]);
 
-  const searchAddresses = async (query: string) => {
+  const searchAddresses = async (query: string): Promise<void> => {
     setIsLoadingLocation(true);
     try {
       const response = await fetch(
@@ -293,8 +300,8 @@ export default function PostPropertyPage(): React.JSX.Element {
       );
 
       if (response.ok) {
-        const results = await response.json();
-        const suggestions: PlaceSuggestion[] = results.map((result: any) => ({
+        const results = (await response.json()) as NominatimResult[];
+        const suggestions: PlaceSuggestion[] = results.map((result) => ({
           place_id: result.place_id,
           display_name: result.display_name,
           lat: result.lat,
@@ -314,7 +321,7 @@ export default function PostPropertyPage(): React.JSX.Element {
     }
   };
 
-  const selectAddress = (suggestion: PlaceSuggestion) => {
+  const selectAddress = (suggestion: PlaceSuggestion): void => {
     updateField("address", suggestion.display_name);
     updateField("latitude", suggestion.lat);
     updateField("longitude", suggestion.lon);
@@ -323,7 +330,7 @@ export default function PostPropertyPage(): React.JSX.Element {
     Keyboard.dismiss();
   };
 
-  const clearLocation = () => {
+  const clearLocation = (): void => {
     updateField("address", "");
     updateField("latitude", "");
     updateField("longitude", "");
@@ -340,7 +347,6 @@ export default function PostPropertyPage(): React.JSX.Element {
     if (!formData.price.trim()) newErrors["price"] = "Price is required";
     if (!formData.address.trim()) newErrors["address"] = "Address is required";
 
-    // Numeric validations
     if (formData.price && isNaN(Number(formData.price))) {
       newErrors["price"] = "Must be a number";
     }
@@ -356,7 +362,7 @@ export default function PostPropertyPage(): React.JSX.Element {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!validateForm()) {
       return;
     }
@@ -401,7 +407,9 @@ export default function PostPropertyPage(): React.JSX.Element {
       Alert.alert("Success!", "Your property has been posted successfully.", [
         {
           text: "OK",
-          onPress: () => router.back(),
+          onPress: (): void => {
+            router.back();
+          },
         },
       ]);
     } catch (error) {
@@ -445,12 +453,13 @@ export default function PostPropertyPage(): React.JSX.Element {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContentContainer}
         >
-          {/* Property Title */}
           <Text style={styles.inputLabel}>Property Title *</Text>
           <TextInput
             style={styles.input}
             value={formData.title}
-            onChangeText={(value) => updateField("title", value)}
+            onChangeText={(value): void => {
+              updateField("title", value);
+            }}
             placeholder="e.g., Beautiful 2BR Apartment in City Center"
             testID="title-input"
           />
@@ -458,7 +467,6 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["title"]}</Text>
           )}
 
-          {/* Property Type */}
           <Text style={styles.inputLabel}>Property Type *</Text>
           <View style={styles.typeSelector}>
             <TouchableOpacity
@@ -466,7 +474,9 @@ export default function PostPropertyPage(): React.JSX.Element {
                 styles.typeButton,
                 formData.type === "rental" && styles.typeButtonActive,
               ]}
-              onPress={() => updateField("type", "rental")}
+              onPress={(): void => {
+                updateField("type", "rental");
+              }}
               testID="rental-button"
             >
               <Text
@@ -483,7 +493,9 @@ export default function PostPropertyPage(): React.JSX.Element {
                 styles.typeButton,
                 formData.type === "sale" && styles.typeButtonActive,
               ]}
-              onPress={() => updateField("type", "sale")}
+              onPress={(): void => {
+                updateField("type", "sale");
+              }}
               testID="sale-button"
             >
               <Text
@@ -497,14 +509,15 @@ export default function PostPropertyPage(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
-          {/* Price */}
           <Text style={styles.inputLabel}>
             Price * {formData.type === "rental" ? "(per week)" : ""}
           </Text>
           <TextInput
             style={styles.input}
             value={formData.price}
-            onChangeText={(value) => updateField("price", value)}
+            onChangeText={(value): void => {
+              updateField("price", value);
+            }}
             placeholder={formData.type === "rental" ? "450" : "650000"}
             keyboardType="numeric"
             testID="price-input"
@@ -513,7 +526,6 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["price"]}</Text>
           )}
 
-          {/* Property Details Section */}
           <Text
             style={[
               styles.inputLabel,
@@ -523,29 +535,30 @@ export default function PostPropertyPage(): React.JSX.Element {
             Property Details
           </Text>
 
-          {/* Bedrooms */}
           <Text style={styles.inputLabel}>Bedrooms *</Text>
           <TextInput
             style={styles.input}
             value={formData.bedrooms}
-            onChangeText={(value) => updateField("bedrooms", value)}
+            onChangeText={(value): void => {
+              updateField("bedrooms", value);
+            }}
             placeholder="e.g., 2"
             keyboardType="numeric"
             testID="bedrooms-input"
           />
 
-          {/* Bathrooms */}
           <Text style={styles.inputLabel}>Bathrooms *</Text>
           <TextInput
             style={styles.input}
             value={formData.bathrooms}
-            onChangeText={(value) => updateField("bathrooms", value)}
+            onChangeText={(value): void => {
+              updateField("bathrooms", value);
+            }}
             placeholder="e.g., 1"
             keyboardType="numeric"
             testID="bathrooms-input"
           />
 
-          {/* Minimum Contract Length - only show for rentals */}
           {formData.type === "rental" && (
             <>
               <Text style={styles.inputLabel}>
@@ -554,9 +567,9 @@ export default function PostPropertyPage(): React.JSX.Element {
               <TextInput
                 style={styles.input}
                 value={formData.minContractLength}
-                onChangeText={(value) =>
-                  updateField("minContractLength", value)
-                }
+                onChangeText={(value): void => {
+                  updateField("minContractLength", value);
+                }}
                 placeholder="e.g., 52"
                 keyboardType="numeric"
                 testID="contract-length-input"
@@ -564,12 +577,13 @@ export default function PostPropertyPage(): React.JSX.Element {
             </>
           )}
 
-          {/* Description */}
           <Text style={styles.inputLabel}>Description *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={formData.description}
-            onChangeText={(value) => updateField("description", value)}
+            onChangeText={(value): void => {
+              updateField("description", value);
+            }}
             placeholder="Describe your property, its features, and location..."
             multiline
             testID="description-input"
@@ -578,19 +592,19 @@ export default function PostPropertyPage(): React.JSX.Element {
             <Text style={styles.errorText}>{errors["description"]}</Text>
           )}
 
-          {/* Address Search */}
           <Text style={styles.inputLabel}>Address *</Text>
           <View style={styles.addressContainer}>
             <TextInput
               ref={addressInputRef}
               style={styles.input}
               value={formData.address}
-              onChangeText={(value) => updateField("address", value)}
+              onChangeText={(value): void => {
+                updateField("address", value);
+              }}
               placeholder="Start typing an address... (e.g., 123 Queen Street, Auckland)"
               testID="address-input"
-              onFocus={() => {
+              onFocus={(): void => {
                 setShowSuggestions(addressSuggestions.length > 0);
-                // Scroll to address input when focused
                 setTimeout(() => {
                   scrollViewRef.current?.scrollTo({
                     y: 350,
@@ -599,7 +613,6 @@ export default function PostPropertyPage(): React.JSX.Element {
                 }, 300);
               }}
               returnKeyType="search"
-              blurOnSubmit={false}
             />
 
             {isLoadingLocation && (
@@ -612,7 +625,9 @@ export default function PostPropertyPage(): React.JSX.Element {
                   <TouchableOpacity
                     key={item.place_id.toString()}
                     style={styles.suggestionItem}
-                    onPress={() => selectAddress(item)}
+                    onPress={(): void => {
+                      selectAddress(item);
+                    }}
                   >
                     <Text style={styles.suggestionText} numberOfLines={2}>
                       {item.display_name}
@@ -623,7 +638,6 @@ export default function PostPropertyPage(): React.JSX.Element {
             )}
           </View>
 
-          {/* Location Display */}
           {formData.latitude && formData.longitude && (
             <View style={styles.locationDisplay}>
               <Text style={styles.locationText}>Selected Location:</Text>
@@ -645,14 +659,15 @@ export default function PostPropertyPage(): React.JSX.Element {
           )}
         </ScrollView>
 
-        {/* Submit Button */}
         <View style={styles.submitSection}>
           <TouchableOpacity
             style={[
               styles.submitButton,
               (!isFormValid || isSubmitting) && styles.submitButtonDisabled,
             ]}
-            onPress={handleSubmit}
+            onPress={(): void => {
+              void handleSubmit();
+            }}
             disabled={!isFormValid || isSubmitting}
             testID="submit-button"
           >
