@@ -1,5 +1,5 @@
-import type { NominatimResult, PlaceSuggestion } from "@/types/PostProperty";
-import _ from "lodash";
+import type { PlaceSuggestion } from "@/types/PostProperty";
+import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard } from "react-native";
 
@@ -37,7 +37,7 @@ export default function useAddressSearch(
       );
 
       if (response.ok) {
-        const results = (await response.json()) as NominatimResult[];
+        const results = (await response.json()) as PlaceSuggestion[];
         const mappedSuggestions: PlaceSuggestion[] = results.map((result) => ({
           place_id: result.place_id,
           display_name: result.display_name,
@@ -59,7 +59,7 @@ export default function useAddressSearch(
   }, []);
 
   const debouncedSearch = useMemo(
-    () => _.debounce(searchAddresses, 500),
+    () => debounce(searchAddresses, 500),
     [searchAddresses],
   );
 

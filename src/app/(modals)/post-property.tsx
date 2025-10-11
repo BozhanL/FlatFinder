@@ -113,7 +113,6 @@ export default function PostPropertyPage(): JSX.Element {
             onChangeText={(value): void => {
               updateField("title", value);
             }}
-            placeholder="e.g., Beautiful 2BR Apartment in City Center"
             testID="title-input"
           />
           {errors["title"] && (
@@ -173,7 +172,6 @@ export default function PostPropertyPage(): JSX.Element {
             onChangeText={(value): void => {
               updateField("price", value);
             }}
-            placeholder={formData.type === "rental" ? "450" : "650000"}
             keyboardType="numeric"
             testID="price-input"
           />
@@ -199,7 +197,6 @@ export default function PostPropertyPage(): JSX.Element {
             onChangeText={(value): void => {
               updateField("bedrooms", value);
             }}
-            placeholder="e.g., 2"
             keyboardType="numeric"
             testID="bedrooms-input"
           />
@@ -212,7 +209,6 @@ export default function PostPropertyPage(): JSX.Element {
             onChangeText={(value): void => {
               updateField("bathrooms", value);
             }}
-            placeholder="e.g., 1"
             keyboardType="numeric"
             testID="bathrooms-input"
           />
@@ -229,7 +225,6 @@ export default function PostPropertyPage(): JSX.Element {
                 onChangeText={(value): void => {
                   updateField("minContractLength", value);
                 }}
-                placeholder="e.g., 52"
                 keyboardType="numeric"
                 testID="contract-length-input"
               />
@@ -244,7 +239,6 @@ export default function PostPropertyPage(): JSX.Element {
             onChangeText={(value): void => {
               updateField("description", value);
             }}
-            placeholder="Describe your property, its features, and location..."
             multiline
             testID="description-input"
           />
@@ -262,7 +256,6 @@ export default function PostPropertyPage(): JSX.Element {
               onChangeText={(value): void => {
                 updateField("address", value);
               }}
-              placeholder="Start typing an address... (e.g., 123 Queen Street, Auckland)"
               testID="address-input"
               onFocus={(): void => {
                 setShowSuggestions(suggestions.length > 0);
