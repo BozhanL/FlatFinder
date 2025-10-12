@@ -4,7 +4,6 @@ import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
 import { useCandidates } from "@/hooks/useCandidates";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
-import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { FilterState } from "@/types/FilterState";
 import { Property } from "@/types/Prop";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { router, useFocusEffect } from "expo-router";
 import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -60,7 +60,7 @@ export default function Index(): JSX.Element {
   const [uid, setUid] = useState<string | null>(null);
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
-    null,
+    null
   );
   const [isVisible, setIsVisible] = useState(false);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -85,7 +85,7 @@ export default function Index(): JSX.Element {
     (_allProps: Property[], filteredProps: Property[]) => {
       setFilteredProperties(filteredProps);
     },
-    [],
+    []
   );
 
   // Handle marker press
@@ -118,13 +118,13 @@ export default function Index(): JSX.Element {
       return () => {
         closePropertyTile();
       };
-    }, []),
+    }, [])
   );
 
   // Count active filters using utility function
   const activeFilterCount: number = useMemo(
     () => countActiveFilters(filters),
-    [filters],
+    [filters]
   );
 
   // Check if any filters are active using utility function
@@ -187,6 +187,9 @@ export default function Index(): JSX.Element {
             onPass={async (u) => {
               await swipe(uid, u.id, "pass");
               setItems((prev) => prev.filter((x) => x.id !== u.id));
+            }}
+            onCardPress={(user) => {
+              router.push(`/profile/${user.id}`);
             }}
           />
         ) : (

@@ -28,12 +28,14 @@ type Props = {
   data: Flatmate[];
   onLike?: (user: Flatmate) => void;
   onPass?: (user: Flatmate) => void;
+  onCardPress?: (user: Flatmate) => void;
 };
 
 export default function SwipeDeck({
   data,
   onLike,
   onPass,
+  onCardPress,
 }: Props): JSX.Element {
   const top = data[0];
   const next = data[1];
@@ -51,10 +53,10 @@ export default function SwipeDeck({
       translateX.value = 0;
       translateY.value = 0;
     },
-    [top, onLike, onPass, translateX, translateY],
+    [top, onLike, onPass, translateX, translateY]
   );
 
-  const gesture = useMemo(
+  const pan = useMemo(
     () =>
       Gesture.Pan()
         .onChange((e) => {
@@ -69,14 +71,14 @@ export default function SwipeDeck({
               { duration: 180 },
               () => {
                 runOnJS(commitSwipe)(dir);
-              },
+              }
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
         }),
-    [translateX, translateY, commitSwipe],
+    [translateX, translateY, commitSwipe]
   );
 
   function fling(dir: 1 | -1) {
@@ -86,7 +88,7 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      },
+      }
     );
   }
 
@@ -101,7 +103,7 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1],
+      [0, 1]
     );
     return { opacity };
   });
@@ -111,7 +113,7 @@ export default function SwipeDeck({
     const scale = interpolate(
       Math.abs(translateX.value),
       [0, SWIPE_THRESHOLD],
-      [0.95, 1],
+      [0.95, 1]
     );
     return { transform: [{ scale }] };
   });
@@ -142,17 +144,18 @@ export default function SwipeDeck({
         {next && (
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, nextStyle]}
+            pointerEvents="none"
           >
             <SwipeCard item={next} />
           </Animated.View>
         )}
 
         {/* top card */}
-        <GestureDetector gesture={gesture}>
+        <GestureDetector gesture={pan}>
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}
           >
-            <SwipeCard item={top} />
+            <SwipeCard item={top} onPress={() => onCardPress?.(top)} />
 
             {/* LIKE / NOPE tag */}
             <Animated.View
@@ -161,6 +164,7 @@ export default function SwipeDeck({
                 { left: 28, top: 40, borderColor: "#1DB954" },
                 likeBadgeStyle,
               ]}
+              pointerEvents="none"
             >
               <Text style={[styles.badgeText, { color: "#1DB954" }]}>LIKE</Text>
             </Animated.View>
