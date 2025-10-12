@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
+import { JSX, useCallback, useEffect, useMemo } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -38,24 +38,15 @@ export default function SwipeDeck({
   onCardPress,
 }: Props): JSX.Element {
   const top = data[0];
-  const next = data[1];
 
   const insets = useSafeAreaInsets();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const isPanning = useSharedValue(false);
-  const hasExited = useSharedValue(false);
-  const prevTopIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (prevTopIdRef.current !== top?.id) {
-      translateX.value = 0;
-      translateY.value = 0;
-      hasExited.value = false;
-      isPanning.value = false;
-      prevTopIdRef.current = top?.id;
-    }
-  }, [top?.id, translateX, translateY, hasExited, isPanning]);
+    translateX.value = 0;
+    translateY.value = 0;
+  }, [top?.id]);
 
   const commitSwipe = useCallback(
     (dir: 1 | -1) => {
@@ -69,9 +60,6 @@ export default function SwipeDeck({
   const pan = useMemo(
     () =>
       Gesture.Pan()
-        .onBegin(() => {
-          isPanning.value = true;
-        })
         .onChange((e) => {
           translateX.value = e.translationX;
           translateY.value = e.translationY;
@@ -83,7 +71,6 @@ export default function SwipeDeck({
               dir * SCREEN_W * 1.2,
               { duration: 180 },
               () => {
-                hasExited.value = true;
                 runOnJS(commitSwipe)(dir);
               }
             );
@@ -91,21 +78,16 @@ export default function SwipeDeck({
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
-        })
-        .onFinalize(() => {
-          isPanning.value = false;
         }),
     [translateX, translateY, commitSwipe]
   );
 
   function fling(dir: 1 | -1) {
     if (!top) return;
-    isPanning.value = true;
     translateX.value = withTiming(
       dir * SCREEN_W * 1.2,
       { duration: 180 },
       () => {
-        hasExited.value = true;
         runOnJS(commitSwipe)(dir);
       }
     );
@@ -125,13 +107,6 @@ export default function SwipeDeck({
       [0, 1]
     );
     return { opacity };
-  });
-
-  const nextStyle = useAnimatedStyle(() => {
-    const scale = isPanning.value
-      ? interpolate(Math.abs(translateX.value), [0, SWIPE_THRESHOLD], [0.95, 1])
-      : 0.95;
-    return { transform: [{ scale }, { translateY: 12 }] };
   });
 
   const topStyle = useAnimatedStyle(() => {
@@ -156,17 +131,7 @@ export default function SwipeDeck({
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {/* next card */}
-        {next && (
-          <Animated.View
-            style={[StyleSheet.absoluteFill, { padding: 16 }, nextStyle]}
-            pointerEvents="none"
-          >
-            <SwipeCard item={next} />
-          </Animated.View>
-        )}
-
-        {/* top card */}
+        {/* swipe card */}
         <GestureDetector gesture={pan}>
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}
