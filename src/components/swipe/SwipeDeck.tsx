@@ -53,7 +53,7 @@ export default function SwipeDeck({
       translateX.value = 0;
       translateY.value = 0;
     },
-    [top, onLike, onPass, translateX, translateY]
+    [top, onLike, onPass, translateX, translateY],
   );
 
   const pan = useMemo(
@@ -71,14 +71,14 @@ export default function SwipeDeck({
               { duration: 180 },
               () => {
                 runOnJS(commitSwipe)(dir);
-              }
+              },
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
         }),
-    [translateX, translateY, commitSwipe]
+    [translateX, translateY, commitSwipe],
   );
 
   function fling(dir: 1 | -1) {
@@ -88,7 +88,7 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      }
+      },
     );
   }
 
@@ -103,7 +103,7 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1]
+      [0, 1],
     );
     return { opacity };
   });
@@ -113,7 +113,7 @@ export default function SwipeDeck({
     const scale = interpolate(
       Math.abs(translateX.value),
       [0, SWIPE_THRESHOLD],
-      [0.95, 1]
+      [0.95, 1],
     );
     return { transform: [{ scale }] };
   });

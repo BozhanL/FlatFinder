@@ -22,6 +22,17 @@ type SwipeDoc = {
   createdAt?: FirebaseFirestoreTypes.Timestamp | null;
 };
 
+type UserDoc = {
+  name?: string;
+  age?: number;
+  bio?: string;
+  budget?: number;
+  location?: string;
+  tags?: string[];
+  avatarUrl?: string;
+  lastActiveAt?: FirebaseFirestoreTypes.Timestamp;
+};
+
 /** Set of swiped users */
 export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   const qRef = query(
@@ -36,7 +47,6 @@ export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   return new Set(ids);
 }
 
-// IMPROVE: add return type @G2CCC
 /** Load unswiped candidates */
 export async function loadCandidates(
   uid: string,
@@ -45,7 +55,7 @@ export async function loadCandidates(
     maxBudget,
     limit = 30,
   }: { area?: string; maxBudget?: number | null; limit?: number } = {},
-) {
+): Promise<Flatmate[]> {
   const swiped = await fetchSwipedSet(uid);
 
   const users = collection(getFirestore(), "users");
@@ -73,8 +83,7 @@ export async function loadCandidates(
       (
         d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
       ) => {
-        // IMPROVE: use correct type @G2CCC
-        const data = d.data() as any;
+        const data = d.data() as UserDoc;
         const fm: Flatmate = {
           id: d.id,
           name: data.name ?? "",
