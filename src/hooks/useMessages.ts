@@ -1,8 +1,9 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
 import { getUserByUidAsync } from "@/services/message";
-import { Group } from "@/types/Group";
-import { Message } from "@/types/Message";
+import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
+import type { Group } from "@/types/Group";
+import type { Message } from "@/types/Message";
 import {
   FirebaseFirestoreTypes,
   collection,
@@ -11,13 +12,13 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { IMessage, User } from "react-native-gifted-chat";
+import type { User } from "react-native-gifted-chat";
 
 export default function useMessages(
   gid: string,
   gname: string,
 ): {
-  sortedMessages: IMessage[];
+  sortedMessages: GiftedChatMessage[];
   loading: boolean;
   usercache: Map<string, User>;
 } {
@@ -32,7 +33,7 @@ export default function useMessages(
       groupRef,
       (doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
         const data = doc.data() as Group;
-        Promise.all(
+        void Promise.all(
           data.members.map(async (m) => {
             if (!usercache.has(m)) {
               const userDoc = await getUserByUidAsync(m);
@@ -41,7 +42,9 @@ export default function useMessages(
               }
             }
           }),
-        ).finally(() => setLoading(false));
+        ).finally(() => {
+          setLoading(false);
+        });
       },
     );
   }, [gid, usercache]);
@@ -78,10 +81,14 @@ export default function useMessages(
         createdAt: msg.timestamp.toDate(),
         name: gname,
         user: usercache.get(msg.sender) || { _id: msg.sender },
+        sent: true,
+        received: msg.received !== null,
+        gid: gid,
+        seenTimestamp: msg.received,
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return m;
-  }, [messages, gname, usercache]);
+  }, [messages, gname, usercache, gid]);
 
   return { sortedMessages, loading, usercache };
 }

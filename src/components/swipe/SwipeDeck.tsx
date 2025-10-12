@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { JSX, useCallback, useEffect, useMemo } from "react";
+import { type JSX, useCallback, useEffect, useMemo } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -24,7 +24,7 @@ const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
 const ROTATE = 15; // degrees
 
-type Props = {
+export type Props = {
   data: Flatmate[];
   onLike?: (user: Flatmate) => void;
   onPass?: (user: Flatmate) => void;
@@ -89,20 +89,20 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      },
+      }
     );
   }
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
+    const opacity = interpolate(translateX.get(), [0, SWIPE_THRESHOLD], [0, 1]);
     return { opacity };
   });
 
   //unlike animate
   const nopeBadgeStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
-      translateX.value,
+      translateX.get(),
       [0, -SWIPE_THRESHOLD],
       [0, 1],
     );
@@ -110,11 +110,11 @@ export default function SwipeDeck({
   });
 
   const topStyle = useAnimatedStyle(() => {
-    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    const rotate = (translateX.get() / SCREEN_W) * ROTATE;
     return {
       transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
+        { translateX: translateX.get() },
+        { translateY: translateY.get() },
         { rotate: `${rotate}deg` },
       ],
     };

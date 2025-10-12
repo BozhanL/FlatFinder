@@ -1,6 +1,10 @@
 /* istanbul ignore file */
 // This file contains only type definitions.
 // No need to test it in unit tests.
+import type { ImageRequireSource } from "react-native";
+
+const DEFAULT_AVATAR: ImageRequireSource = require("assets/images/dummy1.png");
+
 export const AVATARS = [
   require("assets/images/dummy1.png"),
   require("assets/images/dummy2.png"),
@@ -8,13 +12,12 @@ export const AVATARS = [
   require("assets/images/dummy4.png"),
 ];
 
-function hash(s: string) {
+function hash(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
   return Math.abs(h);
 }
 
-// IMPROVE: Use ImageRequireSource as return type @G2CCC
-export function pickAvatarFor(uid: string): number {
-  return AVATARS[hash(uid) % AVATARS.length];
+export function pickAvatarFor(uid: string): ImageRequireSource {
+  return AVATARS[hash(uid) % AVATARS.length] ?? DEFAULT_AVATAR;
 }

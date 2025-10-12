@@ -56,7 +56,7 @@ describe("SwipeCard", () => {
     render(
       <SwipeCard
         item={makeFlatmate({
-          location: { area: "Suburbia" } as any,
+          location: { area: "Suburbia" },
         })}
         onPress={() => {}}
       />,

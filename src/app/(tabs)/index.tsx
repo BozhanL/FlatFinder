@@ -2,7 +2,8 @@ import HeaderLogo from "@/components/HeaderLogo";
 import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
-import { useCandidates } from "@/hooks/useCandidates";
+import useCandidates from "@/hooks/useCandidates";
+import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import { FilterState } from "@/types/FilterState";
 import { Property } from "@/types/Prop";
@@ -13,10 +14,10 @@ import {
   unregisterApplyFilter,
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
-import { OnPressEvent } from "@maplibre/maplibre-react-native";
+import type { OnPressEvent } from "@maplibre/maplibre-react-native";
 import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { router, useFocusEffect } from "expo-router";
-import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
@@ -58,7 +59,7 @@ const enum TabMode {
 }
 
 export default function Index(): JSX.Element {
-  const [uid, setUid] = useState<string | null>(null);
+  const user = useUser();
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
@@ -91,8 +92,8 @@ export default function Index(): JSX.Element {
 
   // Handle marker press
   const handleMarkerPress = (event: OnPressEvent): void => {
-    const feature = event.features?.[0];
-    if (!feature || !feature.properties) {
+    const feature = event.features[0];
+    if (!feature?.properties) {
       return;
     }
 
@@ -116,7 +117,7 @@ export default function Index(): JSX.Element {
   // Close the floating tile when the route is unfocused
   useFocusEffect(
     useCallback(() => {
-      return () => {
+      return (): void => {
         closePropertyTile();
       };
     }, []),
@@ -131,17 +132,9 @@ export default function Index(): JSX.Element {
   // Check if any filters are active using utility function
   const filtersActive: boolean = activeFilterCount > 0;
 
-  //Check Authentication State
-  useEffect(() => {
-    const unsub = onAuthStateChanged(getAuth(), (user) => {
-      setUid(user?.uid ?? null);
-    });
-    return unsub;
-  }, []);
+  const { items, setItems } = useCandidates(user?.uid || null);
 
-  const { items, setItems } = useCandidates(uid);
-
-  if (!uid) return <></>;
+  if (!user) return <></>;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -153,13 +146,17 @@ export default function Index(): JSX.Element {
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
-            onChange={(val) => setMode(val as TabMode)}
+            onChange={(val) => {
+              setMode(val as TabMode);
+            }}
           />
         </View>
 
         {/* Show filter button on both tabs */}
         <TouchableOpacity
-          onPress={() => router.push("/filter")}
+          onPress={() => {
+            router.push("/filter");
+          }}
           activeOpacity={0.8}
           style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
         >
@@ -180,13 +177,17 @@ export default function Index(): JSX.Element {
           <SwipeDeck
             data={items}
             onLike={async (u) => {
+              // IMPROVE: Use enum instead of string @G2CCC
+              await swipe(user.uid, u.id, SwipeAction.Like);
+              await ensureMatchIfMutualLike(user.uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              swipe(uid, u.id, SwipeAction.Like);
-              ensureMatchIfMutualLike(uid, u.id);
+              swipe(user.uid, u.id, SwipeAction.Like);
+              ensureMatchIfMutualLike(user.uid, u.id);
             }}
             onPass={async (u) => {
+              await swipe(user.uid, u.id, SwipeAction.Pass);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              swipe(uid, u.id, SwipeAction.Pass);
+              swipe(user.uid, u.id, SwipeAction.Pass);
             }}
             onCardPress={(user) => {
               router.push(`/profile/${user.id}`);

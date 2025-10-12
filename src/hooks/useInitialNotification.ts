@@ -4,13 +4,13 @@ import notifee from "@notifee/react-native";
 import { router } from "expo-router";
 import { useEffect } from "react";
 
-export default function useInitialNotification() {
+export default function useInitialNotification(): void {
   useEffect(() => {
     bootstrap().catch(console.error);
   }, []);
 }
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const initialNotification = await notifee.getInitialNotification();
 
   if (initialNotification) {
