@@ -1,3 +1,4 @@
+import BudgetField from "@/components/profile/BudgetField";
 import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
@@ -164,9 +165,14 @@ const draftSchema = yup.object({
   budget: yup
     .number()
     .nullable()
-    .transform((_, o) => (o === "" || o == null ? null : Number(o)))
-    .min(0, "Budget must be ≥ 0")
-    .max(100000, "Budget looks wrong"),
+    .transform((_, o) => {
+      if (o == null || o === "") return null;
+      const n = Number(String(o).replace(/[^\d]/g, ""));
+      return Number.isFinite(n) ? n : null;
+    })
+    .integer("Budget must be an integer")
+    .min(50, "Minimum is $50/week")
+    .max(2000, "Maximum is $2000/week"),
   location: yup.string().nullable().max(80, "Location too long"),
   bio: yup.string().nullable().max(400, "Bio up to 400 chars"),
   tags: yup
@@ -320,133 +326,136 @@ export default function EditProfileModal() {
       </View>
 
       {tab === Tab.Edit ? (
-        <FlatList 
-        data={[0]}                 // 伪数据撑起列表
-        keyExtractor={() => "form"}
-        renderItem={null as any}   // 不渲染行
-      ListHeaderComponent={
-        (
-          <>
-            {/* Photos */}
-            <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-              <Text style={{ fontSize: 16, fontWeight: "700" }}>
-                Photos{" "}
-                <Text style={{ fontSize: 12, color: "#777" }}>
-                  (Maximum of 3)
+        <FlatList
+          data={[0]}
+          keyExtractor={() => "form"}
+          renderItem={null as any}
+          ListHeaderComponent={
+            <>
+              {/* Photos */}
+              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+                <Text style={{ fontSize: 16, fontWeight: "700" }}>
+                  Photos{" "}
+                  <Text style={{ fontSize: 12, color: "#777" }}>
+                    (Maximum of 3)
+                  </Text>
                 </Text>
-              </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 16,
-                  marginTop: 12,
-                }}
-              >
-                <TouchableOpacity activeOpacity={0.8}>
-                  <Image source={avatarSource as any} style={styles.bigAvatar} />
-                </TouchableOpacity>
-
-                <View style={{ gap: 12 }}>
-                  <View style={{ flexDirection: "row", gap: 12 }}>
-                    <CircleThumb uri={photos[1] ?? ""} onPress={() => {}} />
-                    <CircleThumb uri={photos[2] ?? ""} onPress={() => {}} />
-                  </View>
-                  <TouchableOpacity
-                    style={styles.addCircle}
-                    onPress={() => {}}
-                    activeOpacity={0.8}
-                  >
-                    <MaterialCommunityIcons name="plus" size={22} color="#555" />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 16,
+                    marginTop: 12,
+                  }}
+                >
+                  <TouchableOpacity activeOpacity={0.8}>
+                    <Image
+                      source={avatarSource as any}
+                      style={styles.bigAvatar}
+                    />
                   </TouchableOpacity>
+
+                  <View style={{ gap: 12 }}>
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                      <CircleThumb uri={photos[1] ?? ""} onPress={() => {}} />
+                      <CircleThumb uri={photos[2] ?? ""} onPress={() => {}} />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addCircle}
+                      onPress={() => {}}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={22}
+                        color="#555"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* About me */}
-            <View style={{ marginTop: 20 }}>
-              <Text style={styles.sectionTitle}>About me</Text>
+              {/* About me */}
+              <View style={{ marginTop: 20 }}>
+                <Text style={styles.sectionTitle}>About me</Text>
 
-              {/* Username */}
-              <FieldInput
-                label="Username"
-                value={form.name ?? ""}
-                placeholder="yourname"
-                onChangeText={(t) => setForm((p) => ({ ...p!, name: t.trim() }))}
-              />
-              {/* Date of Birth */}
-              <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-                <Text
-                  style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
-                >
-                  Date of Birth
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() => setDobPickerOpen(true)}
-                  activeOpacity={0.8}
-                  style={styles.input}
-                >
-                  <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                    {dobDisplay || "DD-MM-YYYY"}
+                {/* Username */}
+                <FieldInput
+                  label="Username"
+                  value={form.name ?? ""}
+                  placeholder="yourname"
+                  onChangeText={(t) =>
+                    setForm((p) => ({ ...p!, name: t.trim() }))
+                  }
+                />
+                {/* Date of Birth */}
+                <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
+                  >
+                    Date of Birth
                   </Text>
-                </TouchableOpacity>
 
-                <DateTimePickerModal
-                  isVisible={dobPickerOpen}
-                  mode="date"
-                  date={dobInitialDate}
-                  maximumDate={new Date()}
-                  minimumDate={new Date(1900, 0, 1)}
-                  onConfirm={(date) => {
-                    const str = formatDDMMYYYY(date);
-                    setForm((p) => ({ ...p!, dob: str }));
-                    setDobPickerOpen(false);
-                  }}
-                  onCancel={() => setDobPickerOpen(false)}
+                  <TouchableOpacity
+                    onPress={() => setDobPickerOpen(true)}
+                    activeOpacity={0.8}
+                    style={styles.input}
+                  >
+                    <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                      {dobDisplay || "DD-MM-YYYY"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <DateTimePickerModal
+                    isVisible={dobPickerOpen}
+                    mode="date"
+                    date={dobInitialDate}
+                    maximumDate={new Date()}
+                    minimumDate={new Date(1900, 0, 1)}
+                    onConfirm={(date) => {
+                      const str = formatDDMMYYYY(date);
+                      setForm((p) => ({ ...p!, dob: str }));
+                      setDobPickerOpen(false);
+                    }}
+                    onCancel={() => setDobPickerOpen(false)}
+                  />
+                </View>
+
+                {/* Budget */}
+                <BudgetField
+                  value={form.budget ?? null}
+                  onChange={(n) => setForm((p) => ({ ...p!, budget: n }))}
+                  min={50}
+                  max={2000}
+                  step={10}
+                />
+
+                {/* Preferred Location */}
+                <NZLocationPickerField
+                  value={form.location ?? ""}
+                  onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
+                />
+
+                {/* Tag */}
+                <TagInputField
+                  value={form.tags ?? []}
+                  onChange={(tags) => setForm((p) => ({ ...p!, tags }))}
+                />
+
+                {/* Bio */}
+                <FieldInput
+                  label="Bio"
+                  placeholder="Tell the world about YOU.."
+                  value={form.bio ?? ""}
+                  onChangeText={(t) => setForm((p) => ({ ...p!, bio: t }))}
+                  multiline
                 />
               </View>
-
-              {/* Budget */}
-              <FieldInput
-                label="Budget"
-                value={form.budget != null ? String(form.budget) : ""}
-                onChangeText={(t) =>
-                  setForm((p) => ({
-                    ...p!,
-                    budget: t.trim() ? Number(t) : null,
-                  }))
-                }
-                keyboardType="numeric"
-              />
-
-              {/* Preferred Location */}
-              <NZLocationPickerField
-                value={form.location ?? ""}
-                onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
-              />
-
-              {/* Tag */}
-              <TagInputField
-                value={form.tags ?? []}
-                onChange={(tags) => setForm((p) => ({ ...p!, tags }))}
-              />
-
-              {/* Bio */}
-              <FieldInput
-                label="Bio"
-                placeholder="Tell the world about YOU.."
-                value={form.bio ?? ""}
-                onChangeText={(t) => setForm((p) => ({ ...p!, bio: t }))}
-                multiline
-              />
-            </View>
-          </>
-        )
-      }
-        
-      />) : (
+            </>
+          }
+        />
+      ) : (
         <ProfilePreview
           source="data"
           data={{
