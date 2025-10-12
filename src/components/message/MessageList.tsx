@@ -1,16 +1,23 @@
 import useGroups from "@/hooks/useGroups";
-import { Group } from "@/types/Group";
-import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
+import type { Group } from "@/types/Group";
+import dayjs from "dayjs";
+import "dayjs/locale/en-nz";
+import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { router } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 import {
+  FlatList,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  VirtualizedList,
 } from "react-native";
+
+dayjs.extend(relativeTime);
+dayjs.extend(LocalizedFormat);
+dayjs.locale("en-nz");
 
 export default function MessageList({ uid }: { uid: string }): JSX.Element {
   const sortedGroups = useGroups(uid);
@@ -18,12 +25,9 @@ export default function MessageList({ uid }: { uid: string }): JSX.Element {
   return (
     <View style={{ flex: 1 }}>
       <Text style={[styles.section_header]}>Message</Text>
-      <VirtualizedList
+      <FlatList
         data={sortedGroups}
-        renderItem={({ item }: { item: Group }) => renderItem(item, uid)}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
-        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => renderItem(item, uid)}
       />
     </View>
   );
@@ -53,45 +57,16 @@ function renderItem(item: Group, uid: string): JSX.Element {
           <Text style={styles.group_name}>{item.name}</Text>
           <Text style={styles.last_message} numberOfLines={1}>
             {item.lastMessage ||
-              `Matched on ${item.lastTimestamp.toDate().toLocaleDateString()}`}
+              `Matched on ${dayjs(item.lastTimestamp.toDate()).format("L")}`}
           </Text>
         </View>
 
-        {item.lastTimestamp && (
-          <Text style={styles.timestamp}>
-            {formatTimestamp(item.lastTimestamp)}
-          </Text>
-        )}
+        <Text style={styles.timestamp}>
+          {dayjs(item.lastTimestamp.toDate()).fromNow()}
+        </Text>
       </View>
     </TouchableOpacity>
   );
-}
-
-function formatTimestamp(timestamp?: FirebaseFirestoreTypes.Timestamp): string {
-  if (!timestamp) {
-    return "";
-  }
-  const d = timestamp.toDate();
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const minutes = Math.floor(diff / 1000 / 60);
-  const hours = Math.floor(diff / 1000 / 60 / 60);
-  const days = Math.floor(diff / 1000 / 60 / 60 / 24);
-  const weeks = Math.floor(diff / 1000 / 60 / 60 / 24 / 7);
-
-  if (weeks > 4) {
-    return d.toLocaleDateString();
-  } else if (weeks > 0) {
-    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-  } else if (days > 0) {
-    return `${days} day${days > 1 ? "s" : ""} ago`;
-  } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  } else if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  } else {
-    return "Just now";
-  }
 }
 
 const styles = StyleSheet.create({
@@ -137,4 +112,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export const __test__ = { renderItem, formatTimestamp };
+export const __test__ = { renderItem };

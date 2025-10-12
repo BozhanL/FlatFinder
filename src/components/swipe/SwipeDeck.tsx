@@ -24,7 +24,7 @@ const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
 const ROTATE = 15; // degrees
 
-type Props = {
+export type Props = {
   data: Flatmate[];
   onLike?: (user: Flatmate) => void;
   onPass?: (user: Flatmate) => void;
@@ -84,25 +84,23 @@ export default function SwipeDeck({
 
   function fling(dir: 1 | -1) {
     if (!top) return;
-    translateX.value = withTiming(
-      dir * SCREEN_W * 1.2,
-      { duration: 180 },
-      () => {
+    translateX.set(
+      withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
         runOnJS(commitSwipe)(dir);
       }
     );
-  }
+  };
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1]);
+    const opacity = interpolate(translateX.get(), [0, SWIPE_THRESHOLD], [0, 1]);
     return { opacity };
   });
 
   //unlike animate
   const nopeBadgeStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
-      translateX.value,
+      translateX.get(),
       [0, -SWIPE_THRESHOLD],
       [0, 1]
     );
@@ -110,11 +108,11 @@ export default function SwipeDeck({
   });
 
   const topStyle = useAnimatedStyle(() => {
-    const rotate = (translateX.value / SCREEN_W) * ROTATE;
+    const rotate = (translateX.get() / SCREEN_W) * ROTATE;
     return {
       transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
+        { translateX: translateX.get() },
+        { translateY: translateY.get() },
         { rotate: `${rotate}deg` },
       ],
     };
@@ -170,7 +168,9 @@ export default function SwipeDeck({
       >
         <TouchableOpacity
           // IMPROVE: Use enum instead of number @G2CCC
-          onPress={() => fling(-1)}
+          onPress={() => {
+            fling(-1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
         >
@@ -178,7 +178,9 @@ export default function SwipeDeck({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => fling(1)}
+          onPress={() => {
+            fling(1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}
         >

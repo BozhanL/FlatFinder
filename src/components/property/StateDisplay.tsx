@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const styles = StyleSheet.create({
@@ -8,17 +9,17 @@ const styles = StyleSheet.create({
   },
 });
 
-interface StateDisplayProps {
+type StateDisplayProps = {
   type: "loading" | "empty" | "filtered";
   message?: string;
   subtitle?: string;
-}
+};
 
 export default function StateDisplay({
   type,
   message,
   subtitle,
-}: StateDisplayProps) {
+}: StateDisplayProps): JSX.Element {
   if (type === "loading") {
     return (
       <View style={styles.centerContent}>
