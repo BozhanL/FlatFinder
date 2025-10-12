@@ -1,3 +1,4 @@
+import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import ProfilePreview from "@/components/ProfilePreview";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
@@ -389,15 +390,9 @@ export default function EditProfileModal() {
             />
 
             {/* Preferred Location */}
-            <FieldInput
-              label="Preferred Location"
+            <NZLocationPickerField
               value={form.location ?? ""}
-              onChangeText={(t) =>
-                setForm((p) => ({
-                  ...p!,
-                  location: t.trim() || null,
-                }))
-              }
+              onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
             />
 
             {/* Tag */}

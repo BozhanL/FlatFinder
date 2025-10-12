@@ -1,5 +1,4 @@
 import { Timestamp } from "@react-native-firebase/firestore";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export function calculateAge(dob: Timestamp | string | null | undefined): number | undefined {
   if (!dob) return undefined;
