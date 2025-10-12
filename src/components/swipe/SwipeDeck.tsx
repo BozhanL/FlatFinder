@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { JSX, useCallback, useMemo } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -43,22 +43,35 @@ export default function SwipeDeck({
   const insets = useSafeAreaInsets();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const isPanning = useSharedValue(false);
+  const hasExited = useSharedValue(false);
+  const prevTopIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (prevTopIdRef.current !== top?.id) {
+      translateX.value = 0;
+      translateY.value = 0;
+      hasExited.value = false;
+      isPanning.value = false;
+      prevTopIdRef.current = top?.id;
+    }
+  }, [top?.id, translateX, translateY, hasExited, isPanning]);
 
   const commitSwipe = useCallback(
     (dir: 1 | -1) => {
       if (!top) return;
       if (dir === 1) onLike?.(top);
       else onPass?.(top);
-      // reset & next card
-      translateX.value = 0;
-      translateY.value = 0;
     },
-    [top, onLike, onPass, translateX, translateY],
+    [top, onLike, onPass]
   );
 
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .onBegin(() => {
+          isPanning.value = true;
+        })
         .onChange((e) => {
           translateX.value = e.translationX;
           translateY.value = e.translationY;
@@ -70,25 +83,31 @@ export default function SwipeDeck({
               dir * SCREEN_W * 1.2,
               { duration: 180 },
               () => {
+                hasExited.value = true;
                 runOnJS(commitSwipe)(dir);
-              },
+              }
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
+        })
+        .onFinalize(() => {
+          isPanning.value = false;
         }),
-    [translateX, translateY, commitSwipe],
+    [translateX, translateY, commitSwipe]
   );
 
   function fling(dir: 1 | -1) {
     if (!top) return;
+    isPanning.value = true;
     translateX.value = withTiming(
       dir * SCREEN_W * 1.2,
       { duration: 180 },
       () => {
+        hasExited.value = true;
         runOnJS(commitSwipe)(dir);
-      },
+      }
     );
   }
 
@@ -103,19 +122,16 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1],
+      [0, 1]
     );
     return { opacity };
   });
 
   const nextStyle = useAnimatedStyle(() => {
-    // For the next card at the back
-    const scale = interpolate(
-      Math.abs(translateX.value),
-      [0, SWIPE_THRESHOLD],
-      [0.95, 1],
-    );
-    return { transform: [{ scale }] };
+    const scale = isPanning.value
+      ? interpolate(Math.abs(translateX.value), [0, SWIPE_THRESHOLD], [0.95, 1])
+      : 0.95;
+    return { transform: [{ scale }, { translateY: 12 }] };
   });
 
   const topStyle = useAnimatedStyle(() => {
