@@ -46,7 +46,7 @@ export default function SwipeDeck({
   useEffect(() => {
     translateX.value = 0;
     translateY.value = 0;
-  }, [top?.id]);
+  }, [top?.id, translateX, translateY]);
 
   const commitSwipe = useCallback(
     (dir: 1 | -1) => {
@@ -54,7 +54,7 @@ export default function SwipeDeck({
       if (dir === 1) onLike?.(top);
       else onPass?.(top);
     },
-    [top, onLike, onPass]
+    [top, onLike, onPass],
   );
 
   const pan = useMemo(
@@ -72,14 +72,14 @@ export default function SwipeDeck({
               { duration: 180 },
               () => {
                 runOnJS(commitSwipe)(dir);
-              }
+              },
             );
           } else {
             translateX.value = withSpring(0);
             translateY.value = withSpring(0);
           }
         }),
-    [translateX, translateY, commitSwipe]
+    [translateX, translateY, commitSwipe],
   );
 
   function fling(dir: 1 | -1) {
@@ -89,7 +89,7 @@ export default function SwipeDeck({
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      }
+      },
     );
   }
 
@@ -104,7 +104,7 @@ export default function SwipeDeck({
     const opacity = interpolate(
       translateX.value,
       [0, -SWIPE_THRESHOLD],
-      [0, 1]
+      [0, 1],
     );
     return { opacity };
   });
@@ -170,6 +170,7 @@ export default function SwipeDeck({
       >
         <TouchableOpacity
           // IMPROVE: Use enum instead of number @G2CCC
+          testID="btn-nope"
           onPress={() => fling(-1)}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
@@ -178,6 +179,7 @@ export default function SwipeDeck({
         </TouchableOpacity>
 
         <TouchableOpacity
+          testID="btn-like"
           onPress={() => fling(1)}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}

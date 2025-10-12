@@ -2,6 +2,7 @@
 import { jest } from "@jest/globals";
 import ReactNative from "react-native";
 import { setUpTests } from "react-native-reanimated";
+import "react-native-gesture-handler/jestSetup";
 
 // Avoid log pollution with emulator URL remap messages during testing
 // eslint-disable-next-line no-console
@@ -133,3 +134,15 @@ jest.mock("react-native-keyboard-controller", () =>
 jest.mock("@notifee/react-native", () =>
   require("@notifee/react-native/jest-mock"),
 );
+
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+  Reanimated.runOnJS = (fn: (...args: any[]) => any) => fn;
+  return Reanimated;
+});
+
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+jest.mock("@expo/vector-icons", () => ({ AntDesign: () => null }));

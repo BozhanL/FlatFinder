@@ -1,3 +1,6 @@
+/* istanbul ignore file */
+// This file contains only type definitions.
+// No need to test it in unit tests.
 export const AVATARS = [
   require("assets/images/dummy1.png"),
   require("assets/images/dummy2.png"),

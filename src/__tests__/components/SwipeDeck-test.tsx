@@ -1,14 +1,13 @@
-// @ts-nocheck
-// IMPROVE: Enable ts check @G2CCC
-import { fireEvent, render, screen } from "@testing-library/react-native";
-
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react-native";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
+import type { Flatmate } from "@/types/Flatmate";
 
+// ---- Mocks ----
 jest.mock("react-native-reanimated", () => {
-  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Reanimated = require("react-native-reanimated/mock");
-  Reanimated.runOnJS = (fn: any) => fn;
+  Reanimated.runOnJS = (fn: (...args: any[]) => any) => fn;
   return Reanimated;
 });
 
@@ -21,12 +20,11 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 jest.mock("@/components/swipe/SwipeCard", () => {
-  // IMPROVE: Remove check bypass @G2CCC
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text, View } = require("react-native");
-  return function SwipeCard(props) {
+  return function SwipeCard(props: any) {
     const { item } = props || {};
     return (
       <View testID={`card-${item.id}`}>
@@ -36,31 +34,32 @@ jest.mock("@/components/swipe/SwipeCard", () => {
   };
 });
 
-function fm(partial = {}, i = 0) {
+// ---- Helpers ----
+function fm(partial: Partial<Flatmate> = {}, i = 0): Flatmate {
   return {
     id: `u${i}`,
     name: `User ${i}`,
-    age: 21,
-    location: "City",
-    budget: 200,
-    bio: "bio",
-    tags: ["a", "b"],
-    avatar: { uri: "x" },
+    age: 21 as any,
+    location: "City" as any,
+    budget: 200 as any,
+    bio: "bio" as any,
+    tags: ["a", "b"] as any,
+    avatar: { uri: "x" } as any,
     ...partial,
-  };
+  } as Flatmate;
 }
 
+// ---- Tests ----
 describe("SwipeDeck", () => {
   it('renders "Looking for more…" when no data', () => {
     render(<SwipeDeck data={[]} />);
     expect(screen.getByText(/Looking for more/i)).toBeTruthy();
   });
 
-  it("renders top and next cards", () => {
+  it("renders the top card", () => {
     render(<SwipeDeck data={[fm({}, 1), fm({}, 2)]} />);
-
-    expect(screen.getByText("User 1")).toBeTruthy();
-    expect(screen.getByText("User 2")).toBeTruthy();
+    expect(screen.getByTestId("card-u1")).toBeTruthy();
+    expect(screen.queryByTestId("card-u2")).toBeNull();
   });
 
   it("pressing heart button triggers onLike(top)", () => {
@@ -74,13 +73,7 @@ describe("SwipeDeck", () => {
       />,
     );
 
-    // IMPROVE: use safe variant @G2CCC
-    const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
-    );
-    const heartBtn = buttons[1];
-    fireEvent.press(heartBtn);
+    fireEvent.press(screen.getByTestId("btn-like"));
 
     expect(like).toHaveBeenCalledTimes(1);
     expect(like.mock.calls[0][0].name).toBe("Top");
@@ -98,13 +91,7 @@ describe("SwipeDeck", () => {
       />,
     );
 
-    // IMPROVE: use safe variant @G2CCC
-    const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
-    );
-    const closeBtn = buttons[0];
-    fireEvent.press(closeBtn);
+    fireEvent.press(screen.getByTestId("btn-nope"));
 
     expect(pass).toHaveBeenCalledTimes(1);
     expect(pass.mock.calls[0][0].name).toBe("Top");
@@ -113,13 +100,7 @@ describe("SwipeDeck", () => {
 
   it("does not crash when no callbacks are provided", () => {
     render(<SwipeDeck data={[fm({}, 1), fm({}, 2)]} />);
-
-    // IMPROVE: use safe variant @G2CCC
-    const buttons = screen.UNSAFE_getAllByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-native").TouchableOpacity,
-    );
-    fireEvent.press(buttons[0]);
-    fireEvent.press(buttons[1]);
+    fireEvent.press(screen.getByTestId("btn-nope"));
+    fireEvent.press(screen.getByTestId("btn-like"));
   });
 });

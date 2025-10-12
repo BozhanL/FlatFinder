@@ -5,7 +5,7 @@ type Props = { item: Flatmate; onPress: () => void };
 
 export default function SwipeCard({ item, onPress }: Props) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} testID={`swipe-card-${item.id}`}>
       <View
         style={{
           borderRadius: 16,
