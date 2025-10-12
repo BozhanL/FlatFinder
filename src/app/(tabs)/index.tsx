@@ -6,6 +6,7 @@ import { useCandidates } from "@/hooks/useCandidates";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import { FilterState } from "@/types/FilterState";
 import { Property } from "@/types/Prop";
+import { SwipeAction } from "@/types/SwipeAction";
 import {
   getGlobalFilters,
   registerApplyFilter,
@@ -179,13 +180,12 @@ export default function Index(): JSX.Element {
           <SwipeDeck
             data={items}
             onLike={async (u) => {
-              // IMPROVE: Use enum instead of string @G2CCC
-              await swipe(uid, u.id, "like");
+              await swipe(uid, u.id, SwipeAction.Like);
               await ensureMatchIfMutualLike(uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
             onPass={async (u) => {
-              await swipe(uid, u.id, "pass");
+              await swipe(uid, u.id, SwipeAction.Pass);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
             }}
             onCardPress={(user) => {

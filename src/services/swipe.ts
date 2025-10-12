@@ -1,5 +1,6 @@
 import { createGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
+import { SwipeAction } from "@/types/SwipeAction";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
@@ -17,7 +18,7 @@ import {
 } from "@react-native-firebase/firestore";
 
 type SwipeDoc = {
-  dir: "like" | "pass";
+  dir: SwipeAction;
   createdAt?: FirebaseFirestoreTypes.Timestamp | null;
 };
 
@@ -96,7 +97,7 @@ export async function loadCandidates(
 }
 
 /**record like/pass */
-export async function swipe(me: string, target: string, dir: "like" | "pass") {
+export async function swipe(me: string, target: string, dir: SwipeAction) {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
   await setDoc(ref, { dir, createdAt: serverTimestamp() }, { merge: true });
 }
@@ -109,7 +110,7 @@ export async function ensureMatchIfMutualLike(me: string, target: string) {
 
   const data = back.exists() ? (back.data() as SwipeDoc) : undefined;
 
-  if (data?.dir === "like") {
+  if (data?.dir === SwipeAction.Like) {
     await createGroup([me, target]);
   }
 }
