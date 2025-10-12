@@ -1,12 +1,15 @@
+import { calculateAge } from "@/utils/date";
 import { getApp } from "@react-native-firebase/app";
 import {
   doc,
   getFirestore,
   onSnapshot,
+  Timestamp,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+
 
 const app = getApp();
 const db = getFirestore(app);
@@ -14,7 +17,7 @@ const db = getFirestore(app);
 type PreviewData = {
   id: string;
   name: string;
-  age?: number;
+  dob?: Timestamp | null;
   bio?: string;
   budget?: number;
   location?: string;
@@ -31,7 +34,7 @@ function mapDocToPreview(uid: string, d: any): PreviewData {
   return {
     id: uid,
     name: d?.name ?? "Unnamed",
-    ...(typeof d?.age === "number" ? { age: d.age } : {}),
+    ...(d?.dob ? { dob: d.dob } : {}),
     ...(d?.bio ? { bio: d.bio } : {}),
     ...(typeof d?.budget === "number" ? { budget: d.budget } : {}),
     ...(d?.location ? { location: d.location } : {}),
@@ -58,6 +61,7 @@ export default function ProfilePreview(props: Props) {
       live?.avatarUrl ? { uri: live.avatarUrl } : (live?.avatar ?? undefined),
     [live?.avatarUrl, live?.avatar],
   );
+  const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
 
   useEffect(() => {
     if (props.source !== "uid") return;
@@ -86,7 +90,7 @@ export default function ProfilePreview(props: Props) {
         )}
         <Text style={{ fontSize: 20, fontWeight: "700", marginTop: 10 }}>
           {live.name || "Unnamed"}
-          {live.age ? `, ${live.age}` : ""}
+          {age ? `, ${age}` : ""}
         </Text>
 
         {!!live.bio && (

@@ -14,6 +14,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   where,
 } from "@react-native-firebase/firestore";
 
@@ -24,7 +25,7 @@ type SwipeDoc = {
 
 type UserDoc = {
   name?: string;
-  age?: number;
+  dob?: Timestamp;
   bio?: string;
   budget?: number;
   location?: string;
@@ -87,7 +88,7 @@ export async function loadCandidates(
         const fm: Flatmate = {
           id: d.id,
           name: data.name ?? "",
-          age: data.age ?? null,
+          dob: data.dob ?? null,
           bio: data.bio ?? "",
           budget: data.budget ?? null,
           location: data.location ?? null,

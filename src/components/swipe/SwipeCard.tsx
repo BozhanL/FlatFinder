@@ -21,7 +21,7 @@ export default function SwipeCard({ item, onPress }: Props) {
         />
         <View style={{ padding: 14, gap: 6 }}>
           <Text style={{ fontSize: 20, fontWeight: "700" }}>
-            {item.name}, {item.age ? ` ${item.age}` : ""}
+            {item.name}, {item.dob ? ` ${item.dob}` : ""}
           </Text>
 
           <Text style={{ color: "#555" }}>
