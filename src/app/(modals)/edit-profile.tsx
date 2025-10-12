@@ -1,4 +1,5 @@
 import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
+import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
@@ -21,8 +22,8 @@ import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  FlatList,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -89,7 +90,18 @@ function dateStringToTimestamp(dateStr: string): Timestamp | null {
   return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
 }
 
+function normalizeTag(s: string) {
+  return String(s).toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
+}
+
 function toFirestorePayload(x: Draft) {
+  const rawTags = Array.isArray(x.tags) ? x.tags : [];
+  const normTags = uniq(rawTags.map(normalizeTag).filter(Boolean));
+
   return {
     name: x.name ?? null,
     dob: x.dob
@@ -100,7 +112,8 @@ function toFirestorePayload(x: Draft) {
     bio: x.bio ?? null,
     budget: x.budget ?? null,
     location: x.location ?? null,
-    tags: x.tags ?? [],
+    tags: rawTags,
+    tagsNormalized: normTags,
     avatarUrl: x.avatarUrl ?? null,
     lastActiveAt: serverTimestamp(),
   };
@@ -156,8 +169,21 @@ const draftSchema = yup.object({
     .max(100000, "Budget looks wrong"),
   location: yup.string().nullable().max(80, "Location too long"),
   bio: yup.string().nullable().max(400, "Bio up to 400 chars"),
-  tags: yup.array(yup.string().trim()).max(5, "Too many tags"),
+  tags: yup
+    .array()
+    .of(
+      yup
+        .string()
+        .transform((v) => normalizeTag(v))
+        .max(16, "Tag too long")
+        .matches(
+          /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
+          "Only letters, numbers, space"
+        )
+    )
+    .max(5, "Too many tags"),
 });
+
 /* -------------------------------------------- */
 
 export default function EditProfileModal() {
@@ -294,134 +320,133 @@ export default function EditProfileModal() {
       </View>
 
       {tab === Tab.Edit ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
-          {/* Photos */}
-          <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-            <Text style={{ fontSize: 16, fontWeight: "700" }}>
-              Photos{" "}
-              <Text style={{ fontSize: 12, color: "#777" }}>
-                (Maximum of 3)
+        <FlatList 
+        data={[0]}                 // 伪数据撑起列表
+        keyExtractor={() => "form"}
+        renderItem={null as any}   // 不渲染行
+      ListHeaderComponent={
+        (
+          <>
+            {/* Photos */}
+            <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+              <Text style={{ fontSize: 16, fontWeight: "700" }}>
+                Photos{" "}
+                <Text style={{ fontSize: 12, color: "#777" }}>
+                  (Maximum of 3)
+                </Text>
               </Text>
-            </Text>
 
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 16,
-                marginTop: 12,
-              }}
-            >
-              <TouchableOpacity activeOpacity={0.8}>
-                <Image source={avatarSource as any} style={styles.bigAvatar} />
-              </TouchableOpacity>
-
-              <View style={{ gap: 12 }}>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  <CircleThumb uri={photos[1] ?? ""} onPress={() => {}} />
-                  <CircleThumb uri={photos[2] ?? ""} onPress={() => {}} />
-                </View>
-                <TouchableOpacity
-                  style={styles.addCircle}
-                  onPress={() => {}}
-                  activeOpacity={0.8}
-                >
-                  <MaterialCommunityIcons name="plus" size={22} color="#555" />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 16,
+                  marginTop: 12,
+                }}
+              >
+                <TouchableOpacity activeOpacity={0.8}>
+                  <Image source={avatarSource as any} style={styles.bigAvatar} />
                 </TouchableOpacity>
+
+                <View style={{ gap: 12 }}>
+                  <View style={{ flexDirection: "row", gap: 12 }}>
+                    <CircleThumb uri={photos[1] ?? ""} onPress={() => {}} />
+                    <CircleThumb uri={photos[2] ?? ""} onPress={() => {}} />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.addCircle}
+                    onPress={() => {}}
+                    activeOpacity={0.8}
+                  >
+                    <MaterialCommunityIcons name="plus" size={22} color="#555" />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* About me */}
-          <View style={{ marginTop: 20 }}>
-            <Text style={styles.sectionTitle}>About me</Text>
+            {/* About me */}
+            <View style={{ marginTop: 20 }}>
+              <Text style={styles.sectionTitle}>About me</Text>
 
-            {/* Username */}
-            <FieldInput
-              label="Username"
-              value={form.name ?? ""}
-              placeholder="yourname"
-              onChangeText={(t) => setForm((p) => ({ ...p!, name: t.trim() }))}
-            />
-            {/* Date of Birth */}
-            <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-              <Text
-                style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
-              >
-                Date of Birth
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => setDobPickerOpen(true)}
-                activeOpacity={0.8}
-                style={styles.input}
-              >
-                <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                  {dobDisplay || "DD-MM-YYYY"}
+              {/* Username */}
+              <FieldInput
+                label="Username"
+                value={form.name ?? ""}
+                placeholder="yourname"
+                onChangeText={(t) => setForm((p) => ({ ...p!, name: t.trim() }))}
+              />
+              {/* Date of Birth */}
+              <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                <Text
+                  style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
+                >
+                  Date of Birth
                 </Text>
-              </TouchableOpacity>
 
-              <DateTimePickerModal
-                isVisible={dobPickerOpen}
-                mode="date"
-                date={dobInitialDate}
-                maximumDate={new Date()}
-                minimumDate={new Date(1900, 0, 1)}
-                onConfirm={(date) => {
-                  const str = formatDDMMYYYY(date);
-                  setForm((p) => ({ ...p!, dob: str }));
-                  setDobPickerOpen(false);
-                }}
-                onCancel={() => setDobPickerOpen(false)}
+                <TouchableOpacity
+                  onPress={() => setDobPickerOpen(true)}
+                  activeOpacity={0.8}
+                  style={styles.input}
+                >
+                  <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                    {dobDisplay || "DD-MM-YYYY"}
+                  </Text>
+                </TouchableOpacity>
+
+                <DateTimePickerModal
+                  isVisible={dobPickerOpen}
+                  mode="date"
+                  date={dobInitialDate}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  onConfirm={(date) => {
+                    const str = formatDDMMYYYY(date);
+                    setForm((p) => ({ ...p!, dob: str }));
+                    setDobPickerOpen(false);
+                  }}
+                  onCancel={() => setDobPickerOpen(false)}
+                />
+              </View>
+
+              {/* Budget */}
+              <FieldInput
+                label="Budget"
+                value={form.budget != null ? String(form.budget) : ""}
+                onChangeText={(t) =>
+                  setForm((p) => ({
+                    ...p!,
+                    budget: t.trim() ? Number(t) : null,
+                  }))
+                }
+                keyboardType="numeric"
+              />
+
+              {/* Preferred Location */}
+              <NZLocationPickerField
+                value={form.location ?? ""}
+                onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
+              />
+
+              {/* Tag */}
+              <TagInputField
+                value={form.tags ?? []}
+                onChange={(tags) => setForm((p) => ({ ...p!, tags }))}
+              />
+
+              {/* Bio */}
+              <FieldInput
+                label="Bio"
+                placeholder="Tell the world about YOU.."
+                value={form.bio ?? ""}
+                onChangeText={(t) => setForm((p) => ({ ...p!, bio: t }))}
+                multiline
               />
             </View>
-
-            {/* Budget */}
-            <FieldInput
-              label="Budget"
-              value={form.budget != null ? String(form.budget) : ""}
-              onChangeText={(t) =>
-                setForm((p) => ({
-                  ...p!,
-                  budget: t.trim() ? Number(t) : null,
-                }))
-              }
-              keyboardType="numeric"
-            />
-
-            {/* Preferred Location */}
-            <NZLocationPickerField
-              value={form.location ?? ""}
-              onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
-            />
-
-            {/* Tag */}
-            <FieldInput
-              label="Tag"
-              value={(form.tags ?? []).join(", ")}
-              placeholder="e.g. student, cat lover"
-              onChangeText={(t) =>
-                setForm((p) => ({
-                  ...p!,
-                  tags: t
-                    .split(",")
-                    .map((x) => x.trim())
-                    .filter(Boolean),
-                }))
-              }
-            />
-
-            {/* Bio */}
-            <FieldInput
-              label="Bio"
-              placeholder="Tell the world about YOU.."
-              value={form.bio ?? ""}
-              onChangeText={(t) => setForm((p) => ({ ...p!, bio: t }))}
-              multiline
-            />
-          </View>
-        </ScrollView>
-      ) : (
+          </>
+        )
+      }
+        
+      />) : (
         <ProfilePreview
           source="data"
           data={{
