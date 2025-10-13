@@ -93,8 +93,6 @@ jest.mock("react-native-modal-datetime-picker", () => {
 });
 
 jest.mock("@/components/profile/BudgetField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockBudget = (props: { onChange?: (n: number) => void }) =>
     jest
       .requireActual("react")
