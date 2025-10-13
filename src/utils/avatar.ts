@@ -1,6 +1,3 @@
-/* istanbul ignore file */
-// This file contains only type definitions.
-// No need to test it in unit tests.
 import type { ImageRequireSource } from "react-native";
 
 const DEFAULT_AVATAR =

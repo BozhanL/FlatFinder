@@ -1,5 +1,4 @@
 /* istanbul ignore file */
-// This file contains only type definitions.
 // No need to test it in unit tests.
 import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";

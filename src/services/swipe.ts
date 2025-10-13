@@ -59,6 +59,8 @@ export async function loadCandidates(
   const swiped = await fetchSwipedSet(uid);
 
   const users = collection(getFirestore(), "users");
+  // Query constraints type not working well, use any[] instead
+  // https://github.com/invertase/react-native-firebase/issues/8611
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const constraints: any[] = [];
 
