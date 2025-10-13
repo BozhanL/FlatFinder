@@ -1,66 +1,53 @@
-/* istanbul ignore file */
-// This file contains only type definitions.
-// No need to test it in unit tests.
 import { Timestamp } from "@react-native-firebase/firestore";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
+
+function toDayjs(
+  d: Timestamp | string | Date | null | undefined,
+): dayjs.Dayjs | null {
+  if (!d) return null;
+  if (d instanceof Timestamp) return dayjs(d.toDate());
+  if (d instanceof Date) return dayjs(d);
+  if (typeof d === "string") return dayjs(d);
+  return null;
+}
 
 export function calculateAge(
   dob: Timestamp | string | null | undefined,
 ): number | undefined {
-  if (!dob) return undefined;
+  const b = toDayjs(dob);
+  if (!b?.isValid()) return undefined;
 
-  let birthDate: Date;
-
-  if (dob instanceof Timestamp) {
-    birthDate = dob.toDate();
-  } else if (typeof dob === "string") {
-    birthDate = new Date(dob);
-  } else {
-    return undefined;
-  }
-
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-
+  const today = dayjs();
+  let age = today.year() - b.year();
   if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    today.month() < b.month() ||
+    (today.month() === b.month() && today.date() < b.date())
   ) {
     age--;
   }
-
   return age;
 }
 
 export function formatDOB(dob: Timestamp | Date | string): string {
-  let date: Date;
+  const d =
+    dob instanceof Timestamp
+      ? dayjs(dob.toDate())
+      : dob instanceof Date
+        ? dayjs(dob)
+        : dayjs(dob);
 
-  if (dob instanceof Timestamp) {
-    date = dob.toDate();
-  } else if (dob instanceof Date) {
-    date = dob;
-  } else {
-    date = new Date(dob);
-  }
-
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return d.isValid() ? d.format("MMMM D, YYYY") : "";
 }
 
-export const formatDDMMYYYY = (d: Date): string => {
-  const pad = (n: number): string => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
-};
+export function formatDDMMYYYY(d: Date): string {
+  const dj = dayjs(d);
+  return dj.isValid() ? dj.format("DD-MM-YYYY") : "";
+}
 
-export const parseDDMMYYYY = (s: string): Date | null => {
-  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s);
-  if (!m) return null;
-  const day = Number(m[1]),
-    month = Number(m[2]),
-    year = Number(m[3]);
-  const dt = new Date(year, month - 1, day);
-  return isNaN(dt.getTime()) ? null : dt;
-};
+export function parseDDMMYYYY(s: string): Date | null {
+  const d = dayjs(s, "DD-MM-YYYY", true);
+  return d.isValid() ? d.toDate() : null;
+}

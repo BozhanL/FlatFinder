@@ -209,7 +209,6 @@ describe("swipe", () => {
   it("writes dir and createdAt to user swipes doc", async () => {
     serverTimestampMock.mockReturnValueOnce({ __server_ts: true });
     await swipeSvc.swipe("me", "target", SwipeAction.Like);
-    await swipeSvc.swipe("me", "target", SwipeAction.Like);
 
     expect(docMock).toHaveBeenCalledWith(
       expect.anything(),

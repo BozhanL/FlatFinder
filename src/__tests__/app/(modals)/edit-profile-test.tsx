@@ -71,8 +71,6 @@ jest.mock("@react-native-firebase/firestore", () => {
 });
 
 jest.mock("react-native-modal-datetime-picker", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockPicker = (props: {
     onConfirm?: (d: Date) => void;
     onCancel?: () => void;
@@ -95,8 +93,6 @@ jest.mock("react-native-modal-datetime-picker", () => {
 });
 
 jest.mock("@/components/profile/BudgetField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockBudget = (props: { onChange?: (n: number) => void }) =>
     jest
       .requireActual("react")
@@ -115,8 +111,6 @@ jest.mock("@/components/profile/BudgetField", () => {
 });
 
 jest.mock("@/components/profile/NZLocationPickerField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockLoc = (props: { onChange?: (loc: string) => void }) =>
     jest.requireActual("react").createElement(
       jest.requireActual("react-native").TouchableOpacity,
@@ -136,8 +130,6 @@ jest.mock("@/components/profile/NZLocationPickerField", () => {
 });
 
 jest.mock("@/components/profile/TagInputField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockTags = (props: { onChange?: (tags: string[]) => void }) =>
     jest.requireActual("react").createElement(
       jest.requireActual("react-native").TouchableOpacity,
@@ -157,7 +149,6 @@ jest.mock("@/components/profile/TagInputField", () => {
 });
 
 jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
-  jest.requireActual("react");
   return function Icon(): React.ReactElement | null {
     return jest
       .requireActual("react")
@@ -166,7 +157,6 @@ jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
 });
 
 jest.mock("@/components/ProfilePreview", () => {
-  jest.requireActual("react");
   return function PP(): React.ReactElement | null {
     return jest
       .requireActual("react")

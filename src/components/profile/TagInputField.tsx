@@ -1,6 +1,3 @@
-/* istanbul ignore file */
-// This file contains only type definitions.
-// No need to test it in unit tests.
 import React, { useMemo, useRef, useState, type JSX } from "react";
 import {
   FlatList,
@@ -122,6 +119,7 @@ export default function TagInputField({
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"
+              testID="TagInputField-input"
             />
           )}
         </View>
