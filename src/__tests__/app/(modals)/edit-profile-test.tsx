@@ -71,8 +71,6 @@ jest.mock("@react-native-firebase/firestore", () => {
 });
 
 jest.mock("react-native-modal-datetime-picker", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockPicker = (props: {
     onConfirm?: (d: Date) => void;
     onCancel?: () => void;
