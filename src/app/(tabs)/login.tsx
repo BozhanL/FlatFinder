@@ -59,7 +59,9 @@ export default function ProfileScreen(): JSX.Element {
       <Button title="Create Group" onPress={() => void handleCreateGroup()} />
       <Button
         title="Blocked Users"
-        onPress={() => router.push("/blocked-list")}
+        onPress={() => {
+          router.push("/blocked-list");
+        }}
       />
       <Text>UID: {user.uid}</Text>
       <Text>Email: {user.email}</Text>

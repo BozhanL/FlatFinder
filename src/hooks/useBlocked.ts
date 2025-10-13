@@ -1,3 +1,7 @@
+/* istanbul ignore file */
+// This file mainly contains code for IO, and unable to be tested in unit tests.
+// react-native-firebase does not work in jest unit test environment.
+// Mocking it is possible, but it may not represent real world situation.
 import type { SwipeDoc } from "@/types/SwipeDoc";
 import {
   collection,
@@ -10,7 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import useUser from "./useUser";
 
-export default function useBlocked() {
+export default function useBlocked(): SwipeDoc[] {
   const user = useUser();
   const [blocked, setBlocked] = useState<SwipeDoc[]>([]);
 
