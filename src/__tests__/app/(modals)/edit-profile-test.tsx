@@ -130,8 +130,6 @@ jest.mock("@/components/profile/NZLocationPickerField", () => {
 });
 
 jest.mock("@/components/profile/TagInputField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockTags = (props: { onChange?: (tags: string[]) => void }) =>
     jest.requireActual("react").createElement(
       jest.requireActual("react-native").TouchableOpacity,
