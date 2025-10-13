@@ -4,7 +4,9 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 
 dayjs.extend(customParseFormat);
 
-function toDayjs(d: Timestamp | string | Date | null | undefined): dayjs.Dayjs | null {
+function toDayjs(
+  d: Timestamp | string | Date | null | undefined,
+): dayjs.Dayjs | null {
   if (!d) return null;
   if (d instanceof Timestamp) return dayjs(d.toDate());
   if (d instanceof Date) return dayjs(d);
