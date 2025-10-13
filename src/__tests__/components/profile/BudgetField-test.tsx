@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  render,
-  screen,
-  fireEvent,
-} from "@testing-library/react-native";
+import { render, screen, fireEvent } from "@testing-library/react-native";
 import BudgetField from "@/components/profile/BudgetField";
 
 jest.mock("@react-native-community/slider", () => {
@@ -15,8 +11,7 @@ jest.mock("@react-native-community/slider", () => {
     step?: number;
     onValueChange?: (v: number) => void;
   }) {
-    const next =
-      (props.value ?? props.minimumValue ?? 0) + (props.step ?? 1);
+    const next = (props.value ?? props.minimumValue ?? 0) + (props.step ?? 1);
     return ReactReq.createElement(
       RN.TouchableOpacity,
       {
@@ -30,7 +25,7 @@ jest.mock("@react-native-community/slider", () => {
 });
 
 describe("BudgetField", () => {
-it("displays weekly amount (Per week) by default and formats it", () => {
+  it("displays weekly amount (Per week) by default and formats it", () => {
     const onChange = jest.fn();
     render(<BudgetField value={250} onChange={onChange} />);
 
@@ -40,9 +35,9 @@ it("displays weekly amount (Per week) by default and formats it", () => {
     // Input field shows $250 (localized: $250)
     const input = screen.getByPlaceholderText("e.g. $250");
     expect(input.props.value).toBe("$250");
-});
+  });
 
-it("switches to Per month and displays the converted and rounded value", () => {
+  it("switches to Per month and displays the converted and rounded value", () => {
     const onChange = jest.fn();
     render(<BudgetField value={260} onChange={onChange} />);
 
@@ -55,9 +50,9 @@ it("switches to Per month and displays the converted and rounded value", () => {
     // 260 * 52 / 12 = 1126.66… -> 1127 -> $1,127
     const input = screen.getByPlaceholderText("e.g. $1,200");
     expect(input.props.value).toBe("$1,127");
-});
+  });
 
-it("clicking preset buttons sets the corresponding value", () => {
+  it("clicking preset buttons sets the corresponding value", () => {
     const onChange = jest.fn();
     render(<BudgetField value={null} onChange={onChange} />);
 
@@ -66,17 +61,23 @@ it("clicking preset buttons sets the corresponding value", () => {
 
     fireEvent.press(screen.getByText("$400"));
     expect(onChange).toHaveBeenCalledWith(400);
-});
+  });
 
-it("decrement/increment buttons adjust by step and clamp/roundStep", () => {
+  it("decrement/increment buttons adjust by step and clamp/roundStep", () => {
     function Harness() {
-        const [v, setV] = React.useState<number>(200);
-        const handleChange = (n: number | null) => {
-            if (typeof n === "number") setV(n);
-        };
-        return (
-            <BudgetField value={v} onChange={handleChange} step={10} min={50} max={220} />
-        );
+      const [v, setV] = React.useState<number>(200);
+      const handleChange = (n: number | null) => {
+        if (typeof n === "number") setV(n);
+      };
+      return (
+        <BudgetField
+          value={v}
+          onChange={handleChange}
+          step={10}
+          min={50}
+          max={220}
+        />
+      );
     }
 
     render(<Harness />);
@@ -92,7 +93,7 @@ it("decrement/increment buttons adjust by step and clamp/roundStep", () => {
     // Check if the input field displays 220
     const input = screen.getByPlaceholderText("e.g. $250");
     expect(input.props.value).toBe("$220");
-});
+  });
 
   it("input onEndEditing: parses value in weekly mode and calls back", () => {
     const onChange = jest.fn();
