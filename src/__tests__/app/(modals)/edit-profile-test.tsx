@@ -158,7 +158,6 @@ jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
 });
 
 jest.mock("@/components/ProfilePreview", () => {
-  jest.requireActual("react");
   return function PP(): React.ReactElement | null {
     return jest
       .requireActual("react")
