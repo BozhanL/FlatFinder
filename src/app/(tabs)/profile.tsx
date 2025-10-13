@@ -142,7 +142,7 @@ export default function Profile(): JSX.Element {
             }}
           >
             <Text style={{ fontSize: 20, fontWeight: "700" }}>
-              {profile.name+', '}
+              {profile.name + ", "}
               {profile.dob ? calculateAge(profile.dob) : ""}
             </Text>
             <MaterialCommunityIcons
