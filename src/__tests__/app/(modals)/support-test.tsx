@@ -4,7 +4,6 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import React from "react";
 import { Alert } from "react-native";
 
 // The jest.mock statements above will be hoisted to the top, so now import the component under test and the exported router/mock.
