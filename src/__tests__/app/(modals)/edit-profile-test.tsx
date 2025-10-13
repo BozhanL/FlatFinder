@@ -149,7 +149,6 @@ jest.mock("@/components/profile/TagInputField", () => {
 });
 
 jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
-  jest.requireActual("react");
   return function Icon(): React.ReactElement | null {
     return jest
       .requireActual("react")
