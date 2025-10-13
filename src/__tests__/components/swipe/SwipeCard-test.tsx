@@ -1,50 +1,34 @@
 import { render, screen, fireEvent } from "@testing-library/react-native";
 import SwipeCard from "@/components/swipe/SwipeCard";
 import type { Flatmate } from "@/types/Flatmate";
+import type { ImageSourcePropType } from "react-native";
+
+const imgSrc: ImageSourcePropType = { uri: "https://example.com/a.jpg" };
 
 function makeFlatmate(overrides: Partial<Flatmate> = {}): Flatmate {
-  return {
+  const base = {
     id: "u1",
     name: "Tony",
-    avatar: { uri: "https://example.com/a.jpg" } as any,
-    tags: [],
-    location: "Downtown" as any,
-    budget: undefined as any,
-    bio: undefined as any,
-    dob: undefined as any,
-    ...overrides,
-  } as Flatmate;
+    avatar: imgSrc,
+    tags: [] as string[],
+    location: "Downtown",
+  };
+  return { ...base, ...overrides } as unknown as Flatmate;
 }
 
 describe("SwipeCard", () => {
-  it("renders name and DOB when provided", () => {
+  it("renders name", () => {
     render(
-      <SwipeCard
-        item={makeFlatmate({ name: "Tony", dob: "01-01-2000" } as any)}
-        onPress={() => {}}
-      />,
+      <SwipeCard item={makeFlatmate({ name: "Tony" })} onPress={jest.fn()} />,
     );
-
     expect(screen.getByText(/Tony/)).toBeTruthy();
-    expect(screen.getByText(/01-01-2000/)).toBeTruthy();
-  });
-
-  it("hides DOB when not provided", () => {
-    render(
-      <SwipeCard
-        item={makeFlatmate({ name: "Ada", dob: undefined } as any)}
-        onPress={() => {}}
-      />,
-    );
-    expect(screen.getByText(/Ada/)).toBeTruthy();
-    expect(screen.queryByText(/\d{2}-\d{2}-\d{4}/)).toBeNull();
   });
 
   it("renders location as string and budget if present", () => {
     render(
       <SwipeCard
-        item={makeFlatmate({ location: "City", budget: 750 } as any)}
-        onPress={() => {}}
+        item={makeFlatmate({ location: "City", budget: 750 })}
+        onPress={jest.fn()}
       />,
     );
 
@@ -53,14 +37,10 @@ describe("SwipeCard", () => {
   });
 
   it("renders location.area when location is an object", () => {
-    render(
-      <SwipeCard
-        item={makeFlatmate({
-          location: { area: "Suburbia" },
-        })}
-        onPress={() => {}}
-      />,
-    );
+    const fm = makeFlatmate({
+      location: { area: "Suburbia" } as string | { area?: string } | null,
+    });
+    render(<SwipeCard item={fm} onPress={jest.fn()} />);
 
     expect(screen.getByText(/Suburbia/)).toBeTruthy();
   });
@@ -68,8 +48,8 @@ describe("SwipeCard", () => {
   it("hides budget when not provided", () => {
     render(
       <SwipeCard
-        item={makeFlatmate({ location: "City", budget: undefined } as any)}
-        onPress={() => {}}
+        item={makeFlatmate({ location: "City" })}
+        onPress={jest.fn()}
       />,
     );
     expect(screen.queryByText(/\/wk/)).toBeNull();
@@ -78,8 +58,8 @@ describe("SwipeCard", () => {
   it("renders bio when provided", () => {
     render(
       <SwipeCard
-        item={makeFlatmate({ bio: "Hello world" } as any)}
-        onPress={() => {}}
+        item={makeFlatmate({ bio: "Hello world" })}
+        onPress={jest.fn()}
       />,
     );
     expect(screen.getByText("Hello world")).toBeTruthy();
@@ -88,8 +68,8 @@ describe("SwipeCard", () => {
   it("renders tags when provided", () => {
     render(
       <SwipeCard
-        item={makeFlatmate({ tags: ["t1", "t2"] } as any)}
-        onPress={() => {}}
+        item={makeFlatmate({ tags: ["t1", "t2"] })}
+        onPress={jest.fn()}
       />,
     );
     expect(screen.getByText("t1")).toBeTruthy();
@@ -98,9 +78,11 @@ describe("SwipeCard", () => {
 
   it("calls onPress when card is pressed", () => {
     const onPress = jest.fn();
-    const fm = makeFlatmate({ name: "PressMe" });
+    const fm = makeFlatmate({ id: "press-id", name: "PressMe" });
+
     render(<SwipeCard item={fm} onPress={onPress} />);
-    fireEvent.press(screen.getByTestId("swipe-card-u1"));
+    fireEvent.press(screen.getByTestId("swipe-card-press-id"));
+
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

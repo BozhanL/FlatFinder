@@ -82,14 +82,14 @@ export default function SwipeDeck({
     [translateX, translateY, commitSwipe],
   );
 
-  function fling(dir: 1 | -1) {
+  function fling(dir: 1 | -1): void {
     if (!top) return;
     translateX.value = withTiming(
       dir * SCREEN_W * 1.2,
       { duration: 180 },
       () => {
         runOnJS(commitSwipe)(dir);
-      }
+      },
     );
   }
 
@@ -171,7 +171,9 @@ export default function SwipeDeck({
         <TouchableOpacity
           // IMPROVE: Use enum instead of number @G2CCC
           testID="btn-nope"
-          onPress={() => fling(-1)}
+          onPress={() => {
+            fling(-1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
         >
@@ -180,7 +182,9 @@ export default function SwipeDeck({
 
         <TouchableOpacity
           testID="btn-like"
-          onPress={() => fling(1)}
+          onPress={() => {
+            fling(1);
+          }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}
         >

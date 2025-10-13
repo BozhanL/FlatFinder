@@ -3,14 +3,15 @@
 // No need to test it in unit tests.
 import type { ImageRequireSource } from "react-native";
 
-const DEFAULT_AVATAR: ImageRequireSource = require("assets/images/dummy1.png");
+const DEFAULT_AVATAR =
+  require("assets/images/dummy1.png") as ImageRequireSource;
 
 export const AVATARS = [
-  require("assets/images/dummy1.png"),
-  require("assets/images/dummy2.png"),
-  require("assets/images/dummy3.png"),
-  require("assets/images/dummy4.png"),
-];
+  require("assets/images/dummy1.png") as ImageRequireSource,
+  require("assets/images/dummy2.png") as ImageRequireSource,
+  require("assets/images/dummy3.png") as ImageRequireSource,
+  require("assets/images/dummy4.png") as ImageRequireSource,
+] as const satisfies readonly ImageRequireSource[];
 
 function hash(s: string): number {
   let h = 0;
@@ -19,5 +20,6 @@ function hash(s: string): number {
 }
 
 export function pickAvatarFor(uid: string): ImageRequireSource {
-  return AVATARS[hash(uid) % AVATARS.length] ?? DEFAULT_AVATAR;
+  const idx = hash(uid) % AVATARS.length;
+  return AVATARS[idx] ?? DEFAULT_AVATAR;
 }

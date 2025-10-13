@@ -1,17 +1,33 @@
+import EditProfileModal from "@/app/(modals)/edit-profile";
 import {
+  fireEvent,
   render,
   screen,
   waitFor,
-  fireEvent,
 } from "@testing-library/react-native";
-import EditProfileModal from "@/app/(modals)/edit-profile";
+import type { Router } from "expo-router";
 import * as routerMod from "expo-router";
 import { Alert } from "react-native";
 
-jest.spyOn(routerMod, "router", "get").mockReturnValue({
+type FirestoreDocRef = Record<string, unknown>;
+type GetDocResult = { data: () => Record<string, unknown> };
+type GetDocsResult = { docs: { id: string }[] };
+
+const mockRouter = {
   back: jest.fn(),
   replace: jest.fn(),
-} as any);
+  canGoBack: jest.fn(() => true),
+  push: jest.fn(),
+  navigate: jest.fn(),
+  dismiss: jest.fn(),
+  setParams: jest.fn(),
+  prefetch: jest.fn(),
+  reload: jest.fn(),
+} satisfies Partial<Router>;
+
+jest
+  .spyOn(routerMod, "router", "get")
+  .mockReturnValue(mockRouter as unknown as Router);
 
 jest.mock("@react-native-firebase/app", () => ({
   getApp: jest.fn(() => ({})),
@@ -27,11 +43,11 @@ jest.mock("@react-native-firebase/firestore", () => {
     constructor(d: Date) {
       this._d = d;
     }
-    toDate() {
+    toDate(): Date {
       return this._d;
     }
-    static fromDate(d: Date) {
-      return new MockTimestamp(d) as any;
+    static fromDate(d: Date): MockTimestamp {
+      return new MockTimestamp(d);
     }
   }
 
@@ -44,8 +60,8 @@ jest.mock("@react-native-firebase/firestore", () => {
     collection: jest.fn((_db: unknown, col: string) => ({ __col: col })),
     where: jest.fn((f: string, op: string, v: unknown) => ({ f, op, v })),
     query: jest.fn((...args: unknown[]) => args),
-    getDoc: jest.fn(),
-    getDocs: jest.fn(),
+    getDoc: jest.fn<Promise<GetDocResult>, []>(),
+    getDocs: jest.fn<Promise<GetDocsResult>, []>(),
     setDoc: jest.fn(),
     serverTimestamp: jest.fn(() => ({ __sv: "now" })),
     Timestamp: MockTimestamp,
@@ -55,112 +71,143 @@ jest.mock("@react-native-firebase/firestore", () => {
 });
 
 jest.mock("react-native-modal-datetime-picker", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
-  const MockPicker = (props: any) =>
-    ReactReq.createElement(
-      RN.TouchableOpacity,
+  jest.requireActual("react");
+  jest.requireActual("react-native");
+  const MockPicker = (props: {
+    onConfirm?: (d: Date) => void;
+    onCancel?: () => void;
+  }) =>
+    jest.requireActual("react").createElement(
+      jest.requireActual("react-native").TouchableOpacity,
       {
         testID: "dob-confirm",
-        onPress: () => props.onConfirm?.(new Date(2001, 0, 3)), // 03-01-2001
+        onPress: () => props.onConfirm?.(new Date(2001, 0, 3)),
       },
-      ReactReq.createElement(RN.Text, null, "Confirm"),
+      jest
+        .requireActual("react")
+        .createElement(
+          jest.requireActual("react-native").Text,
+          null,
+          "Confirm",
+        ),
     );
   return MockPicker;
 });
 
 jest.mock("@/components/profile/BudgetField", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
-  const MockBudget = (props: any) =>
-    ReactReq.createElement(
-      RN.TouchableOpacity,
-      { testID: "budget-set-250", onPress: () => props.onChange?.(250) },
-      ReactReq.createElement(RN.Text, null, "budget 250"),
-    );
+  jest.requireActual("react");
+  jest.requireActual("react-native");
+  const MockBudget = (props: { onChange?: (n: number) => void }) =>
+    jest
+      .requireActual("react")
+      .createElement(
+        jest.requireActual("react-native").TouchableOpacity,
+        { testID: "budget-set-250", onPress: () => props.onChange?.(250) },
+        jest
+          .requireActual("react")
+          .createElement(
+            jest.requireActual("react-native").Text,
+            null,
+            "budget 250",
+          ),
+      );
   return MockBudget;
 });
 
 jest.mock("@/components/profile/NZLocationPickerField", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
-  const MockLoc = (props: any) =>
-    ReactReq.createElement(
-      RN.TouchableOpacity,
+  jest.requireActual("react");
+  jest.requireActual("react-native");
+  const MockLoc = (props: { onChange?: (loc: string) => void }) =>
+    jest.requireActual("react").createElement(
+      jest.requireActual("react-native").TouchableOpacity,
       {
         testID: "loc-set-auckland",
         onPress: () => props.onChange?.("Auckland"),
       },
-      ReactReq.createElement(RN.Text, null, "set Auckland"),
+      jest
+        .requireActual("react")
+        .createElement(
+          jest.requireActual("react-native").Text,
+          null,
+          "set Auckland",
+        ),
     );
   return MockLoc;
 });
 
 jest.mock("@/components/profile/TagInputField", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RN = require("react-native");
-  const MockTags = (props: any) =>
-    ReactReq.createElement(
-      RN.TouchableOpacity,
+  jest.requireActual("react");
+  jest.requireActual("react-native");
+  const MockTags = (props: { onChange?: (tags: string[]) => void }) =>
+    jest.requireActual("react").createElement(
+      jest.requireActual("react-native").TouchableOpacity,
       {
         testID: "tags-set",
         onPress: () => props.onChange?.(["Student", "cat  lover"]),
       },
-      ReactReq.createElement(RN.Text, null, "set tags"),
+      jest
+        .requireActual("react")
+        .createElement(
+          jest.requireActual("react-native").Text,
+          null,
+          "set tags",
+        ),
     );
   return MockTags;
 });
 
 jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  return function Icon() {
-    return ReactReq.createElement(ReactReq.Fragment, null);
+  jest.requireActual("react");
+  return function Icon(): React.ReactElement | null {
+    return jest
+      .requireActual("react")
+      .createElement(jest.requireActual("react").Fragment, null);
   };
 });
 
 jest.mock("@/components/ProfilePreview", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactReq = require("react");
-  return function PP() {
-    return ReactReq.createElement(ReactReq.Fragment, null);
+  jest.requireActual("react");
+  return function PP(): React.ReactElement | null {
+    return jest
+      .requireActual("react")
+      .createElement(jest.requireActual("react").Fragment, null);
   };
 });
 
 jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const fsMock = require("@react-native-firebase/firestore") as jest.Mocked<{
+const fsMock = require("@react-native-firebase/firestore") as {
   getFirestore: (app?: unknown) => unknown;
-  doc: (...args: any[]) => any;
-  collection: (...args: any[]) => any;
-  where: (...args: any[]) => any;
-  query: (...args: any[]) => any;
-  getDoc: jest.Mock;
-  getDocs: jest.Mock;
+  doc: (...args: unknown[]) => FirestoreDocRef;
+  collection: (...args: unknown[]) => FirestoreDocRef;
+  where: (
+    f: string,
+    op: string,
+    v: unknown,
+  ) => { f: string; op: string; v: unknown };
+  query: (...args: unknown[]) => unknown[];
+  getDoc: jest.Mock<Promise<GetDocResult>, []>;
+  getDocs: jest.Mock<Promise<GetDocsResult>, []>;
   setDoc: jest.Mock;
   serverTimestamp: jest.Mock;
-  Timestamp: any;
-}>;
+  Timestamp: new (d: Date) => { toDate: () => Date };
+};
 
-function primeGetDoc(data: unknown) {
-  fsMock.getDoc.mockResolvedValueOnce({ data: () => data } as any);
+function primeGetDoc(data: Record<string, unknown>): void {
+  fsMock.getDoc.mockResolvedValueOnce({ data: () => data });
 }
-function primeUsernameTaken(taken: boolean) {
-  if (taken)
-    fsMock.getDocs.mockResolvedValue({ docs: [{ id: "other" }] } as any);
-  else fsMock.getDocs.mockResolvedValue({ docs: [] } as any);
+function primeUsernameTaken(taken: boolean): void {
+  if (taken) {
+    fsMock.getDocs.mockResolvedValue(
+      Promise.resolve({ docs: [{ id: "other" }] }),
+    );
+  } else {
+    fsMock.getDocs.mockResolvedValue(Promise.resolve({ docs: [] }));
+  }
 }
 
-afterEach(() => {
+afterEach((): void => {
   jest.clearAllMocks();
 });
 
@@ -189,20 +236,29 @@ describe("EditProfileModal", () => {
     fireEvent.press(screen.getByTestId("tags-set"));
     fireEvent.press(screen.getByText("Save"));
 
-    await waitFor(() => expect(fsMock.setDoc).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(fsMock.setDoc).toHaveBeenCalled();
+    });
 
-    const call = fsMock.setDoc.mock.calls[0];
+    const call = fsMock.setDoc.mock.calls[0] as [
+      unknown,
+      Record<string, unknown>,
+      Record<string, unknown>,
+    ];
     const payload = call[1];
     const opts = call[2];
 
     expect(opts).toEqual({ merge: true });
-    expect(payload.name).toBe("my_name");
-    expect(typeof payload.dob?.toDate).toBe("function");
-    expect(payload.budget).toBe(250);
-    expect(payload.location).toBe("Auckland");
-    expect(payload.tags).toEqual(["Student", "cat  lover"]);
-    expect(payload.tagsNormalized).toEqual(["student", "cat lover"]);
-    expect(payload.lastActiveAt).toEqual({ __sv: "now" });
+    expect(payload["name"]).toBe("my_name");
+    expect(
+      typeof (payload["dob"] as { toDate: () => Date } | null | undefined)
+        ?.toDate,
+    ).toBe("function");
+    expect(payload["budget"]).toBe(250);
+    expect(payload["location"]).toBe("Auckland");
+    expect(payload["tags"]).toEqual(["Student", "cat  lover"]);
+    expect(payload["tagsNormalized"]).toEqual(["student", "cat lover"]);
+    expect(payload["lastActiveAt"]).toEqual({ __sv: "now" });
   });
 
   it("blocks saving when username is taken", async () => {
@@ -216,12 +272,12 @@ describe("EditProfileModal", () => {
     fireEvent.changeText(screen.getByPlaceholderText("yourname"), "dup");
     fireEvent.press(screen.getByText("Save"));
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Username taken",
         "Try another one.",
-      ),
-    );
+      );
+    });
     expect(fsMock.setDoc).not.toHaveBeenCalled();
   });
 
@@ -236,14 +292,14 @@ describe("EditProfileModal", () => {
     fireEvent.changeText(screen.getByPlaceholderText("yourname"), "");
     fireEvent.press(screen.getByText("Save"));
 
-    await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalled();
+    });
 
-    const last = (Alert.alert as unknown as jest.Mock).mock.calls.at(-1) as [
-      string,
-      string,
-    ];
+    const calls = (Alert.alert as unknown as jest.Mock).mock.calls;
+    const last = calls.at(-1) as [string, string];
     expect(last[0]).toBe("Invalid input");
-    expect(String(last[1])).toMatch(/Username cannot be empty/i);
+    expect(last[1]).toMatch(/Username cannot be empty/i);
     expect(fsMock.setDoc).not.toHaveBeenCalled();
   });
 
@@ -259,12 +315,12 @@ describe("EditProfileModal", () => {
 
     fireEvent.press(screen.getByText("Save"));
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Saved",
         "Your profile has been updated.",
-      ),
-    );
+      );
+    });
 
     fireEvent.press(screen.getByText("Preview"));
     expect(screen.getByText("Edit")).toBeTruthy();

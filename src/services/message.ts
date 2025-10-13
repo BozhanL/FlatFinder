@@ -80,7 +80,7 @@ export async function createGroup(
         lastTimestamp: serverTimestamp() as Timestamp,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
-        avatar: null
+        avatar: null,
       };
       transaction.set(groupRef, g);
       return Promise.resolve(groupRef.id);

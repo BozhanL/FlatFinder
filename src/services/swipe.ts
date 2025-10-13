@@ -25,13 +25,12 @@ type SwipeDoc = {
 
 type UserDoc = {
   name?: string;
-  dob?: Timestamp;
+  dob?: Timestamp | null;
   bio?: string;
-  budget?: number;
-  location?: string;
-  tags?: string[];
-  avatarUrl?: string;
-  lastActiveAt?: FirebaseFirestoreTypes.Timestamp;
+  budget?: number | null;
+  location?: string | null;
+  tags?: unknown;
+  avatarUrl?: string | null;
 };
 
 /** Set of swiped users */
@@ -60,55 +59,52 @@ export async function loadCandidates(
   const swiped = await fetchSwipedSet(uid);
 
   const users = collection(getFirestore(), "users");
-  // Query constraints type not working well, use any[] instead
-  // https://github.com/invertase/react-native-firebase/issues/8611
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const constraints: any[] = [];
 
   if (area) {
     constraints.push(where("location", "==", area));
   }
-
   if (maxBudget != null) {
     constraints.push(where("budget", "<=", maxBudget));
     constraints.push(orderBy("budget", "asc"));
   }
-
   constraints.push(orderBy("lastActiveAt", "desc"));
   constraints.push(qLimit(limit));
 
   const qBuild = query(users, ...constraints);
   const s = await getDocs(qBuild);
 
-  const list = s.docs
+  const list: Flatmate[] = s.docs
     .map(
-      (
-        d: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
-      ) => {
-        const data = d.data() as UserDoc;
-        const fm: Flatmate = {
+      (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<UserDoc>): Flatmate => {
+        const data = d.data();
+        return {
           id: d.id,
           name: data.name ?? "",
           dob: data.dob ?? null,
           bio: data.bio ?? "",
           budget: data.budget ?? null,
           location: data.location ?? null,
-          tags: Array.isArray(data.tags) ? data.tags : [],
+          tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
           avatar: data.avatarUrl
             ? { uri: data.avatarUrl }
             : pickAvatarFor(d.id),
         };
-        return fm;
       },
     )
-    .filter((u: Flatmate) => u.id !== uid)
-    .filter((u: Flatmate) => !swiped.has(u.id));
+    .filter((u: { id: string }) => u.id !== uid)
+    .filter((u: { id: string }) => !swiped.has(u.id));
 
   return list;
 }
 
 /**record like/pass */
-export async function swipe(me: string, target: string, dir: SwipeAction) {
+export async function swipe(
+  me: string,
+  target: string,
+  dir: SwipeAction,
+): Promise<void> {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
   await setDoc(ref, { dir, createdAt: serverTimestamp() }, { merge: true });
 }
@@ -142,3 +138,4 @@ export async function blockUser(gid: string, uid: string): Promise<void> {
     await swipe(uid, otherUid, SwipeAction.Pass);
   }
 }
+export { SwipeAction };

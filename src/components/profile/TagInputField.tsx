@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // This file contains only type definitions.
 // No need to test it in unit tests.
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, type JSX } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -29,7 +29,7 @@ const SUGGESTED = [
   "introvert",
 ];
 
-function normalize(s: string) {
+function normalize(s: string): string {
   return s
     .toLowerCase()
     .trim()
@@ -49,28 +49,28 @@ export default function TagInputField({
   onChange: (tags: string[]) => void;
   maxTags?: number;
   maxLen?: number;
-}) {
+}): JSX.Element {
   const [token, setToken] = useState("");
   const inputRef = useRef<TextInput>(null);
 
   const canAddMore = value.length < maxTags;
 
-  function addToken(raw: string) {
+  function addToken(raw: string): void {
     if (!canAddMore) return;
-    let t = normalize(raw).slice(0, maxLen);
+    const t = normalize(raw).slice(0, maxLen);
     if (!t) return;
     if (value.some((v) => v === t)) return;
     onChange([...value, t]);
     setToken("");
   }
 
-  function removeAt(i: number) {
+  function removeAt(i: number): void {
     const next = value.slice();
     next.splice(i, 1);
     onChange(next);
   }
 
-  function handleChangeText(t: string) {
+  function handleChangeText(t: string): void {
     if (/[ ,;\n]$/.test(t)) {
       addToken(t.slice(0, -1));
     } else {
@@ -78,11 +78,11 @@ export default function TagInputField({
     }
   }
 
-  function handleSubmitEditing() {
+  function handleSubmitEditing(): void {
     addToken(token);
   }
 
-  const suggestions = useMemo(() => {
+  const suggestions = useMemo<string[]>(() => {
     const q = normalize(token);
     if (!q) return [];
     const set = new Set(value);
@@ -101,7 +101,9 @@ export default function TagInputField({
             <View key={t} style={styles.chip}>
               <Text style={styles.chipText}>{t}</Text>
               <TouchableOpacity
-                onPress={() => removeAt(i)}
+                onPress={() => {
+                  removeAt(i);
+                }}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 <Text style={styles.close}>×</Text>
@@ -132,7 +134,9 @@ export default function TagInputField({
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.suggest}
-              onPress={() => addToken(item)}
+              onPress={() => {
+                addToken(item);
+              }}
             >
               <Text style={{ fontSize: 14 }}>{item}</Text>
             </TouchableOpacity>

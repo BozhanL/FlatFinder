@@ -20,7 +20,8 @@ import {
   where,
 } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
+import type { ImageSourcePropType } from "react-native";
 import {
   Alert,
   FlatList,
@@ -47,27 +48,61 @@ type Draft = Omit<Partial<Flatmate>, "dob" | "budget" | "location"> & {
   dob?: Timestamp | string | null;
   budget?: number | null;
   location?: string | null;
-  avatarUrl?: string;
-  name?: string;
+  avatarUrl?: string | null;
+  name?: string | null;
 };
 
-function toDraft(uid: string, d: any): Draft {
+type UserDocData = {
+  name?: string | null;
+  dob?: Timestamp | null;
+  bio?: string | null;
+  budget?: number | null;
+  location?: string | null;
+  tags?: unknown;
+  avatarUrl?: string | null;
+};
+
+type FirestoreServerTimestamp = ReturnType<typeof serverTimestamp>;
+
+type FirestorePayload = {
+  name: string | null;
+  dob: Timestamp | null;
+  bio: string | null;
+  budget: number | null;
+  location: string | null;
+  tags: string[];
+  tagsNormalized: string[];
+  avatarUrl: string | null;
+  lastActiveAt: FirestoreServerTimestamp;
+};
+
+function toDraft(uid: string, d?: UserDocData): Draft {
+  const name: string = d?.name ?? "";
+  const dob: Timestamp | null = d?.dob ?? null;
+  const bio: string = d?.bio ?? "";
+  const budget: number | null = d?.budget ?? null;
+  const location: string = d?.location ?? "";
+  const tags: string[] = Array.isArray(d?.tags) ? (d.tags as string[]) : [];
+  const avatarUrl: string = d?.avatarUrl ?? "";
+
+  const avatar: ImageSourcePropType = avatarUrl
+    ? { uri: avatarUrl }
+    : {
+        uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
+          name || "U",
+        )}`,
+      };
+
   return {
     id: uid,
-    name: d?.name ?? "",
-    dob: d?.dob ?? undefined,
-    bio: d?.bio ?? "",
-    budget: d?.budget ?? undefined,
-    location: d?.location ?? "",
-    tags: Array.isArray(d?.tags) ? d.tags : [],
-    avatar: d?.avatarUrl
-      ? { uri: d.avatarUrl }
-      : {
-          uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-            d?.name ?? "U",
-          )}`,
-        },
-    avatarUrl: d?.avatarUrl ?? "",
+    name,
+    dob,
+    bio,
+    budget,
+    location,
+    tags,
+    avatar,
+    avatarUrl,
   };
 }
 
@@ -91,15 +126,15 @@ function dateStringToTimestamp(dateStr: string): Timestamp | null {
   return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
 }
 
-function normalizeTag(s: string) {
-  return String(s).toLowerCase().trim().replace(/\s+/g, " ");
+function normalizeTag(s: string): string {
+  return s.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
-function uniq<T>(arr: T[]) {
+function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
 }
 
-function toFirestorePayload(x: Draft) {
+function toFirestorePayload(x: Draft): FirestorePayload {
   const rawTags = Array.isArray(x.tags) ? x.tags : [];
   const normTags = uniq(rawTags.map(normalizeTag).filter(Boolean));
 
@@ -120,7 +155,7 @@ function toFirestorePayload(x: Draft) {
   };
 }
 
-async function isUsernameTaken(v: string, myUid: string) {
+async function isUsernameTaken(v: string, myUid: string): Promise<boolean> {
   const q = query(collection(db, "users"), where("name", "==", v));
   const snap = await getDocs(q);
   const first = snap.docs.at(0);
@@ -180,7 +215,7 @@ const draftSchema = yup.object({
     .of(
       yup
         .string()
-        .transform((v) => normalizeTag(v))
+        .transform((v) => (typeof v === "string" ? normalizeTag(v) : ""))
         .max(16, "Tag too long")
         .matches(
           /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
@@ -192,7 +227,7 @@ const draftSchema = yup.object({
 
 /* -------------------------------------------- */
 
-export default function EditProfileModal() {
+export default function EditProfileModal(): JSX.Element {
   const uid = auth.currentUser?.uid ?? null;
 
   const [tab, setTab] = useState<Tab>(Tab.Edit);
@@ -215,25 +250,35 @@ export default function EditProfileModal() {
     return new Date(2000, 0, 1);
   }, [form?.dob]);
 
-  useEffect(() => {
+  useEffect((): (() => void) => {
     if (!uid) {
       router.replace("/login");
-      return;
+
+      return (): void => undefined;
     }
-    let alive = true;
-    (async () => {
-      const snap = await getDoc(doc(db, "users", uid));
-      if (!alive) return;
-      const d = toDraft(uid, snap.data());
-      setForm(d);
-      setPhotos([d.avatarUrl ?? "", "", ""]);
-    })().catch(console.error);
-    return () => {
-      alive = false;
+
+    const alive = { current: true };
+
+    const run = async (): Promise<void> => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (!alive.current) return;
+        const d = toDraft(uid, snap.data() as UserDocData | undefined);
+        setForm(d);
+        setPhotos([d.avatarUrl || "", "", ""]);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    void run();
+
+    return (): void => {
+      alive.current = false;
     };
   }, [uid]);
 
-  const avatarSource = useMemo(
+  const avatarSource: ImageSourcePropType | undefined = useMemo(
     () =>
       form?.avatarUrl
         ? { uri: form.avatarUrl }
@@ -243,7 +288,7 @@ export default function EditProfileModal() {
     [form?.avatarUrl, form?.avatar],
   );
 
-  async function onSave() {
+  async function onSave(): Promise<void> {
     if (!uid || !form) return;
 
     try {
@@ -276,14 +321,23 @@ export default function EditProfileModal() {
 
       Alert.alert("Saved", "Your profile has been updated.");
       setTab(Tab.Preview);
-    } catch (e: any) {
-      if (e?.name === "ValidationError") {
-        const msg = Array.isArray(e.errors)
-          ? e.errors.join("\n")
-          : String(e.message);
+    } catch (e: unknown) {
+      const isYupValidationError =
+        typeof e === "object" &&
+        e !== null &&
+        "name" in e &&
+        (e as { name?: unknown }).name === "ValidationError";
+
+      if (isYupValidationError) {
+        const err = e as { errors?: unknown; message?: unknown };
+        const msg = Array.isArray(err.errors)
+          ? err.errors.join("\n")
+          : typeof err.message === "string"
+            ? err.message
+            : "Invalid input";
         Alert.alert("Invalid input", msg);
       } else {
-        Alert.alert("Save failed", String(e));
+        Alert.alert("Save failed", e instanceof Error ? e.message : String(e));
       }
     }
   }
@@ -298,12 +352,22 @@ export default function EditProfileModal() {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.topbar}>
-        <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
+        <TouchableOpacity
+          onPress={() => {
+            router.back();
+          }}
+          style={{ padding: 8 }}
+        >
           <MaterialCommunityIcons name="arrow-left" size={22} color="#111" />
         </TouchableOpacity>
         <Text style={styles.topTitle}>Profile</Text>
         {tab === Tab.Edit ? (
-          <TouchableOpacity onPress={onSave} style={{ padding: 8 }}>
+          <TouchableOpacity
+            onPress={() => {
+              void onSave();
+            }}
+            style={{ padding: 8 }}
+          >
             <Text style={{ color: "#6B46FF", fontWeight: "700" }}>Save</Text>
           </TouchableOpacity>
         ) : (
@@ -316,12 +380,16 @@ export default function EditProfileModal() {
         <TabButton
           label="Edit"
           active={tab === Tab.Edit}
-          onPress={() => setTab(Tab.Edit)}
+          onPress={() => {
+            setTab(Tab.Edit);
+          }}
         />
         <TabButton
           label="Preview"
           active={tab === Tab.Preview}
-          onPress={() => setTab(Tab.Preview)}
+          onPress={() => {
+            setTab(Tab.Preview);
+          }}
         />
       </View>
 
@@ -329,7 +397,7 @@ export default function EditProfileModal() {
         <FlatList
           data={[0]}
           keyExtractor={() => "form"}
-          renderItem={null as any}
+          renderItem={() => null}
           ListHeaderComponent={
             <>
               {/* Photos */}
@@ -350,20 +418,23 @@ export default function EditProfileModal() {
                   }}
                 >
                   <TouchableOpacity activeOpacity={0.8}>
-                    <Image
-                      source={avatarSource as any}
-                      style={styles.bigAvatar}
-                    />
+                    <Image source={avatarSource} style={styles.bigAvatar} />
                   </TouchableOpacity>
 
                   <View style={{ gap: 12 }}>
                     <View style={{ flexDirection: "row", gap: 12 }}>
-                      <CircleThumb uri={photos[1] ?? ""} onPress={() => {}} />
-                      <CircleThumb uri={photos[2] ?? ""} onPress={() => {}} />
+                      <CircleThumb
+                        uri={photos[1] ?? ""}
+                        onPress={() => void 0}
+                      />
+                      <CircleThumb
+                        uri={photos[2] ?? ""}
+                        onPress={() => void 0}
+                      />
                     </View>
                     <TouchableOpacity
                       style={styles.addCircle}
-                      onPress={() => {}}
+                      onPress={() => void 0}
                       activeOpacity={0.8}
                     >
                       <MaterialCommunityIcons
@@ -385,9 +456,11 @@ export default function EditProfileModal() {
                   label="Username"
                   value={form.name ?? ""}
                   placeholder="yourname"
-                  onChangeText={(t) =>
-                    setForm((p) => ({ ...p!, name: t.trim() }))
-                  }
+                  onChangeText={(t) => {
+                    setForm((prev) =>
+                      prev ? { ...prev, name: t.trim() } : prev,
+                    );
+                  }}
                 />
                 {/* Date of Birth */}
                 <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
@@ -398,7 +471,9 @@ export default function EditProfileModal() {
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => setDobPickerOpen(true)}
+                    onPress={() => {
+                      setDobPickerOpen(true);
+                    }}
                     activeOpacity={0.8}
                     style={styles.input}
                   >
@@ -415,17 +490,21 @@ export default function EditProfileModal() {
                     minimumDate={new Date(1900, 0, 1)}
                     onConfirm={(date) => {
                       const str = formatDDMMYYYY(date);
-                      setForm((p) => ({ ...p!, dob: str }));
+                      setForm((prev) => (prev ? { ...prev, dob: str } : prev));
                       setDobPickerOpen(false);
                     }}
-                    onCancel={() => setDobPickerOpen(false)}
+                    onCancel={() => {
+                      setDobPickerOpen(false);
+                    }}
                   />
                 </View>
 
                 {/* Budget */}
                 <BudgetField
                   value={form.budget ?? null}
-                  onChange={(n) => setForm((p) => ({ ...p!, budget: n }))}
+                  onChange={(n) => {
+                    setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                  }}
                   min={50}
                   max={2000}
                   step={10}
@@ -434,13 +513,19 @@ export default function EditProfileModal() {
                 {/* Preferred Location */}
                 <NZLocationPickerField
                   value={form.location ?? ""}
-                  onChange={(loc) => setForm((p) => ({ ...p!, location: loc }))}
+                  onChange={(loc) => {
+                    setForm((prev) =>
+                      prev ? { ...prev, location: loc } : prev,
+                    );
+                  }}
                 />
 
                 {/* Tag */}
                 <TagInputField
                   value={form.tags ?? []}
-                  onChange={(tags) => setForm((p) => ({ ...p!, tags }))}
+                  onChange={(tags) => {
+                    setForm((prev) => (prev ? { ...prev, tags } : prev));
+                  }}
                 />
 
                 {/* Bio */}
@@ -448,7 +533,9 @@ export default function EditProfileModal() {
                   label="Bio"
                   placeholder="Tell the world about YOU.."
                   value={form.bio ?? ""}
-                  onChangeText={(t) => setForm((p) => ({ ...p!, bio: t }))}
+                  onChangeText={(t) => {
+                    setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                  }}
                   multiline
                 />
               </View>
@@ -459,7 +546,7 @@ export default function EditProfileModal() {
         <ProfilePreview
           source="data"
           data={{
-            id: form.id!,
+            id: form.id ?? "unknown",
             name: form.name ?? "Unnamed",
             dob:
               form.dob instanceof Timestamp
@@ -470,7 +557,9 @@ export default function EditProfileModal() {
             ...(form.bio ? { bio: form.bio } : {}),
             ...(form.budget != null ? { budget: form.budget } : {}),
             ...(form.location ? { location: form.location } : {}),
-            ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
+            ...(Array.isArray(form.tags) && form.tags.length > 0
+              ? { tags: form.tags }
+              : {}),
             ...(form.avatarUrl
               ? { avatar: { uri: form.avatarUrl }, avatarUrl: form.avatarUrl }
               : {
@@ -478,7 +567,7 @@ export default function EditProfileModal() {
                     form.avatar ??
                     ({
                       uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
-                    } as const),
+                    } as ImageSourcePropType),
                   avatarUrl: null,
                 }),
           }}
@@ -496,7 +585,7 @@ function TabButton({
   label: string;
   active: boolean;
   onPress: () => void;
-}) {
+}): JSX.Element {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -513,7 +602,13 @@ function TabButton({
   );
 }
 
-function CircleThumb({ uri, onPress }: { uri?: string; onPress: () => void }) {
+function CircleThumb({
+  uri,
+  onPress,
+}: {
+  uri?: string;
+  onPress: () => void;
+}): JSX.Element {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <Image
@@ -544,7 +639,7 @@ function FieldInput({
   onChangeText: (t: string) => void;
   keyboardType?: "default" | "numeric";
   multiline?: boolean;
-}) {
+}): JSX.Element {
   return (
     <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
       <Text style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}>

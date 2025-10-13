@@ -7,8 +7,6 @@ import type { Timestamp } from "@react-native-firebase/firestore";
 export type Flatmate = {
   id: string;
   name: string;
-  // IMPROVE: TODO: Change to DOB by @G2CCC in sprint two
-  // https://github.com/BozhanL/FlatFinder/pull/29/files#r2375268571
   dob?: Timestamp | null;
   bio?: string;
   avatar?: ImageSourcePropType;

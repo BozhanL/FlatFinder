@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // This file contains only type definitions.
 // No need to test it in unit tests.
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, type JSX } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,13 +13,13 @@ import Slider from "@react-native-community/slider";
 
 const PRESETS = [150, 200, 250, 300, 350, 400];
 
-function clamp(n: number, lo: number, hi: number) {
+function clamp(n: number, lo: number, hi: number): number {
   return Math.min(Math.max(n, lo), hi);
 }
-function roundStep(n: number, step = 10) {
+function roundStep(n: number, step = 10): number {
   return Math.round(n / step) * step;
 }
-function formatNZD(n?: number) {
+function formatNZD(n?: number): string {
   if (n == null || isNaN(n)) return "";
   return n.toLocaleString("en-NZ", {
     style: "currency",
@@ -27,7 +27,7 @@ function formatNZD(n?: number) {
     maximumFractionDigits: 0,
   });
 }
-function parseNumber(s: string) {
+function parseNumber(s: string): number {
   const digits = s.replace(/[^\d]/g, "");
   return digits ? Number(digits) : NaN;
 }
@@ -44,18 +44,18 @@ export default function BudgetField({
   min?: number;
   max?: number;
   step?: number;
-}) {
+}): JSX.Element {
   const [mode, setMode] = useState<"week" | "month">("week");
 
   const displayValue = useMemo(() => {
-    const v = Number(value ?? NaN);
+    const v = value ?? NaN;
     if (isNaN(v)) return "";
     return mode === "week"
       ? formatNZD(v)
       : formatNZD(Math.round((v * 52) / 12));
   }, [value, mode]);
 
-  function commit(raw: string) {
+  function commit(raw: string): void {
     const n = parseNumber(raw);
     if (isNaN(n)) {
       onChange(null);
@@ -65,7 +65,7 @@ export default function BudgetField({
     onChange(clamp(roundStep(weekly, step), min, max));
   }
 
-  function inc(delta: number) {
+  function inc(delta: number): void {
     const v = clamp(roundStep((value ?? 0) + delta, step), min, max);
     onChange(v);
   }
@@ -81,12 +81,16 @@ export default function BudgetField({
         <SegBtn
           label="Per week"
           active={mode === "week"}
-          onPress={() => setMode("week")}
+          onPress={(): void => {
+            setMode("week");
+          }}
         />
         <SegBtn
           label="Per month"
           active={mode === "month"}
-          onPress={() => setMode("month")}
+          onPress={(): void => {
+            setMode("month");
+          }}
         />
       </View>
 
@@ -96,7 +100,9 @@ export default function BudgetField({
           <TouchableOpacity
             key={p}
             style={[styles.preset, value === p && styles.presetActive]}
-            onPress={() => onChange(p)}
+            onPress={(): void => {
+              onChange(p);
+            }}
             activeOpacity={0.8}
           >
             <Text style={[styles.presetText, value === p && { color: "#fff" }]}>
@@ -108,18 +114,32 @@ export default function BudgetField({
 
       {/* Input + stepper */}
       <View style={styles.inputRow}>
-        <TouchableOpacity style={styles.stepBtn} onPress={() => inc(-step)}>
+        <TouchableOpacity
+          style={styles.stepBtn}
+          onPress={(): void => {
+            inc(-step);
+          }}
+        >
           <Text style={styles.stepTxt}>−{step}</Text>
         </TouchableOpacity>
         <TextInput
           style={styles.input}
           keyboardType="number-pad"
           value={displayValue}
-          onChangeText={() => {}}
-          onEndEditing={(e) => commit(e.nativeEvent.text)}
+          onChangeText={(t): void => {
+            void t;
+          }}
+          onEndEditing={(e): void => {
+            commit(e.nativeEvent.text);
+          }}
           placeholder={mode === "week" ? "e.g. $250" : "e.g. $1,200"}
         />
-        <TouchableOpacity style={styles.stepBtn} onPress={() => inc(step)}>
+        <TouchableOpacity
+          style={styles.stepBtn}
+          onPress={(): void => {
+            inc(step);
+          }}
+        >
           <Text style={styles.stepTxt}>+{step}</Text>
         </TouchableOpacity>
       </View>
@@ -131,7 +151,9 @@ export default function BudgetField({
         maximumValue={max}
         step={step}
         value={value ?? min}
-        onValueChange={(v) => onChange(Math.round(v))}
+        onValueChange={(v): void => {
+          onChange(Math.round(v));
+        }}
       />
       <Text style={styles.hint}>
         {min}–{max} NZD/week
@@ -148,7 +170,7 @@ function SegBtn({
   label: string;
   active: boolean;
   onPress: () => void;
-}) {
+}): JSX.Element {
   return (
     <TouchableOpacity
       onPress={onPress}

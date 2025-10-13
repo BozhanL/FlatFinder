@@ -1,12 +1,12 @@
+import ProfilePreview from "@/components/ProfilePreview";
+import { onSnapshot } from "@react-native-firebase/firestore";
 import {
+  act,
+  cleanup,
   render,
   screen,
   waitFor,
-  cleanup,
-  act,
 } from "@testing-library/react-native";
-import ProfilePreview from "@/components/ProfilePreview";
-import { onSnapshot } from "@react-native-firebase/firestore";
 
 jest.mock("@react-native-firebase/app", () => ({
   getApp: jest.fn(() => ({})),
@@ -24,19 +24,27 @@ jest.mock("@/utils/date", () => ({
 }));
 
 const onSnapshotMock = onSnapshot as jest.Mock;
-const { calculateAge } = jest.requireMock("@/utils/date") as {
-  calculateAge: jest.Mock;
-};
+const { calculateAge } = jest.requireMock("@/utils/date");
 
-function emitSnapshot(data: any) {
-  const next = onSnapshotMock.mock.calls.at(-1)?.[1];
-  const snap = { id: "u1", data: () => data };
-  act(() => next(snap));
+type SnapData = Record<string, unknown>;
+type Snap<T extends SnapData = SnapData> = { id: string; data: () => T };
+
+export function emitSnapshot(data: SnapData): void {
+  const next = onSnapshotMock.mock.calls.at(-1)?.[1] as
+    | ((snap: Snap) => void)
+    | undefined;
+
+  act(() => {
+    next?.({ id: "u1", data: () => data });
+  });
 }
 
-function emitSnapshotError(err: any) {
-  const errCb = onSnapshotMock.mock.calls.at(-1)?.[2];
-  act(() => errCb?.(err));
+export function emitSnapshotError(err: unknown): void {
+  act(() => {
+    const call = onSnapshotMock.mock.calls.at(-1);
+    const errCb = call?.[2] as ((e: unknown) => void) | undefined;
+    errCb?.(err);
+  });
 }
 
 afterEach(() => {
@@ -54,7 +62,7 @@ describe("ProfilePreview", () => {
         data={{
           id: "u1",
           name: "Tony",
-          dob: "whatever" as any,
+          dob: null,
           bio: "hello",
           budget: 350,
           location: "CBD",
@@ -88,7 +96,9 @@ describe("ProfilePreview", () => {
     const { unmount } = render(<ProfilePreview source="uid" uid="u1" />);
     expect(screen.getByText("Loading…")).toBeTruthy();
 
-    await waitFor(() => expect(onSnapshotMock).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(onSnapshotMock).toHaveBeenCalled();
+    });
 
     calculateAge.mockReturnValueOnce(25);
 
@@ -112,7 +122,7 @@ describe("ProfilePreview", () => {
 
     unmount();
     expect(lastUnsub).toBeTruthy();
-    expect(lastUnsub!).toHaveBeenCalled();
+    expect(lastUnsub).toHaveBeenCalled();
   });
 
   it("shows placeholders when optional fields missing (—)", () => {
@@ -134,7 +144,9 @@ describe("ProfilePreview", () => {
   });
 
   it("logs error when onSnapshot fails and stays on Loading… until a valid snapshot arrives", async () => {
-    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const spy = jest
+      .spyOn(console, "error")
+      .mockImplementation((): void => undefined);
     onSnapshotMock.mockImplementation((_ref, _next, _err) => jest.fn());
 
     render(<ProfilePreview source="uid" uid="u1" />);
@@ -168,9 +180,9 @@ describe("ProfilePreview", () => {
       />,
     );
 
-    ["t1", "t2", "t3", "t4", "t5"].forEach((t) =>
-      expect(screen.getByText(t)).toBeTruthy(),
-    );
+    ["t1", "t2", "t3", "t4", "t5"].forEach((t) => {
+      expect(screen.getByText(t)).toBeTruthy();
+    });
     expect(screen.queryByText("t6")).toBeNull();
     expect(screen.queryByText("t7")).toBeNull();
     expect(screen.getByText("+2")).toBeTruthy();

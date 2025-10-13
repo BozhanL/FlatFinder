@@ -5,8 +5,8 @@ import SwipeDeck from "@/components/swipe/SwipeDeck";
 import useCandidates from "@/hooks/useCandidates";
 import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
-import { FilterState } from "@/types/FilterState";
-import { Property } from "@/types/Prop";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Prop";
 import { SwipeAction } from "@/types/SwipeAction";
 import {
   getGlobalFilters,
@@ -15,7 +15,6 @@ import {
 } from "@/utils/filterStateManager";
 import { countActiveFilters } from "@/utils/propertyFilters";
 import type { OnPressEvent } from "@maplibre/maplibre-react-native";
-import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { router, useFocusEffect } from "expo-router";
 import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -176,18 +175,20 @@ export default function Index(): JSX.Element {
         {mode === TabMode.Flatmates ? (
           <SwipeDeck
             data={items}
-            onLike={async (u) => {
-              // IMPROVE: Use enum instead of string @G2CCC
-              await swipe(user.uid, u.id, SwipeAction.Like);
-              await ensureMatchIfMutualLike(user.uid, u.id);
+            onLike={(u) => {
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              swipe(user.uid, u.id, SwipeAction.Like);
-              ensureMatchIfMutualLike(user.uid, u.id);
+              void swipe(user.uid, u.id, SwipeAction.Like).catch(() => {
+                /* N/A */
+              });
+              void ensureMatchIfMutualLike(user.uid, u.id).catch(() => {
+                /* N/A */
+              });
             }}
-            onPass={async (u) => {
-              await swipe(user.uid, u.id, SwipeAction.Pass);
+            onPass={(u) => {
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              swipe(user.uid, u.id, SwipeAction.Pass);
+              void swipe(user.uid, u.id, SwipeAction.Pass).catch(() => {
+                /* N/A */
+              });
             }}
             onCardPress={(user) => {
               router.push(`/profile/${user.id}`);

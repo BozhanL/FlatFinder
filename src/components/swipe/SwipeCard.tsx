@@ -1,9 +1,30 @@
 import type { Flatmate } from "@/types/Flatmate";
-import { Pressable, Image, Text, View } from "react-native";
+import type { Timestamp } from "@react-native-firebase/firestore";
+import type { JSX } from "react";
+import { Image, Pressable, Text, View } from "react-native";
 
 type Props = { item: Flatmate; onPress: () => void };
 
-export default function SwipeCard({ item, onPress }: Props) {
+function formatDob(dob: Flatmate["dob"]): string {
+  if (!dob) return "";
+  if (typeof dob === "string") return dob;
+  const maybeTs = dob as unknown as Timestamp;
+  if (typeof maybeTs.toDate === "function") {
+    const d = maybeTs.toDate();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  return "";
+}
+
+export default function SwipeCard({ item, onPress }: Props): JSX.Element {
+  const dobText = formatDob(item.dob);
+  const avatarSrc = item.avatar ?? {
+    uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
+  };
+
   return (
     <Pressable onPress={onPress} testID={`swipe-card-${item.id}`}>
       <View
@@ -15,13 +36,14 @@ export default function SwipeCard({ item, onPress }: Props) {
         }}
       >
         <Image
-          source={item.avatar as any}
+          source={avatarSrc}
           style={{ width: "100%", height: 420 }}
           resizeMode="cover"
         />
         <View style={{ padding: 14, gap: 6 }}>
           <Text style={{ fontSize: 20, fontWeight: "700" }}>
-            {item.name}, {item.dob ? ` ${item.dob}` : ""}
+            {item.name}
+            {dobText ? `, ${dobText}` : ""}
           </Text>
 
           <Text style={{ color: "#555" }}>

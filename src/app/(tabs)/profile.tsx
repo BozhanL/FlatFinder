@@ -1,5 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import type { Flatmate } from "@/types/Flatmate";
+import { calculateAge } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getApp } from "@react-native-firebase/app";
 import {
@@ -11,10 +12,11 @@ import {
   doc,
   getFirestore,
   onSnapshot,
+  Timestamp,
 } from "@react-native-firebase/firestore";
 
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import {
   Alert,
   Image,
@@ -29,7 +31,16 @@ const app = getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export default function Profile() {
+type UserDocData = {
+  name?: string;
+  dob?: Timestamp;
+  bio?: string;
+  budget?: number;
+  location?: string;
+  tags?: unknown;
+};
+
+export default function Profile(): JSX.Element {
   const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null);
   const [profile, setProfile] = useState<Flatmate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,15 +66,15 @@ export default function Profile() {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        const d = (snap.data() as any) ?? {};
+        const d = (snap.data() as UserDocData | undefined) ?? {};
         setProfile({
           id: snap.id,
           name: d.name ?? "Unnamed",
-          age: d.age ?? undefined,
+          dob: d.dob ?? null,
           bio: d.bio ?? "",
           budget: d.budget ?? 0,
           location: d.location ?? "",
-          tags: Array.isArray(d.tags) ? d.tags : [],
+          tags: Array.isArray(d.tags) ? (d.tags as string[]) : [],
         });
         setLoading(false);
       },
@@ -92,7 +103,9 @@ export default function Profile() {
     );
   }
 
-  const avatar = require("../../../assets/images/react-logo.png"); //avatar place holder
+  // avatar place holder
+
+  const avatar = require("../../../assets/images/react-logo.png");
 
   return (
     <ScrollView
@@ -111,7 +124,9 @@ export default function Profile() {
               testID="edit-btn"
               style={styles.pencil}
               activeOpacity={0.9}
-              onPress={() => router.push("/(modals)/edit-profile")}
+              onPress={() => {
+                router.push("/(modals)/edit-profile");
+              }}
             >
               <MaterialCommunityIcons name="pencil" size={18} color="#111" />
             </TouchableOpacity>
@@ -127,8 +142,8 @@ export default function Profile() {
             }}
           >
             <Text style={{ fontSize: 20, fontWeight: "700" }}>
-              {profile.name}
-              {profile.age ? `, ${profile.age}` : ""}
+              {profile.name+', '}
+              {profile.dob ? calculateAge(profile.dob) : ""}
             </Text>
             <MaterialCommunityIcons
               name="star-circle"
@@ -138,29 +153,43 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* Menu Adding functionality in sprint 2??*/}
+        {/* Menu */}
         <View style={{ marginTop: 24 }}>
-          <MenuItem icon="star-outline" title="Watchlist" onPress={() => {}} />
-          <MenuItem icon="cog-outline" title="Settings" onPress={() => {}} />
+          <MenuItem
+            icon="star-outline"
+            title="Watchlist"
+            onPress={() => undefined}
+          />
+          <MenuItem
+            icon="cog-outline"
+            title="Settings"
+            onPress={() => undefined}
+          />
           <MenuItem
             icon="information-outline"
             title="About Us"
-            onPress={() => {}}
+            onPress={() => undefined}
           />
-          <MenuItem icon="email-outline" title="Support" onPress={() => {}} />
+          <MenuItem
+            icon="email-outline"
+            title="Support"
+            onPress={() => undefined}
+          />
         </View>
 
         {/* Sign out Button */}
         <View style={{ alignItems: "center", marginTop: 28 }}>
           <TouchableOpacity
             testID="signout-btn"
-            onPress={async () => {
-              try {
-                await signOut(auth);
-                router.replace("/login");
-              } catch (e) {
-                Alert.alert("Sign out failed", String(e));
-              }
+            onPress={() => {
+              void signOut(auth)
+                .then(() => {
+                  router.replace("/login");
+                })
+                .catch((e: unknown) => {
+                  const msg = e instanceof Error ? e.message : String(e);
+                  Alert.alert("Sign out failed", msg);
+                });
             }}
             style={styles.signout}
             activeOpacity={0.8}
@@ -173,16 +202,15 @@ export default function Profile() {
   );
 }
 
-//for future use
 function MenuItem({
   icon,
   title,
   onPress,
 }: {
-  icon: any;
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
   title: string;
   onPress: () => void;
-}) {
+}): JSX.Element {
   return (
     <TouchableOpacity onPress={onPress} style={styles.item} activeOpacity={0.7}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

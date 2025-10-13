@@ -5,9 +5,10 @@ import type { Flatmate } from "@/types/Flatmate";
 
 // ---- Mocks ----
 jest.mock("react-native-reanimated", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Reanimated = require("react-native-reanimated/mock");
-  Reanimated.runOnJS = (fn: (...args: any[]) => any) => fn;
+  const Reanimated = jest.requireActual("react-native-reanimated/mock");
+  Reanimated.runOnJS = <T extends (...args: unknown[]) => unknown>(fn: T): T =>
+    fn;
+
   return Reanimated;
 });
 
@@ -16,18 +17,17 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 jest.mock("@/components/swipe/SwipeCard", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const React = require("react");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Text, View } = require("react-native");
-  return function SwipeCard(props: any) {
-    const { item } = props || {};
+  const { Text, View } = jest.requireActual("react-native");
+
+  type MockProps = { item: { id: string; name: string } };
+  function SwipeCard(props: MockProps) {
     return (
-      <View testID={`card-${item.id}`}>
-        <Text>{item.name}</Text>
+      <View testID={`card-${props.item.id}`}>
+        <Text>{props.item.name}</Text>
       </View>
     );
-  };
+  }
+  return SwipeCard;
 });
 
 // ---- Helpers ----
@@ -35,12 +35,12 @@ function fm(partial: Partial<Flatmate> = {}, i = 0): Flatmate {
   return {
     id: `u${i}`,
     name: `User ${i}`,
-    age: 21 as any,
-    location: "City" as any,
-    budget: 200 as any,
-    bio: "bio" as any,
-    tags: ["a", "b"] as any,
-    avatar: { uri: "x" } as any,
+    dob: null,
+    location: "City",
+    budget: 200,
+    bio: "bio",
+    tags: ["a", "b"],
+    avatar: { uri: "x" },
     ...partial,
   } as Flatmate;
 }

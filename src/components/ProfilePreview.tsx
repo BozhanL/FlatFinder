@@ -6,7 +6,7 @@ import {
   onSnapshot,
   Timestamp,
 } from "@react-native-firebase/firestore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -29,7 +29,17 @@ type Props =
   | { source: "data"; data: PreviewData }
   | { source: "uid"; uid: string };
 
-function mapDocToPreview(uid: string, d: any): PreviewData {
+type UserDoc = {
+  name?: string;
+  dob?: Timestamp | null;
+  bio?: string;
+  budget?: number;
+  location?: string;
+  tags?: unknown;
+  avatarUrl?: string | null;
+};
+
+function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
   return {
     id: uid,
     name: d?.name ?? "Unnamed",
@@ -37,7 +47,9 @@ function mapDocToPreview(uid: string, d: any): PreviewData {
     ...(d?.bio ? { bio: d.bio } : {}),
     ...(typeof d?.budget === "number" ? { budget: d.budget } : {}),
     ...(d?.location ? { location: d.location } : {}),
-    ...(Array.isArray(d?.tags) && d.tags.length ? { tags: d.tags } : {}),
+    ...(Array.isArray(d?.tags) && d.tags.length
+      ? { tags: d.tags as string[] }
+      : {}),
     ...(d?.avatarUrl
       ? { avatar: { uri: d.avatarUrl }, avatarUrl: d.avatarUrl }
       : {
@@ -51,7 +63,7 @@ function mapDocToPreview(uid: string, d: any): PreviewData {
   };
 }
 
-function formatNZD(n?: number) {
+function formatNZD(n?: number): string {
   if (!Number.isFinite(n)) return "—";
   return (
     "$" +
@@ -62,15 +74,17 @@ function formatNZD(n?: number) {
   );
 }
 
-export default function ProfilePreview(props: Props) {
+export default function ProfilePreview(props: Props): JSX.Element {
   const [live, setLive] = useState<PreviewData | null>(
     props.source === "data" ? props.data : null,
   );
-  const avatarSource = useMemo(
+
+  const avatarSource: ImageSourcePropType | undefined = useMemo(
     () =>
       live?.avatarUrl ? { uri: live.avatarUrl } : (live?.avatar ?? undefined),
     [live?.avatarUrl, live?.avatar],
   );
+
   const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
 
   useEffect(() => {
@@ -78,8 +92,12 @@ export default function ProfilePreview(props: Props) {
     const ref = doc(db, "users", props.uid);
     const unsub = onSnapshot(
       ref,
-      (snap) => setLive(mapDocToPreview(snap.id, snap.data())),
-      (err) => console.error("ProfilePreview onSnapshot error:", err),
+      (snap) => {
+        setLive(mapDocToPreview(snap.id, snap.data() as UserDoc | undefined));
+      },
+      (err) => {
+        console.error("ProfilePreview onSnapshot error:", err);
+      },
     );
     return unsub;
   }, [props]);
@@ -100,9 +118,9 @@ export default function ProfilePreview(props: Props) {
       <View style={{ alignItems: "center", marginTop: 4 }}>
         <View style={styles.avatarWrap}>
           {!!avatarSource && (
-            <Image source={avatarSource as any} style={styles.avatar} />
+            <Image source={avatarSource} style={styles.avatar} />
           )}
-          {Number.isFinite(age as number) && (
+          {Number.isFinite(age ?? NaN) && (
             <View style={styles.ageBadge}>
               <Text style={styles.ageTxt}>{age}</Text>
             </View>
@@ -185,7 +203,7 @@ export default function ProfilePreview(props: Props) {
   );
 }
 
-function KV({ label, value }: { label: string; value: string }) {
+function KV({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -196,7 +214,7 @@ function KV({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Divider() {
+function Divider(): JSX.Element {
   return <View style={styles.hr} />;
 }
 

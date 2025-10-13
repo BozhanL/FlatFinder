@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 // This file contains only type definitions.
 // No need to test it in unit tests.
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, type JSX } from "react";
 import {
   Modal,
   View,
@@ -69,7 +69,7 @@ export default function NZLocationPickerField({
   label?: string;
   value?: string | null;
   onChange: (v: string) => void;
-}) {
+}): JSX.Element {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
 
@@ -104,7 +104,9 @@ export default function NZLocationPickerField({
 
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          setOpen(true);
+        }}
         style={styles.input}
       >
         <Text style={{ color: value ? "#111" : "#999" }}>
@@ -116,13 +118,17 @@ export default function NZLocationPickerField({
         visible={open}
         transparent
         animationType="slide"
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={() => {
+          setOpen(false);
+        }}
       >
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
               <TouchableOpacity
-                onPress={() => setOpen(false)}
+                onPress={() => {
+                  setOpen(false);
+                }}
                 style={{ padding: 8 }}
               >
                 <Text style={{ color: "#666", fontWeight: "600" }}>Cancel</Text>
