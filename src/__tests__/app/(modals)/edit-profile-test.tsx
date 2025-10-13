@@ -111,8 +111,6 @@ jest.mock("@/components/profile/BudgetField", () => {
 });
 
 jest.mock("@/components/profile/NZLocationPickerField", () => {
-  jest.requireActual("react");
-  jest.requireActual("react-native");
   const MockLoc = (props: { onChange?: (loc: string) => void }) =>
     jest.requireActual("react").createElement(
       jest.requireActual("react-native").TouchableOpacity,
