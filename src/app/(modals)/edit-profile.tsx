@@ -2,6 +2,7 @@ import BudgetField from "@/components/profile/BudgetField";
 import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
+import useUser from "@/hooks/useUser";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -17,13 +18,16 @@ import {
   Timestamp,
   where,
 } from "@react-native-firebase/firestore";
-import { router } from "expo-router";
+import { useHeaderHeight } from "@react-navigation/elements";
+import dayjs from "dayjs";
+import { Stack } from "expo-router";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
 import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
@@ -32,8 +36,6 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as yup from "yup";
-import dayjs from "dayjs";
-import useUser from "@/hooks/useUser";
 
 export const enum Tab {
   Edit = "Edit",
@@ -83,7 +85,7 @@ function toDraft(uid: string, d?: UserDocData): Draft {
     ? { uri: avatarUrl }
     : {
         uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-          name || "U",
+          name || "U"
         )}`,
       };
 
@@ -122,7 +124,7 @@ function normalizeTag(s: string): string {
 function toFirestorePayload(x: Draft): FirestorePayload {
   const raw = Array.isArray(x.tags) ? x.tags : [];
   const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
-    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })
   );
 
   return {
@@ -156,7 +158,7 @@ const draftSchema = yup.object({
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
     .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
-      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false,
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
     ),
 
   dob: yup
@@ -204,8 +206,8 @@ const draftSchema = yup.object({
         .max(16, "Tag too long")
         .matches(
           /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
-          "Only letters, numbers, space",
-        ),
+          "Only letters, numbers, space"
+        )
     )
     .max(5, "Too many tags"),
 });
@@ -268,7 +270,7 @@ export default function EditProfileModal(): JSX.Element {
         : (form?.avatar ?? {
             uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
           }),
-    [form?.avatarUrl, form?.avatar],
+    [form?.avatarUrl, form?.avatar]
   );
 
   async function onSave(): Promise<void> {
@@ -299,7 +301,7 @@ export default function EditProfileModal(): JSX.Element {
               ? dateStringToTimestamp(form.dob)
               : (form.dob ?? null),
         }),
-        { merge: true },
+        { merge: true }
       );
 
       Alert.alert("Saved", "Your profile has been updated.");
@@ -333,31 +335,23 @@ export default function EditProfileModal(): JSX.Element {
     );
   }
 
+  const headerOffset = useHeaderHeight();
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.topbar}>
-        <TouchableOpacity
-          onPress={() => {
-            router.back();
-          }}
-          style={{ padding: 8 }}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.topTitle}>Profile</Text>
-        {tab === Tab.Edit ? (
-          <TouchableOpacity
-            onPress={() => {
-              void onSave();
-            }}
-            style={{ padding: 8 }}
-          >
-            <Text style={{ color: "#6B46FF", fontWeight: "700" }}>Save</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 44 }} />
-        )}
-      </View>
+      <Stack.Screen
+        options={{
+          title: "Profile",
+          headerShown: true,
+          headerRight: () => (
+            <Text
+              onPress={onSave}
+              style={{ color: "#6846FF", fontWeight: "700", fontSize: 16 }}
+            >
+              Save
+            </Text>
+          ),
+        }}
+      />
 
       {/* Tabs */}
       <View style={styles.tabs}>
@@ -378,154 +372,166 @@ export default function EditProfileModal(): JSX.Element {
       </View>
 
       {tab === Tab.Edit ? (
-        <FlatList
-          data={[0]}
-          keyExtractor={() => "form"}
-          renderItem={() => null}
-          ListHeaderComponent={
-            <>
-              {/* Photos */}
-              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: "700" }}>
-                  Photos{" "}
-                  <Text style={{ fontSize: 12, color: "#777" }}>
-                    (Maximum of 3)
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior="height"
+          keyboardVerticalOffset={headerOffset || 0}
+        >
+          <FlatList
+            data={[0]}
+            keyExtractor={() => "form"}
+            renderItem={() => null}
+            ListHeaderComponent={
+              <>
+                {/* Photos */}
+                <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+                  <Text style={{ fontSize: 16, fontWeight: "700" }}>
+                    Photos{" "}
+                    <Text style={{ fontSize: 12, color: "#777" }}>
+                      (Maximum of 3)
+                    </Text>
                   </Text>
-                </Text>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 16,
-                    marginTop: 12,
-                  }}
-                >
-                  <TouchableOpacity activeOpacity={0.8}>
-                    <Image source={avatarSource} style={styles.bigAvatar} />
-                  </TouchableOpacity>
-
-                  <View style={{ gap: 12 }}>
-                    <View style={{ flexDirection: "row", gap: 12 }}>
-                      <CircleThumb
-                        uri={photos[1] ?? ""}
-                        onPress={() => void 0}
-                      />
-                      <CircleThumb
-                        uri={photos[2] ?? ""}
-                        onPress={() => void 0}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      style={styles.addCircle}
-                      onPress={() => void 0}
-                      activeOpacity={0.8}
-                    >
-                      <MaterialCommunityIcons
-                        name="plus"
-                        size={22}
-                        color="#555"
-                      />
+                  {/* TODO: actual avatar upload */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 16,
+                      marginTop: 12,
+                    }}
+                  >
+                    <TouchableOpacity activeOpacity={0.8}>
+                      <Image source={avatarSource} style={styles.bigAvatar} />
                     </TouchableOpacity>
+
+                    <View style={{ gap: 12 }}>
+                      <View style={{ flexDirection: "row", gap: 12 }}>
+                        <CircleThumb
+                          uri={photos[1] ?? ""}
+                          onPress={() => void 0}
+                        />
+                        <CircleThumb
+                          uri={photos[2] ?? ""}
+                          onPress={() => void 0}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.addCircle}
+                        onPress={() => void 0}
+                        activeOpacity={0.8}
+                      >
+                        <MaterialCommunityIcons
+                          name="plus"
+                          size={22}
+                          color="#555"
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
 
-              {/* About me */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={styles.sectionTitle}>About me</Text>
+                {/* About me */}
+                <View style={{ marginTop: 20 }}>
+                  <Text style={styles.sectionTitle}>About me</Text>
 
-                {/* Username */}
-                <FieldInput
-                  label="Username"
-                  value={form.name ?? ""}
-                  placeholder="yourname"
-                  onChangeText={(t) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, name: t.trim() } : prev,
-                    );
-                  }}
-                />
-                {/* Date of Birth */}
-                <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-                  <Text
-                    style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
-                  >
-                    Date of Birth
-                  </Text>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      setDobPickerOpen(true);
-                    }}
-                    activeOpacity={0.8}
-                    style={styles.input}
-                  >
-                    <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                      {dobDisplay || "DD-MM-YYYY"}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <DateTimePickerModal
-                    isVisible={dobPickerOpen}
-                    mode="date"
-                    date={dobInitialDate}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1900, 0, 1)}
-                    onConfirm={(date) => {
-                      const str = formatDDMMYYYY(date);
-                      setForm((prev) => (prev ? { ...prev, dob: str } : prev));
-                      setDobPickerOpen(false);
-                    }}
-                    onCancel={() => {
-                      setDobPickerOpen(false);
+                  {/* Username */}
+                  <FieldInput
+                    label="Username"
+                    value={form.name ?? ""}
+                    placeholder="yourname"
+                    onChangeText={(t) => {
+                      setForm((prev) =>
+                        prev ? { ...prev, name: t.trim() } : prev
+                      );
                     }}
                   />
+                  {/* Date of Birth */}
+                  <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "700",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Date of Birth
+                    </Text>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        setDobPickerOpen(true);
+                      }}
+                      activeOpacity={0.8}
+                      style={styles.input}
+                    >
+                      <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                        {dobDisplay || "DD-MM-YYYY"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <DateTimePickerModal
+                      isVisible={dobPickerOpen}
+                      mode="date"
+                      date={dobInitialDate}
+                      maximumDate={new Date()}
+                      minimumDate={new Date(1900, 0, 1)}
+                      onConfirm={(date) => {
+                        const str = formatDDMMYYYY(date);
+                        setForm((prev) =>
+                          prev ? { ...prev, dob: str } : prev
+                        );
+                        setDobPickerOpen(false);
+                      }}
+                      onCancel={() => {
+                        setDobPickerOpen(false);
+                      }}
+                    />
+                  </View>
+
+                  {/* Budget */}
+                  <BudgetField
+                    value={form.budget ?? null}
+                    onChange={(n) => {
+                      setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                    }}
+                    min={50}
+                    max={2000}
+                    step={10}
+                  />
+
+                  {/* Preferred Location */}
+                  <NZLocationPickerField
+                    value={form.location ?? ""}
+                    onChange={(loc) => {
+                      setForm((prev) =>
+                        prev ? { ...prev, location: loc } : prev
+                      );
+                    }}
+                  />
+
+                  {/* Tag */}
+                  <TagInputField
+                    value={form.tags ?? []}
+                    onChange={(tags) => {
+                      setForm((prev) => (prev ? { ...prev, tags } : prev));
+                    }}
+                  />
+
+                  {/* Bio */}
+                  <FieldInput
+                    label="Bio"
+                    placeholder="Tell the world about YOU.."
+                    value={form.bio ?? ""}
+                    onChangeText={(t) => {
+                      setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                    }}
+                    multiline
+                  />
                 </View>
-
-                {/* Budget */}
-                <BudgetField
-                  value={form.budget ?? null}
-                  onChange={(n) => {
-                    setForm((prev) => (prev ? { ...prev, budget: n } : prev));
-                  }}
-                  min={50}
-                  max={2000}
-                  step={10}
-                />
-
-                {/* Preferred Location */}
-                <NZLocationPickerField
-                  value={form.location ?? ""}
-                  onChange={(loc) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, location: loc } : prev,
-                    );
-                  }}
-                />
-
-                {/* Tag */}
-                <TagInputField
-                  value={form.tags ?? []}
-                  onChange={(tags) => {
-                    setForm((prev) => (prev ? { ...prev, tags } : prev));
-                  }}
-                />
-
-                {/* Bio */}
-                <FieldInput
-                  label="Bio"
-                  placeholder="Tell the world about YOU.."
-                  value={form.bio ?? ""}
-                  onChangeText={(t) => {
-                    setForm((prev) => (prev ? { ...prev, bio: t } : prev));
-                  }}
-                  multiline
-                />
-              </View>
-            </>
-          }
-        />
+              </>
+            }
+          />
+        </KeyboardAvoidingView>
       ) : (
         <ProfilePreview
           source="data"
