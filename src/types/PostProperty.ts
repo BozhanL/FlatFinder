@@ -24,11 +24,3 @@ export type PlaceSuggestion = {
   lon: string;
   type: string;
 };
-
-export type NominatimResult = {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type: string;
-};
