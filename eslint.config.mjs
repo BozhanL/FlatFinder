@@ -1,13 +1,11 @@
 // https://docs.expo.dev/guides/using-eslint/
 import expoConfig from "eslint-config-expo/flat.js";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import testingLibrary from "eslint-plugin-testing-library";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
   expoConfig,
-  eslintPluginPrettierRecommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   {
@@ -47,6 +45,22 @@ export default defineConfig([
     rules: {
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
+    },
+  },
+  {
+    // This check will cause linter halt.
+    // Maybe related to https://github.com/typescript-eslint/typescript-eslint/pull/11605
+    rules: {
+      "@typescript-eslint/no-deprecated": "off",
+    },
+  },
+  {
+    // https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import
+    rules: {
+      "import/named": "off",
+      "import/namespace": "off",
+      "import/default": "off",
+      "import/no-named-as-default-member": "off",
     },
   },
 ]);
