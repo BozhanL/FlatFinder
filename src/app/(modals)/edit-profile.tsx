@@ -103,16 +103,23 @@ function toDraft(uid: string, d?: UserDocData): Draft {
 }
 
 function dobToDateString(dob: Timestamp | string | null | undefined): string {
-  if (!dob) return "";
+  if (!dob) {
+    return "";
+  }
   let date: dayjs.Dayjs;
-  if (dob instanceof Timestamp) date = dayjs(dob.toDate());
-  else date = dayjs(dob);
+  if (dob instanceof Timestamp) {
+    date = dayjs(dob.toDate());
+  } else {
+    date = dayjs(dob);
+  }
 
   return date.isValid() ? date.format("DD-MM-YYYY") : "";
 }
 
 function dateStringToTimestamp(dateStr: string): Timestamp | null {
-  if (!dateStr) return null;
+  if (!dateStr) {
+    return null;
+  }
   const date = dayjs(dateStr, "DD-MM-YYYY");
   return date.isValid() ? Timestamp.fromDate(date.toDate()) : null;
 }
@@ -165,21 +172,31 @@ const draftSchema = yup.object({
     .string()
     .nullable()
     .test("valid-date", "Invalid date format (use DD-MM-YYYY)", (v) => {
-      if (!v) return true;
+      if (!v) {
+        return true;
+      }
       const parts = v.split("-");
-      if (parts.length !== 3) return false;
+      if (parts.length !== 3) {
+        return false;
+      }
       const [day, month, year] = parts.map(Number);
-      if (!day || !month || !year) return false;
+      if (!day || !month || !year) {
+        return false;
+      }
       const date = new Date(year, month - 1, day);
       return date instanceof Date && !isNaN(date.getTime());
     })
     .test("not-future", "Date of birth cannot be in the future", (v) => {
-      if (!v) return true;
+      if (!v) {
+        return true;
+      }
       const [dayStr, monthStr, yearStr] = v.split("-");
       const day = Number(dayStr) || 0;
       const month = Number(monthStr) || 0;
       const year = Number(yearStr) || 0;
-      if (!day || !month || !year) return false;
+      if (!day || !month || !year) {
+        return false;
+      }
       const date = new Date(year, month - 1, day);
       return date < new Date();
     }),
@@ -188,7 +205,9 @@ const draftSchema = yup.object({
     .number()
     .nullable()
     .transform((_, o) => {
-      if (o == null || o === "") return null;
+      if (o == null || o === "") {
+        return null;
+      }
       const n = Number(String(o).replace(/[^\d]/g, ""));
       return Number.isFinite(n) ? n : null;
     })
@@ -224,16 +243,25 @@ export default function EditProfileModal(): JSX.Element {
   const [dobPickerOpen, setDobPickerOpen] = useState(false);
 
   const dobDisplay = useMemo(() => {
-    if (!form?.dob) return "";
-    if (form.dob instanceof Timestamp) return formatDDMMYYYY(form.dob.toDate());
-    if (typeof form.dob === "string") return form.dob;
+    if (!form?.dob) {
+      return "";
+    }
+    if (form.dob instanceof Timestamp) {
+      return formatDDMMYYYY(form.dob.toDate());
+    }
+    if (typeof form.dob === "string") {
+      return form.dob;
+    }
     return "";
   }, [form?.dob]);
 
   const dobInitialDate = useMemo(() => {
-    if (form?.dob instanceof Timestamp) return form.dob.toDate();
-    if (typeof form?.dob === "string")
+    if (form?.dob instanceof Timestamp) {
+      return form.dob.toDate();
+    }
+    if (typeof form?.dob === "string") {
       return parseDDMMYYYY(form.dob) ?? new Date(2000, 0, 1);
+    }
     return new Date(2000, 0, 1);
   }, [form?.dob]);
 
@@ -247,7 +275,9 @@ export default function EditProfileModal(): JSX.Element {
     const run = async (): Promise<void> => {
       try {
         const snap = await getDoc(doc(getFirestore(), "users", uid));
-        if (!alive.current) return;
+        if (!alive.current) {
+          return;
+        }
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
         setForm(d);
         setPhotos([d.avatarUrl || "", "", ""]);
@@ -274,7 +304,9 @@ export default function EditProfileModal(): JSX.Element {
   );
 
   async function onSave(): Promise<void> {
-    if (!uid || !form) return;
+    if (!uid || !form) {
+      return;
+    }
 
     try {
       const candidate = {

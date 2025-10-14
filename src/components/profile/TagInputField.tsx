@@ -53,10 +53,16 @@ export default function TagInputField({
   const canAddMore = value.length < maxTags;
 
   function addToken(raw: string): void {
-    if (!canAddMore) return;
+    if (!canAddMore) {
+      return;
+    }
     const t = normalize(raw).slice(0, maxLen);
-    if (!t) return;
-    if (value.some((v) => v === t)) return;
+    if (!t) {
+      return;
+    }
+    if (value.some((v) => v === t)) {
+      return;
+    }
     onChange([...value, t]);
     setToken("");
   }
@@ -81,7 +87,9 @@ export default function TagInputField({
 
   const suggestions = useMemo<string[]>(() => {
     const q = normalize(token);
-    if (!q) return [];
+    if (!q) {
+      return [];
+    }
     const set = new Set(value);
     return SUGGESTED.filter((x) => x.includes(q) && !set.has(x)).slice(0, 8);
   }, [token, value]);

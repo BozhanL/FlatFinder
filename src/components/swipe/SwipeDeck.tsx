@@ -50,10 +50,15 @@ export default function SwipeDeck({
   }, [top?.id, translateX, translateY]);
 
   const commitSwipe = useCallback(
-    (dir: 1 | -1) => {
-      if (!top) return;
-      if (dir === 1) onLike?.(top);
-      else onPass?.(top);
+    (action: SwipeAction) => {
+      if (!top) {
+        return;
+      }
+      if (action === SwipeAction.Like) {
+        onLike?.(top);
+      } else {
+        onPass?.(top);
+      }
     },
     [top, onLike, onPass],
   );
@@ -67,12 +72,14 @@ export default function SwipeDeck({
         })
         .onEnd(() => {
           if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
+            const action =
+              translateX.value > 0 ? SwipeAction.Like : SwipeAction.Pass;
+            const sign = action === SwipeAction.Like ? 1 : -1;
             translateX.value = withTiming(
-              dir * SCREEN_W * 1.2,
+              sign * SCREEN_W * 1.2,
               { duration: 180 },
               () => {
-                runOnJS(commitSwipe)(dir);
+                runOnJS(commitSwipe)(action);
               },
             );
           } else {
@@ -83,14 +90,16 @@ export default function SwipeDeck({
     [translateX, translateY, commitSwipe],
   );
 
-  function fling(dir: SwipeAction): void {
-    if (!top) return;
-    const swipeDir: 1 | -1 = dir === SwipeAction.Like ? 1 : -1;
+  function fling(action: SwipeAction): void {
+    if (!top) {
+      return;
+    }
+    const sign = action === SwipeAction.Like ? 1 : -1;
     translateX.value = withTiming(
-      swipeDir * SCREEN_W * 1.2,
+      sign * SCREEN_W * 1.2,
       { duration: 180 },
       () => {
-        runOnJS(commitSwipe)(swipeDir);
+        runOnJS(commitSwipe)(action);
       },
     );
   }

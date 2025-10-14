@@ -1,4 +1,4 @@
-import React, { useMemo, useState, type JSX } from "react";
+import React, { type JSX } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,7 +17,9 @@ function roundStep(n: number, step = 10): number {
   return Math.round(n / step) * step;
 }
 function formatNZD(n?: number): string {
-  if (n == null || isNaN(n)) return "";
+  if (n == null || isNaN(n)) {
+    return "";
+  }
   return n.toLocaleString("en-NZ", {
     style: "currency",
     currency: "NZD",
@@ -42,24 +44,14 @@ export default function BudgetField({
   max?: number;
   step?: number;
 }): JSX.Element {
-  const [mode, setMode] = useState<"week" | "month">("week");
-
-  const displayValue = useMemo(() => {
-    const v = value ?? NaN;
-    if (isNaN(v)) return "";
-    return mode === "week"
-      ? formatNZD(v)
-      : formatNZD(Math.round((v * 52) / 12));
-  }, [value, mode]);
-
   function commit(raw: string): void {
     const n = parseNumber(raw);
     if (isNaN(n)) {
       onChange(null);
       return;
     }
-    const weekly = mode === "week" ? n : Math.round((n * 12) / 52);
-    onChange(clamp(roundStep(weekly, step), min, max));
+
+    onChange(clamp(roundStep(n, step), min, max));
   }
 
   function inc(delta: number): void {
@@ -70,26 +62,8 @@ export default function BudgetField({
   return (
     <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
       <Text style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
-        Budget
+        Budget Per Week
       </Text>
-
-      {/* Week / Month toggle */}
-      <View style={styles.segment}>
-        <SegBtn
-          label="Per week"
-          active={mode === "week"}
-          onPress={(): void => {
-            setMode("week");
-          }}
-        />
-        <SegBtn
-          label="Per month"
-          active={mode === "month"}
-          onPress={(): void => {
-            setMode("month");
-          }}
-        />
-      </View>
 
       {/* Presets */}
       <View style={styles.presetRow}>
@@ -122,14 +96,14 @@ export default function BudgetField({
         <TextInput
           style={styles.input}
           keyboardType="number-pad"
-          value={displayValue}
+          value={formatNZD(value ?? NaN)}
           onChangeText={(t): void => {
             void t;
           }}
           onEndEditing={(e): void => {
             commit(e.nativeEvent.text);
           }}
-          placeholder={mode === "week" ? "e.g. $250" : "e.g. $1,200"}
+          placeholder={"e.g. $250"}
         />
         <TouchableOpacity
           style={styles.stepBtn}
@@ -156,28 +130,6 @@ export default function BudgetField({
         {min}–{max} NZD/week
       </Text>
     </View>
-  );
-}
-
-function SegBtn({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}): JSX.Element {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={[styles.segBtn, active && styles.segBtnActive]}
-    >
-      <Text style={[styles.segTxt, active && styles.segTxtActive]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
   );
 }
 

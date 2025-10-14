@@ -71,14 +71,18 @@ export default function NZLocationPickerField({
   const [q, setQ] = useState("");
 
   const data = useMemo(() => {
-    if (!q.trim()) return FLATTENED;
+    if (!q.trim()) {
+      return FLATTENED;
+    }
     const kw = q.trim().toLowerCase();
     const matched = NZ_REGIONS.flatMap((g) => {
       const inGroup = g.region.toLowerCase().includes(kw);
       const items = g.items.filter(
         (x) => inGroup || x.toLowerCase().includes(kw),
       );
-      if (!inGroup && items.length === 0) return [];
+      if (!inGroup && items.length === 0) {
+        return [];
+      }
       return [
         { type: "header" as const, key: `h-${g.region}`, label: g.region },
         ...items.map((name) => ({

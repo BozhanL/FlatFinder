@@ -60,7 +60,9 @@ function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
 }
 
 function formatNZD(n?: number): string {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) {
+    return "—";
+  }
   return (
     "$" +
     Number(n).toLocaleString("en-NZ", {
@@ -84,7 +86,9 @@ export default function ProfilePreview(props: Props): JSX.Element {
   const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
 
   useEffect(() => {
-    if (props.source !== "uid") return;
+    if (props.source !== "uid") {
+      return;
+    }
     const ref = doc(getFirestore(), "users", props.uid);
     const unsub = onSnapshot(
       ref,

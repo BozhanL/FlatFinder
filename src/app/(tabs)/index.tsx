@@ -133,7 +133,9 @@ export default function Index(): JSX.Element {
 
   const { items, setItems } = useCandidates(user?.uid || null);
 
-  if (!user) return <></>;
+  if (!user) {
+    return <></>;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
