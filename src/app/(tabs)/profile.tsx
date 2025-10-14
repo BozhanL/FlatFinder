@@ -1,20 +1,15 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import useUser from "@/hooks/useUser";
+import { logout } from "@/services/logout";
 import type { Flatmate } from "@/types/Flatmate";
 import { calculateAge } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getApp } from "@react-native-firebase/app";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut,
-} from "@react-native-firebase/auth";
 import {
   doc,
   getFirestore,
   onSnapshot,
   Timestamp,
 } from "@react-native-firebase/firestore";
-
 import { router } from "expo-router";
 import { useEffect, useState, type JSX } from "react";
 import {
@@ -27,10 +22,6 @@ import {
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 type UserDocData = {
   name?: string;
   dob?: Timestamp;
@@ -41,26 +32,20 @@ type UserDocData = {
 };
 
 export default function Profile(): JSX.Element {
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null);
+  const user = useUser();
   const [profile, setProfile] = useState<Flatmate | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      setUid(user?.uid ?? null);
-    });
-    return unsubAuth;
-  }, []);
+  const uid = user?.uid;
 
   useEffect(() => {
     if (!uid) {
       setProfile(null);
       setLoading(false);
-      router.replace("/login");
       return;
     }
 
-    const ref = doc(db, "users", uid);
+    const ref = doc(getFirestore(), "users", uid);
     setLoading(true);
 
     const unsub = onSnapshot(
@@ -81,7 +66,7 @@ export default function Profile(): JSX.Element {
       (err) => {
         console.error("profile onSnapshot error:", err);
         setLoading(false);
-      }
+      },
     );
 
     return unsub;
@@ -125,7 +110,7 @@ export default function Profile(): JSX.Element {
               style={styles.pencil}
               activeOpacity={0.9}
               onPress={() => {
-                router.push("/(modals)/edit-profile");
+                router.push("/edit-profile");
               }}
             >
               <MaterialCommunityIcons name="pencil" size={18} color="#111" />
@@ -182,14 +167,10 @@ export default function Profile(): JSX.Element {
           <TouchableOpacity
             testID="signout-btn"
             onPress={() => {
-              void signOut(auth)
-                .then(() => {
-                  router.replace("/login");
-                })
-                .catch((e: unknown) => {
-                  const msg = e instanceof Error ? e.message : String(e);
-                  Alert.alert("Sign out failed", msg);
-                });
+              logout().catch((e: unknown) => {
+                const msg = e instanceof Error ? e.message : String(e);
+                Alert.alert("Sign out failed", msg);
+              });
             }}
             style={styles.signout}
             activeOpacity={0.8}

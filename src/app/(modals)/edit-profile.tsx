@@ -5,7 +5,6 @@ import ProfilePreview from "@/components/ProfilePreview";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   doc,
@@ -34,7 +33,7 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as yup from "yup";
 import dayjs from "dayjs";
-
+import useUser from "@/hooks/useUser";
 
 export const enum Tab {
   Edit = "Edit",
@@ -120,17 +119,18 @@ function normalizeTag(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
-
 function toFirestorePayload(x: Draft): FirestorePayload {
   const raw = Array.isArray(x.tags) ? x.tags : [];
-  const tags = Array.from(new Set(
-    raw.map(normalizeTag).filter(Boolean)
-  )).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
 
   return {
     name: x.name ?? null,
     dob: x.dob
-      ? (typeof x.dob === "string" ? dateStringToTimestamp(x.dob) : x.dob)
+      ? typeof x.dob === "string"
+        ? dateStringToTimestamp(x.dob)
+        : x.dob
       : null,
     bio: x.bio ?? null,
     budget: x.budget ?? null,
@@ -213,7 +213,7 @@ const draftSchema = yup.object({
 /* -------------------------------------------- */
 
 export default function EditProfileModal(): JSX.Element {
-  const uid = getAuth().currentUser?.uid ?? null;
+  const uid = useUser()?.uid;
 
   const [tab, setTab] = useState<Tab>(Tab.Edit);
   const [form, setForm] = useState<Draft | null>(null);
@@ -237,7 +237,6 @@ export default function EditProfileModal(): JSX.Element {
 
   useEffect(() => {
     if (!uid) {
-      router.replace("/login");
       return;
     }
 
