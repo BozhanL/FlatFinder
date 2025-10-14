@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
-import { JSX } from "react";
+import type { JSX } from "react";
 
 export default function TabsLayout(): JSX.Element {
   return (
@@ -95,6 +95,8 @@ export default function TabsLayout(): JSX.Element {
           },
         }}
       />
+
+      {/* Profile page */}
       <Tabs.Screen
         name="profile"
         options={{

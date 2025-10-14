@@ -1,27 +1,22 @@
-import { useProperties } from "@/hooks/useProperties";
-import { FilterState } from "@/types/FilterState";
-import { Property } from "@/types/Prop";
+import useProperties from "@/hooks/useProperties";
+import { styles } from "@/styles/map-style";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Property";
 import { applyPropertyFilters } from "@/utils/propertyFilters";
 import {
   Camera,
   Images,
   Logger,
   MapView,
-  OnPressEvent,
   RasterLayer,
   RasterSource,
   ShapeSource,
   SymbolLayer,
+  type OnPressEvent,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useEffect, useMemo } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useMemo, type JSX } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
 // but rather from OSM api limitations.
@@ -30,8 +25,8 @@ Logger.setLogCallback((log) => {
   const { message } = log;
 
   if (
-    message.match("Request failed due to a permanent error: Canceled") ||
-    message.match("Request failed due to a permanent error: Socket Closed")
+    /Request failed due to a permanent error: Canceled/.exec(message) ||
+    /Request failed due to a permanent error: Socket Closed/.exec(message)
   ) {
     return true;
   }
@@ -39,93 +34,7 @@ Logger.setLogCallback((log) => {
   return false;
 });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    color: "#e74c3c",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  floatingTile: {
-    position: "absolute",
-    bottom: 20,
-    left: 16,
-    right: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  tileContent: {
-    padding: 16,
-  },
-  tileHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  tileTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 4,
-  },
-  tilePrice: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2563eb",
-    marginBottom: 2,
-  },
-  tileType: {
-    fontSize: 12,
-    color: "#666",
-    textTransform: "capitalize",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  expandButton: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
-  },
-  expandButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-});
-
-interface PropertyMapViewProps {
+type PropertyMapViewProps = {
   filters: FilterState;
   selectedProperty: Property | null;
   isVisible: boolean;
@@ -135,7 +44,7 @@ interface PropertyMapViewProps {
     allProperties: Property[],
     filteredProperties: Property[],
   ) => void;
-}
+};
 
 export default function PropertyMapView({
   filters,
@@ -144,7 +53,7 @@ export default function PropertyMapView({
   onMarkerPress,
   onClosePropertyTile,
   onPropertiesLoad,
-}: PropertyMapViewProps) {
+}: PropertyMapViewProps): JSX.Element {
   const { properties: allProperties, loading, error } = useProperties();
 
   // Apply filters to properties
@@ -190,6 +99,12 @@ export default function PropertyMapView({
     }
   };
 
+  // Handle post button press
+  const handlePostProperty = (): void => {
+    // Updated to use the correct route format based on your post-property.tsx file
+    router.push("/post-property");
+  };
+
   // Show error state
   if (error) {
     return (
@@ -204,7 +119,9 @@ export default function PropertyMapView({
       <MapView
         style={styles.map}
         testID="map-view"
-        onDidFinishLoadingMap={() => console.log("Map finished loading")}
+        onDidFinishLoadingMap={() => {
+          console.log("Map finished loading");
+        }}
       >
         {/* RasterSource for OSM tiles */}
         <RasterSource
@@ -305,6 +222,21 @@ export default function PropertyMapView({
           </View>
         </View>
       )}
+
+      {/* Floating Post Button */}
+      <TouchableOpacity
+        style={[
+          styles.postButton,
+          {
+            bottom: selectedProperty && isVisible ? 200 : 20,
+          },
+        ]}
+        onPress={handlePostProperty}
+        activeOpacity={0.8}
+        testID="post-property-button"
+      >
+        <Text style={styles.postButtonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }

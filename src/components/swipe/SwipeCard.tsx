@@ -1,8 +1,8 @@
 import type { Flatmate } from "@/types/Flatmate";
-import { JSX } from "react";
+import { type JSX } from "react";
 import { Image, Text, View } from "react-native";
 
-type Props = { item: Flatmate };
+export type Props = { item: Flatmate };
 export default function SwipeCard({ item }: Props): JSX.Element {
   return (
     <View
