@@ -345,7 +345,9 @@ export default function EditProfileModal(): JSX.Element {
           headerShown: true,
           headerRight: () => (
             <Text
-              onPress={() => { void onSave(); }}
+              onPress={() => {
+                void onSave();
+              }}
               style={{ color: "#6846FF", fontWeight: "700", fontSize: 16 }}
             >
               Save
