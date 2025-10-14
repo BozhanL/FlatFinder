@@ -85,7 +85,7 @@ function toDraft(uid: string, d?: UserDocData): Draft {
     ? { uri: avatarUrl }
     : {
         uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-          name || "U"
+          name || "U",
         )}`,
       };
 
@@ -124,7 +124,7 @@ function normalizeTag(s: string): string {
 function toFirestorePayload(x: Draft): FirestorePayload {
   const raw = Array.isArray(x.tags) ? x.tags : [];
   const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
-    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
 
   return {
@@ -158,7 +158,7 @@ const draftSchema = yup.object({
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
     .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
-      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false,
     ),
 
   dob: yup
@@ -206,8 +206,8 @@ const draftSchema = yup.object({
         .max(16, "Tag too long")
         .matches(
           /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
-          "Only letters, numbers, space"
-        )
+          "Only letters, numbers, space",
+        ),
     )
     .max(5, "Too many tags"),
 });
@@ -270,7 +270,7 @@ export default function EditProfileModal(): JSX.Element {
         : (form?.avatar ?? {
             uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
           }),
-    [form?.avatarUrl, form?.avatar]
+    [form?.avatarUrl, form?.avatar],
   );
 
   async function onSave(): Promise<void> {
@@ -301,7 +301,7 @@ export default function EditProfileModal(): JSX.Element {
               ? dateStringToTimestamp(form.dob)
               : (form.dob ?? null),
         }),
-        { merge: true }
+        { merge: true },
       );
 
       Alert.alert("Saved", "Your profile has been updated.");
@@ -327,6 +327,8 @@ export default function EditProfileModal(): JSX.Element {
     }
   }
 
+  const headerOffset = useHeaderHeight();
+
   if (!form) {
     return (
       <View style={styles.center}>
@@ -335,7 +337,6 @@ export default function EditProfileModal(): JSX.Element {
     );
   }
 
-  const headerOffset = useHeaderHeight();
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <Stack.Screen
@@ -344,7 +345,7 @@ export default function EditProfileModal(): JSX.Element {
           headerShown: true,
           headerRight: () => (
             <Text
-              onPress={onSave}
+              onPress={() => { void onSave(); }}
               style={{ color: "#6846FF", fontWeight: "700", fontSize: 16 }}
             >
               Save
@@ -441,7 +442,7 @@ export default function EditProfileModal(): JSX.Element {
                     placeholder="yourname"
                     onChangeText={(t) => {
                       setForm((prev) =>
-                        prev ? { ...prev, name: t.trim() } : prev
+                        prev ? { ...prev, name: t.trim() } : prev,
                       );
                     }}
                   />
@@ -478,7 +479,7 @@ export default function EditProfileModal(): JSX.Element {
                       onConfirm={(date) => {
                         const str = formatDDMMYYYY(date);
                         setForm((prev) =>
-                          prev ? { ...prev, dob: str } : prev
+                          prev ? { ...prev, dob: str } : prev,
                         );
                         setDobPickerOpen(false);
                       }}
@@ -504,7 +505,7 @@ export default function EditProfileModal(): JSX.Element {
                     value={form.location ?? ""}
                     onChange={(loc) => {
                       setForm((prev) =>
-                        prev ? { ...prev, location: loc } : prev
+                        prev ? { ...prev, location: loc } : prev,
                       );
                     }}
                   />
