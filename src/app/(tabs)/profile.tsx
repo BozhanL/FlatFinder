@@ -81,7 +81,7 @@ export default function Profile(): JSX.Element {
       (err) => {
         console.error("profile onSnapshot error:", err);
         setLoading(false);
-      },
+      }
     );
 
     return unsub;

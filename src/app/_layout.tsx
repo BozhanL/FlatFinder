@@ -1,4 +1,5 @@
 /* istanbul ignore file */
+// It only provides navigation without containing any business or testable logic.
 // No need to test it in unit tests.
 import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";

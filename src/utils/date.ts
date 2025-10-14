@@ -7,10 +7,10 @@ dayjs.extend(customParseFormat);
 function toDayjs(
   d: Timestamp | string | Date | null | undefined,
 ): dayjs.Dayjs | null {
-  if (!d) return null;
-  if (d instanceof Timestamp) return dayjs(d.toDate());
-  if (d instanceof Date) return dayjs(d);
-  if (typeof d === "string") return dayjs(d);
+  if (!d) {return null;}
+  if (d instanceof Timestamp) {return dayjs(d.toDate());}
+  if (d instanceof Date) {return dayjs(d);}
+  if (typeof d === "string") {return dayjs(d);}
   return null;
 }
 
@@ -18,16 +18,10 @@ export function calculateAge(
   dob: Timestamp | string | null | undefined,
 ): number | undefined {
   const b = toDayjs(dob);
-  if (!b?.isValid()) return undefined;
+  if (!b?.isValid()) {return undefined;}
 
   const today = dayjs();
-  let age = today.year() - b.year();
-  if (
-    today.month() < b.month() ||
-    (today.month() === b.month() && today.date() < b.date())
-  ) {
-    age--;
-  }
+  const age = today.diff(b, "year");
   return age;
 }
 

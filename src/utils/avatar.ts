@@ -1,14 +1,13 @@
 import type { ImageRequireSource } from "react-native";
 
-const DEFAULT_AVATAR =
-  require("assets/images/dummy1.png") as ImageRequireSource;
+const DEFAULT_AVATAR: ImageRequireSource = require("assets/images/dummy1.png");
 
-export const AVATARS = [
-  require("assets/images/dummy1.png") as ImageRequireSource,
-  require("assets/images/dummy2.png") as ImageRequireSource,
-  require("assets/images/dummy3.png") as ImageRequireSource,
-  require("assets/images/dummy4.png") as ImageRequireSource,
-] as const satisfies readonly ImageRequireSource[];
+export const AVATARS: ImageRequireSource[] = [
+  require("assets/images/dummy1.png"),
+  require("assets/images/dummy2.png"),
+  require("assets/images/dummy3.png"),
+  require("assets/images/dummy4.png"),
+];
 
 function hash(s: string): number {
   let h = 0;

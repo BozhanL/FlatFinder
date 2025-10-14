@@ -9,7 +9,6 @@ import type { Router } from "expo-router";
 import * as routerMod from "expo-router";
 import { Alert } from "react-native";
 
-type FirestoreDocRef = Record<string, unknown>;
 type GetDocResult = { data: () => Record<string, unknown> };
 type GetDocsResult = { docs: { id: string }[] };
 
@@ -166,23 +165,7 @@ jest.mock("@/components/ProfilePreview", () => {
 
 jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fsMock = require("@react-native-firebase/firestore") as {
-  getFirestore: (app?: unknown) => unknown;
-  doc: (...args: unknown[]) => FirestoreDocRef;
-  collection: (...args: unknown[]) => FirestoreDocRef;
-  where: (
-    f: string,
-    op: string,
-    v: unknown,
-  ) => { f: string; op: string; v: unknown };
-  query: (...args: unknown[]) => unknown[];
-  getDoc: jest.Mock<Promise<GetDocResult>, []>;
-  getDocs: jest.Mock<Promise<GetDocsResult>, []>;
-  setDoc: jest.Mock;
-  serverTimestamp: jest.Mock;
-  Timestamp: new (d: Date) => { toDate: () => Date };
-};
+const fsMock = jest.requireActual("@react-native-firebase/firestore");
 
 function primeGetDoc(data: Record<string, unknown>): void {
   fsMock.getDoc.mockResolvedValueOnce({ data: () => data });

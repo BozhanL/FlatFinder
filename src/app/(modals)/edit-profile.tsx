@@ -5,7 +5,6 @@ import ProfilePreview from "@/components/ProfilePreview";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getApp } from "@react-native-firebase/app";
 import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
@@ -34,19 +33,16 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as yup from "yup";
+import dayjs from "dayjs";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
 
-export enum Tab {
+export const enum Tab {
   Edit = "Edit",
   Preview = "Preview",
 }
 
-type Draft = Omit<Partial<Flatmate>, "dob" | "budget" | "location"> & {
+type Draft = Omit<Partial<Flatmate>, "dob" | "location"> & {
   dob?: Timestamp | string | null;
-  budget?: number | null;
   location?: string | null;
   avatarUrl?: string | null;
   name?: string | null;
@@ -71,7 +67,6 @@ type FirestorePayload = {
   budget: number | null;
   location: string | null;
   tags: string[];
-  tagsNormalized: string[];
   avatarUrl: string | null;
   lastActiveAt: FirestoreServerTimestamp;
 };
@@ -108,55 +103,45 @@ function toDraft(uid: string, d?: UserDocData): Draft {
 
 function dobToDateString(dob: Timestamp | string | null | undefined): string {
   if (!dob) return "";
-  let date: Date;
-  if (dob instanceof Timestamp) date = dob.toDate();
-  else date = new Date(dob);
+  let date: dayjs.Dayjs;
+  if (dob instanceof Timestamp) date = dayjs(dob.toDate());
+  else date = dayjs(dob);
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+  return date.isValid() ? date.format("DD-MM-YYYY") : "";
 }
 
 function dateStringToTimestamp(dateStr: string): Timestamp | null {
   if (!dateStr) return null;
-  const [day, month, year] = dateStr.split("-").map(Number);
-  if (!day || !month || !year) return null;
-  const date = new Date(year, month - 1, day);
-  return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
+  const date = dayjs(dateStr, "DD-MM-YYYY");
+  return date.isValid() ? Timestamp.fromDate(date.toDate()) : null;
 }
 
 function normalizeTag(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
-function uniq<T>(arr: T[]): T[] {
-  return Array.from(new Set(arr));
-}
 
 function toFirestorePayload(x: Draft): FirestorePayload {
-  const rawTags = Array.isArray(x.tags) ? x.tags : [];
-  const normTags = uniq(rawTags.map(normalizeTag).filter(Boolean));
+  const raw = Array.isArray(x.tags) ? x.tags : [];
+  const tags = Array.from(new Set(
+    raw.map(normalizeTag).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 
   return {
     name: x.name ?? null,
     dob: x.dob
-      ? typeof x.dob === "string"
-        ? dateStringToTimestamp(x.dob)
-        : x.dob
+      ? (typeof x.dob === "string" ? dateStringToTimestamp(x.dob) : x.dob)
       : null,
     bio: x.bio ?? null,
     budget: x.budget ?? null,
     location: x.location ?? null,
-    tags: rawTags,
-    tagsNormalized: normTags,
+    tags,
     avatarUrl: x.avatarUrl ?? null,
     lastActiveAt: serverTimestamp(),
   };
 }
-
 async function isUsernameTaken(v: string, myUid: string): Promise<boolean> {
-  const q = query(collection(db, "users"), where("name", "==", v));
+  const q = query(collection(getFirestore(), "users"), where("name", "==", v));
   const snap = await getDocs(q);
   const first = snap.docs.at(0);
   return !!first && first.id !== myUid;
@@ -228,7 +213,7 @@ const draftSchema = yup.object({
 /* -------------------------------------------- */
 
 export default function EditProfileModal(): JSX.Element {
-  const uid = auth.currentUser?.uid ?? null;
+  const uid = getAuth().currentUser?.uid ?? null;
 
   const [tab, setTab] = useState<Tab>(Tab.Edit);
   const [form, setForm] = useState<Draft | null>(null);
@@ -250,18 +235,17 @@ export default function EditProfileModal(): JSX.Element {
     return new Date(2000, 0, 1);
   }, [form?.dob]);
 
-  useEffect((): (() => void) => {
+  useEffect(() => {
     if (!uid) {
       router.replace("/login");
-
-      return (): void => undefined;
+      return;
     }
 
     const alive = { current: true };
 
     const run = async (): Promise<void> => {
       try {
-        const snap = await getDoc(doc(db, "users", uid));
+        const snap = await getDoc(doc(getFirestore(), "users", uid));
         if (!alive.current) return;
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
         setForm(d);
@@ -308,7 +292,7 @@ export default function EditProfileModal(): JSX.Element {
       }
 
       await setDoc(
-        doc(db, "users", uid),
+        doc(getFirestore(), "users", uid),
         toFirestorePayload({
           ...form,
           dob:
@@ -342,12 +326,13 @@ export default function EditProfileModal(): JSX.Element {
     }
   }
 
-  if (!form)
+  if (!form) {
     return (
       <View style={styles.center}>
         <Text>Loading…</Text>
       </View>
     );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
