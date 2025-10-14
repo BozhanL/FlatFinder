@@ -2,7 +2,6 @@ import HeaderLogo from "@/components/HeaderLogo";
 import type { Flatmate } from "@/types/Flatmate";
 import { calculateAge } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getApp } from "@react-native-firebase/app";
 import {
   getAuth,
   onAuthStateChanged,
@@ -27,9 +26,8 @@ import {
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+const auth = getAuth();
+const db = getFirestore();
 
 type UserDocData = {
   name?: string;
@@ -158,7 +156,7 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="star-outline"
             title="Watchlist"
-            onPress={() => undefined}
+            onPress={() => { router.push("/(modals)/watchlist"); }}
           />
           <MenuItem
             icon="cog-outline"
