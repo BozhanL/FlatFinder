@@ -1,5 +1,3 @@
-// src/services/auth.ts
-
 import {
   createUserWithEmailAndPassword,
   getAuth,
@@ -12,6 +10,7 @@ import {
 import {
   GoogleSignin,
   statusCodes,
+  User,
 } from "@react-native-google-signin/google-signin";
 
 import { Platform } from "react-native";
@@ -41,7 +40,7 @@ function isGoogleError(e: unknown): e is CodeError {
 // --- CONFIGURATION ---
 
 // Must be called once on app startup (e.g., in a root hook or App.tsx)
-export const configureGoogleSignIn = () => {
+export const configureGoogleSignIn = (): void => {
   if (Platform.OS !== "web") {
     GoogleSignin.configure({
       webClientId:
@@ -109,17 +108,17 @@ export const handleGoogleSignIn = async (): Promise<string> => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
     // 2. Start the Google Sign-In process (returns a union type)
-    const signInResult = await GoogleSignin.signIn();
+    const signInResult: User = await GoogleSignin.signIn();
 
     let idToken: string | null = null;
 
     // 3. Robust Token Extraction (using optional chaining and casting to handle type inconsistencies)
     // Check root (common on iOS/older versions)
-    idToken = (signInResult as any).idToken;
+    idToken = signInResult.idToken;
 
     // Check nested under user (common on newer Android)
     if (!idToken) {
-      idToken = (signInResult as any).user?.idToken;
+      idToken = signInResult.user?.idToken;
     }
 
     // Check nested under data (if needed, as per your original code)
@@ -152,10 +151,7 @@ export const handleGoogleSignIn = async (): Promise<string> => {
         return "Google Sign-In configuration error. Check your SHA-1 fingerprint in Firebase.";
       }
 
-      return (
-        (e as CodeError).message ||
-        "An unexpected error occurred during Google sign-in."
-      );
+      return e.message || "An unexpected error occurred during Google sign-in.";
     }
     console.error("Google Sign-In Error:", e);
     return "An unexpected error occurred during Google sign-in.";
@@ -165,8 +161,8 @@ export const handleGoogleSignIn = async (): Promise<string> => {
 export const handleSignOut = async (): Promise<void> => {
   try {
     await signOut(getAuth());
-    await GoogleSignin.revokeAccess(); // Good practice to revoke Google access on sign out
-    await GoogleSignin.signOut(); // And sign out of the Google session
+    await GoogleSignin.revokeAccess();
+    await GoogleSignin.signOut();
   } catch (e: unknown) {
     console.error("Sign Out Error:", e);
   }
