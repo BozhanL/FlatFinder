@@ -18,16 +18,15 @@ import {
   Timestamp,
   where,
 } from "@react-native-firebase/firestore";
-import { useHeaderHeight } from "@react-navigation/elements";
 import dayjs from "dayjs";
 import { Stack } from "expo-router";
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
 import {
   Alert,
-  FlatList,
   Image,
   KeyboardAvoidingView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -175,30 +174,15 @@ const draftSchema = yup.object({
       if (!v) {
         return true;
       }
-      const parts = v.split("-");
-      if (parts.length !== 3) {
-        return false;
-      }
-      const [day, month, year] = parts.map(Number);
-      if (!day || !month || !year) {
-        return false;
-      }
-      const date = new Date(year, month - 1, day);
-      return date instanceof Date && !isNaN(date.getTime());
+      const date = dayjs(v, "DD-MM-YYYY");
+      return date.isValid();
     })
     .test("not-future", "Date of birth cannot be in the future", (v) => {
       if (!v) {
         return true;
       }
-      const [dayStr, monthStr, yearStr] = v.split("-");
-      const day = Number(dayStr) || 0;
-      const month = Number(monthStr) || 0;
-      const year = Number(yearStr) || 0;
-      if (!day || !month || !year) {
-        return false;
-      }
-      const date = new Date(year, month - 1, day);
-      return date < new Date();
+      const date = dayjs(v, "DD-MM-YYYY");
+      return date.isValid() && date.isBefore(dayjs());
     }),
 
   budget: yup
@@ -359,7 +343,7 @@ export default function EditProfileModal(): JSX.Element {
     }
   }
 
-  const headerOffset = useHeaderHeight();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   if (!form) {
     return (
@@ -409,163 +393,162 @@ export default function EditProfileModal(): JSX.Element {
       {tab === Tab.Edit ? (
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior="height"
-          keyboardVerticalOffset={headerOffset || 0}
+          behavior={"height"}
+          keyboardVerticalOffset={0}
         >
-          <FlatList
-            data={[0]}
-            keyExtractor={() => "form"}
-            renderItem={() => null}
-            ListHeaderComponent={
-              <>
-                {/* Photos */}
-                <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                  <Text style={{ fontSize: 16, fontWeight: "700" }}>
-                    Photos{" "}
-                    <Text style={{ fontSize: 12, color: "#777" }}>
-                      (Maximum of 3)
-                    </Text>
+          <ScrollView
+            ref={scrollViewRef}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          >
+            <View>
+              {/* Photos */}
+              <View>
+                <Text style={{ fontSize: 16, fontWeight: "700" }}>
+                  Photos{" "}
+                  <Text style={{ fontSize: 12, color: "#777" }}>
+                    (Maximum of 3)
                   </Text>
-                  {/* TODO: actual avatar upload */}
-                  <View
+                </Text>
+                {/* TODO: actual avatar upload */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 16,
+                    marginTop: 12,
+                  }}
+                >
+                  <TouchableOpacity activeOpacity={0.8}>
+                    <Image source={avatarSource} style={styles.bigAvatar} />
+                  </TouchableOpacity>
+
+                  <View style={{ gap: 12 }}>
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                      <CircleThumb
+                        uri={photos[1] ?? ""}
+                        onPress={() => void 0}
+                      />
+                      <CircleThumb
+                        uri={photos[2] ?? ""}
+                        onPress={() => void 0}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addCircle}
+                      onPress={() => void 0}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={22}
+                        color="#555"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* About me */}
+              <View style={{ marginTop: 20, paddingBottom: 100 }}>
+                <Text style={styles.sectionTitle}>About me</Text>
+
+                {/* Username */}
+                <FieldInput
+                  label="Username"
+                  value={form.name ?? ""}
+                  placeholder="yourname"
+                  onChangeText={(t) => {
+                    setForm((prev) =>
+                      prev ? { ...prev, name: t.trim() } : prev,
+                    );
+                  }}
+                />
+                {/* Date of Birth */}
+                <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                  <Text
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 16,
-                      marginTop: 12,
+                      fontSize: 14,
+                      fontWeight: "700",
+                      marginBottom: 8,
                     }}
                   >
-                    <TouchableOpacity activeOpacity={0.8}>
-                      <Image source={avatarSource} style={styles.bigAvatar} />
-                    </TouchableOpacity>
+                    Date of Birth
+                  </Text>
 
-                    <View style={{ gap: 12 }}>
-                      <View style={{ flexDirection: "row", gap: 12 }}>
-                        <CircleThumb
-                          uri={photos[1] ?? ""}
-                          onPress={() => void 0}
-                        />
-                        <CircleThumb
-                          uri={photos[2] ?? ""}
-                          onPress={() => void 0}
-                        />
-                      </View>
-                      <TouchableOpacity
-                        style={styles.addCircle}
-                        onPress={() => void 0}
-                        activeOpacity={0.8}
-                      >
-                        <MaterialCommunityIcons
-                          name="plus"
-                          size={22}
-                          color="#555"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-
-                {/* About me */}
-                <View style={{ marginTop: 20 }}>
-                  <Text style={styles.sectionTitle}>About me</Text>
-
-                  {/* Username */}
-                  <FieldInput
-                    label="Username"
-                    value={form.name ?? ""}
-                    placeholder="yourname"
-                    onChangeText={(t) => {
-                      setForm((prev) =>
-                        prev ? { ...prev, name: t.trim() } : prev,
-                      );
+                  <TouchableOpacity
+                    onPress={() => {
+                      setDobPickerOpen(true);
                     }}
-                  />
-                  {/* Date of Birth */}
-                  <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: "700",
-                        marginBottom: 8,
-                      }}
-                    >
-                      Date of Birth
+                    activeOpacity={0.8}
+                    style={styles.input}
+                  >
+                    <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                      {dobDisplay || "DD-MM-YYYY"}
                     </Text>
+                  </TouchableOpacity>
 
-                    <TouchableOpacity
-                      onPress={() => {
-                        setDobPickerOpen(true);
-                      }}
-                      activeOpacity={0.8}
-                      style={styles.input}
-                    >
-                      <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                        {dobDisplay || "DD-MM-YYYY"}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <DateTimePickerModal
-                      isVisible={dobPickerOpen}
-                      mode="date"
-                      date={dobInitialDate}
-                      maximumDate={new Date()}
-                      minimumDate={new Date(1900, 0, 1)}
-                      onConfirm={(date) => {
-                        const str = formatDDMMYYYY(date);
-                        setForm((prev) =>
-                          prev ? { ...prev, dob: str } : prev,
-                        );
-                        setDobPickerOpen(false);
-                      }}
-                      onCancel={() => {
-                        setDobPickerOpen(false);
-                      }}
-                    />
-                  </View>
-
-                  {/* Budget */}
-                  <BudgetField
-                    value={form.budget ?? null}
-                    onChange={(n) => {
-                      setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                  <DateTimePickerModal
+                    isVisible={dobPickerOpen}
+                    mode="date"
+                    date={dobInitialDate}
+                    maximumDate={new Date()}
+                    minimumDate={new Date(1900, 0, 1)}
+                    onConfirm={(date) => {
+                      const str = formatDDMMYYYY(date);
+                      setForm((prev) => (prev ? { ...prev, dob: str } : prev));
+                      setDobPickerOpen(false);
                     }}
-                    min={50}
-                    max={2000}
-                    step={10}
-                  />
-
-                  {/* Preferred Location */}
-                  <NZLocationPickerField
-                    value={form.location ?? ""}
-                    onChange={(loc) => {
-                      setForm((prev) =>
-                        prev ? { ...prev, location: loc } : prev,
-                      );
+                    onCancel={() => {
+                      setDobPickerOpen(false);
                     }}
-                  />
-
-                  {/* Tag */}
-                  <TagInputField
-                    value={form.tags ?? []}
-                    onChange={(tags) => {
-                      setForm((prev) => (prev ? { ...prev, tags } : prev));
-                    }}
-                  />
-
-                  {/* Bio */}
-                  <FieldInput
-                    label="Bio"
-                    placeholder="Tell the world about YOU.."
-                    value={form.bio ?? ""}
-                    onChangeText={(t) => {
-                      setForm((prev) => (prev ? { ...prev, bio: t } : prev));
-                    }}
-                    multiline
                   />
                 </View>
-              </>
-            }
-          />
+
+                {/* Budget */}
+                <BudgetField
+                  value={form.budget ?? null}
+                  onChange={(n) => {
+                    setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                  }}
+                  min={50}
+                  max={2000}
+                  step={10}
+                />
+
+                {/* Preferred Location */}
+                <NZLocationPickerField
+                  value={form.location ?? ""}
+                  onChange={(loc) => {
+                    setForm((prev) =>
+                      prev ? { ...prev, location: loc } : prev,
+                    );
+                  }}
+                />
+
+                {/* Tag */}
+                <TagInputField
+                  value={form.tags ?? []}
+                  onChange={(tags) => {
+                    setForm((prev) => (prev ? { ...prev, tags } : prev));
+                  }}
+                />
+
+                {/* Bio */}
+                <FieldInput
+                  label="Bio"
+                  placeholder="Tell the world about YOU.."
+                  value={form.bio ?? ""}
+                  onChangeText={(t) => {
+                    setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                  }}
+                  multiline
+                />
+              </View>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       ) : (
         <ProfilePreview

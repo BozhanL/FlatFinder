@@ -1,4 +1,4 @@
-import React, { type JSX } from "react";
+import React, { useState, type JSX } from "react";
 import {
   StyleSheet,
   Text,
@@ -44,6 +44,7 @@ export default function BudgetField({
   max?: number;
   step?: number;
 }): JSX.Element {
+  const [inputText, setInputText] = useState("");
   function commit(raw: string): void {
     const n = parseNumber(raw);
     if (isNaN(n)) {
@@ -51,7 +52,9 @@ export default function BudgetField({
       return;
     }
 
-    onChange(clamp(roundStep(n, step), min, max));
+    const clamped = clamp(roundStep(n, step), min, max);
+    onChange(clamped);
+    setInputText("");
   }
 
   function inc(delta: number): void {
@@ -96,10 +99,8 @@ export default function BudgetField({
         <TextInput
           style={styles.input}
           keyboardType="number-pad"
-          value={formatNZD(value ?? NaN)}
-          onChangeText={(t): void => {
-            void t;
-          }}
+          value={inputText || formatNZD(value ?? NaN)}
+          onChangeText={setInputText}
           onEndEditing={(e): void => {
             commit(e.nativeEvent.text);
           }}

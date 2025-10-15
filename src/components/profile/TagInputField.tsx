@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, type JSX } from "react";
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -134,11 +134,15 @@ export default function TagInputField({
       </View>
 
       {suggestions.length > 0 && (
-        <FlatList
-          data={suggestions}
-          keyExtractor={(s) => s}
-          renderItem={({ item }) => (
+        <ScrollView
+          style={{ marginTop: 8, maxHeight: 160 }}
+          scrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {suggestions.map((item) => (
             <TouchableOpacity
+              key={item}
               style={styles.suggest}
               onPress={() => {
                 addToken(item);
@@ -146,10 +150,8 @@ export default function TagInputField({
             >
               <Text style={{ fontSize: 14 }}>{item}</Text>
             </TouchableOpacity>
-          )}
-          style={{ marginTop: 8, maxHeight: 160 }}
-          keyboardShouldPersistTaps="handled"
-        />
+          ))}
+        </ScrollView>
       )}
 
       <Text style={styles.hint}>
