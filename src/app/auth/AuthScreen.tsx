@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 // Import the auth service functions
@@ -15,7 +15,7 @@ import {
   configureGoogleSignIn,
   handleEmailAuth,
   handleGoogleSignIn,
-  handlePasswordReset
+  handlePasswordReset,
 } from "@/services/auth";
 // The path for @/services/auth is crucial!
 
@@ -34,10 +34,10 @@ const AuthScreen = (): JSX.Element => {
   }, []);
 
   // --- Handlers using the imported service functions ---
-  
-  // NOTE: These internal component handlers are kept simple, 
+
+  // NOTE: These internal component handlers are kept simple,
   // focusing only on UI state (loading/error) and calling the service.
-  
+
   const handleAuthSubmit = async (): Promise<void> => {
     setLoading(true);
     setError("");
@@ -57,10 +57,10 @@ const AuthScreen = (): JSX.Element => {
 
     const result = await handlePasswordReset(email);
     // Password reset uses the error state to display a success/failure message
-    setError(result); 
+    setError(result);
     setLoading(false);
   };
-  
+
   const handleGoogleSubmit = async (): Promise<void> => {
     setLoading(true);
     setError("");
@@ -118,7 +118,7 @@ const AuthScreen = (): JSX.Element => {
         {isLogin && (
           <TouchableOpacity
             // Refactored: Call handler directly with 'void' to suppress warning
-            onPress={() => void handleResetSubmit()} 
+            onPress={() => void handleResetSubmit()}
             style={styles.forgotPassword}
           >
             <Text style={styles.link}>Forgot password?</Text>
@@ -128,7 +128,7 @@ const AuthScreen = (): JSX.Element => {
         <TouchableOpacity
           style={styles.button}
           // Refactored: Call handler directly with 'void'
-          onPress={() => void handleAuthSubmit()} 
+          onPress={() => void handleAuthSubmit()}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
@@ -145,7 +145,7 @@ const AuthScreen = (): JSX.Element => {
         <TouchableOpacity
           style={styles.socialButton}
           // Refactored: Call handler directly with 'void'
-          onPress={() => void handleGoogleSubmit()} 
+          onPress={() => void handleGoogleSubmit()}
           disabled={loading}
         >
           <Image
@@ -168,7 +168,7 @@ const AuthScreen = (): JSX.Element => {
             setIsLogin(!isLogin);
             // Clear errors and password when toggling mode
             setError("");
-            setPassword(""); 
+            setPassword("");
           }}
           style={styles.toggleButton}
         >

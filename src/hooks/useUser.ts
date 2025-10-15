@@ -1,6 +1,10 @@
 // src/hooks/useUser.ts
 
-import { getAuth, onAuthStateChanged, type FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  getAuth,
+  onAuthStateChanged,
+  type FirebaseAuthTypes,
+} from "@react-native-firebase/auth";
 import { useEffect, useState } from "react";
 
 // The user state can be:

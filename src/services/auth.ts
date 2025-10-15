@@ -11,11 +11,10 @@ import {
 } from "@react-native-firebase/auth";
 import {
   GoogleSignin,
-  statusCodes
+  statusCodes,
 } from "@react-native-google-signin/google-signin";
 
 import { Platform } from "react-native";
-
 
 // --- TYPE GUARDS ---
 type CodeError = {
@@ -50,7 +49,6 @@ export const configureGoogleSignIn = () => {
     });
   }
 };
-
 
 // --- AUTH HANDLERS (UNCHANGED) ---
 
@@ -96,10 +94,7 @@ export const handlePasswordReset = async (email: string): Promise<string> => {
     return "Password reset link sent to your email! Please check your inbox (and spam folder).";
   } catch (e: unknown) {
     if (isFirebaseAuthError(e)) {
-      if (
-        e.code === "auth/user-not-found" ||
-        e.code === "auth/invalid-email"
-      ) {
+      if (e.code === "auth/user-not-found" || e.code === "auth/invalid-email") {
         return "We couldn't find an account associated with that email address.";
       }
       return e.message || "Failed to send password reset email.";
@@ -115,9 +110,9 @@ export const handleGoogleSignIn = async (): Promise<string> => {
 
     // 2. Start the Google Sign-In process (returns a union type)
     const signInResult = await GoogleSignin.signIn();
-    
+
     let idToken: string | null = null;
-    
+
     // 3. Robust Token Extraction (using optional chaining and casting to handle type inconsistencies)
     // Check root (common on iOS/older versions)
     idToken = (signInResult as any).idToken;
@@ -139,10 +134,9 @@ export const handleGoogleSignIn = async (): Promise<string> => {
     // 4. Sign in to Firebase using the ID token
     const googleCredential = GoogleAuthProvider.credential(idToken);
     await signInWithCredential(getAuth(), googleCredential);
-    
+
     return "success";
-    
-} catch (e: unknown) {
+  } catch (e: unknown) {
     // 5. Handle errors, including cancellation check
     if (isGoogleError(e)) {
       // Handle known statusCodes first
@@ -152,18 +146,20 @@ export const handleGoogleSignIn = async (): Promise<string> => {
         return "Sign-in is already in progress.";
       } else if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         return "Google Play services are not available on this device.";
-      } 
-      
-      if (e.code === "8" || e.code === "DEVELOPER_ERROR") {
-          return "Google Sign-In configuration error. Check your SHA-1 fingerprint in Firebase.";
       }
-      
-      return (e as CodeError).message || "An unexpected error occurred during Google sign-in.";
+
+      if (e.code === "8" || e.code === "DEVELOPER_ERROR") {
+        return "Google Sign-In configuration error. Check your SHA-1 fingerprint in Firebase.";
+      }
+
+      return (
+        (e as CodeError).message ||
+        "An unexpected error occurred during Google sign-in."
+      );
     }
     console.error("Google Sign-In Error:", e);
     return "An unexpected error occurred during Google sign-in.";
   }
-  
 };
 
 export const handleSignOut = async (): Promise<void> => {
