@@ -4,7 +4,7 @@ import useUserMap from "@/hooks/useUserList";
 import { unblockUser } from "@/services/swipe";
 import type { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import dayjs from "dayjs";
-import type { JSX } from "react";
+import { useMemo, type JSX } from "react";
 import {
   FlatList,
   Image,
@@ -31,15 +31,19 @@ export default function BlockedList(): JSX.Element | null {
     return null;
   }
 
-  const blockedUserList: blockedUserItem[] = blocked.map((b) => {
-    const user = userList.get(b.uid);
-    return {
-      uid: b.uid,
-      name: user?.name || "Unknown",
-      avatar: user?.avatar ?? null,
-      blockedAt: b.createdAt ?? null,
-    };
-  });
+  const blockedUserList: blockedUserItem[] = useMemo(
+    () =>
+      blocked.map((b) => {
+        const user = userList.get(b.uid);
+        return {
+          uid: b.uid,
+          name: user?.name || "Unknown",
+          avatar: user?.avatar ?? null,
+          blockedAt: b.createdAt ?? null,
+        };
+      }),
+    [blocked, userList],
+  );
 
   return (
     <FlatList
