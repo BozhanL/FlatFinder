@@ -53,6 +53,7 @@ describe("@/components/message/MessageList", () => {
       lastMessage: "Hello",
       lastSender: "uid1",
       lastNotified: Timestamp.fromMillis(0),
+      avatar: null,
     };
 
     render(MessageListPrivate.renderItem(item, "uid"));
@@ -71,6 +72,7 @@ describe("@/components/message/MessageList", () => {
       lastMessage: null,
       lastSender: null,
       lastNotified: Timestamp.fromMillis(0),
+      avatar: null,
     };
 
     render(MessageListPrivate.renderItem(item, "uid"));
