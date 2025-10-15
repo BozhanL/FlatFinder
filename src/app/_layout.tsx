@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-// No need to test it in unit tests.
 import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";

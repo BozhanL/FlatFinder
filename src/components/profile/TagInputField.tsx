@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, type JSX } from "react";
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,7 +11,7 @@ import {
 const SUGGESTED = [
   "student",
   "cat lover",
-  "non-smoker",
+  "non smoker",
   "gym",
   "early bird",
   "gamer",
@@ -53,10 +53,16 @@ export default function TagInputField({
   const canAddMore = value.length < maxTags;
 
   function addToken(raw: string): void {
-    if (!canAddMore) return;
+    if (!canAddMore) {
+      return;
+    }
     const t = normalize(raw).slice(0, maxLen);
-    if (!t) return;
-    if (value.some((v) => v === t)) return;
+    if (!t) {
+      return;
+    }
+    if (value.some((v) => v === t)) {
+      return;
+    }
     onChange([...value, t]);
     setToken("");
   }
@@ -81,7 +87,9 @@ export default function TagInputField({
 
   const suggestions = useMemo<string[]>(() => {
     const q = normalize(token);
-    if (!q) return [];
+    if (!q) {
+      return [];
+    }
     const set = new Set(value);
     return SUGGESTED.filter((x) => x.includes(q) && !set.has(x)).slice(0, 8);
   }, [token, value]);
@@ -115,7 +123,6 @@ export default function TagInputField({
               onChangeText={handleChangeText}
               onSubmitEditing={handleSubmitEditing}
               placeholder={value.length ? "" : "e.g. student, cat lover"}
-              blurOnSubmit={false}
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"
@@ -126,11 +133,15 @@ export default function TagInputField({
       </View>
 
       {suggestions.length > 0 && (
-        <FlatList
-          data={suggestions}
-          keyExtractor={(s) => s}
-          renderItem={({ item }) => (
+        <ScrollView
+          style={{ marginTop: 8, maxHeight: 160 }}
+          scrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {suggestions.map((item) => (
             <TouchableOpacity
+              key={item}
               style={styles.suggest}
               onPress={() => {
                 addToken(item);
@@ -138,10 +149,8 @@ export default function TagInputField({
             >
               <Text style={{ fontSize: 14 }}>{item}</Text>
             </TouchableOpacity>
-          )}
-          style={{ marginTop: 8, maxHeight: 160 }}
-          keyboardShouldPersistTaps="handled"
-        />
+          ))}
+        </ScrollView>
       )}
 
       <Text style={styles.hint}>

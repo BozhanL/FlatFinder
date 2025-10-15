@@ -2,11 +2,10 @@ import BudgetField from "@/components/profile/BudgetField";
 import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
+import useUser from "@/hooks/useUser";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   doc,
@@ -19,13 +18,15 @@ import {
   Timestamp,
   where,
 } from "@react-native-firebase/firestore";
-import { router } from "expo-router";
-import { useEffect, useMemo, useState, type JSX } from "react";
+import dayjs from "dayjs";
+import { Stack } from "expo-router";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
 import {
   Alert,
-  FlatList,
   Image,
+  KeyboardAvoidingView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -35,18 +36,13 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as yup from "yup";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export enum Tab {
+export const enum Tab {
   Edit = "Edit",
   Preview = "Preview",
 }
 
-type Draft = Omit<Partial<Flatmate>, "dob" | "budget" | "location"> & {
+type Draft = Omit<Partial<Flatmate>, "dob" | "location"> & {
   dob?: Timestamp | string | null;
-  budget?: number | null;
   location?: string | null;
   avatarUrl?: string | null;
   name?: string | null;
@@ -71,7 +67,6 @@ type FirestorePayload = {
   budget: number | null;
   location: string | null;
   tags: string[];
-  tagsNormalized: string[];
   avatarUrl: string | null;
   lastActiveAt: FirestoreServerTimestamp;
 };
@@ -107,36 +102,36 @@ function toDraft(uid: string, d?: UserDocData): Draft {
 }
 
 function dobToDateString(dob: Timestamp | string | null | undefined): string {
-  if (!dob) return "";
-  let date: Date;
-  if (dob instanceof Timestamp) date = dob.toDate();
-  else date = new Date(dob);
+  if (!dob) {
+    return "";
+  }
+  let date: dayjs.Dayjs;
+  if (dob instanceof Timestamp) {
+    date = dayjs(dob.toDate());
+  } else {
+    date = dayjs(dob);
+  }
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+  return date.isValid() ? date.format("DD-MM-YYYY") : "";
 }
 
 function dateStringToTimestamp(dateStr: string): Timestamp | null {
-  if (!dateStr) return null;
-  const [day, month, year] = dateStr.split("-").map(Number);
-  if (!day || !month || !year) return null;
-  const date = new Date(year, month - 1, day);
-  return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
+  if (!dateStr) {
+    return null;
+  }
+  const date = dayjs(dateStr, "DD-MM-YYYY");
+  return date.isValid() ? Timestamp.fromDate(date.toDate()) : null;
 }
 
 function normalizeTag(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
-function uniq<T>(arr: T[]): T[] {
-  return Array.from(new Set(arr));
-}
-
 function toFirestorePayload(x: Draft): FirestorePayload {
-  const rawTags = Array.isArray(x.tags) ? x.tags : [];
-  const normTags = uniq(rawTags.map(normalizeTag).filter(Boolean));
+  const raw = Array.isArray(x.tags) ? x.tags : [];
+  const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
 
   return {
     name: x.name ?? null,
@@ -148,15 +143,13 @@ function toFirestorePayload(x: Draft): FirestorePayload {
     bio: x.bio ?? null,
     budget: x.budget ?? null,
     location: x.location ?? null,
-    tags: rawTags,
-    tagsNormalized: normTags,
+    tags,
     avatarUrl: x.avatarUrl ?? null,
     lastActiveAt: serverTimestamp(),
   };
 }
-
 async function isUsernameTaken(v: string, myUid: string): Promise<boolean> {
-  const q = query(collection(db, "users"), where("name", "==", v));
+  const q = query(collection(getFirestore(), "users"), where("name", "==", v));
   const snap = await getDocs(q);
   const first = snap.docs.at(0);
   return !!first && first.id !== myUid;
@@ -178,30 +171,27 @@ const draftSchema = yup.object({
     .string()
     .nullable()
     .test("valid-date", "Invalid date format (use DD-MM-YYYY)", (v) => {
-      if (!v) return true;
-      const parts = v.split("-");
-      if (parts.length !== 3) return false;
-      const [day, month, year] = parts.map(Number);
-      if (!day || !month || !year) return false;
-      const date = new Date(year, month - 1, day);
-      return date instanceof Date && !isNaN(date.getTime());
+      if (!v) {
+        return true;
+      }
+      const date = dayjs(v, "DD-MM-YYYY");
+      return date.isValid();
     })
     .test("not-future", "Date of birth cannot be in the future", (v) => {
-      if (!v) return true;
-      const [dayStr, monthStr, yearStr] = v.split("-");
-      const day = Number(dayStr) || 0;
-      const month = Number(monthStr) || 0;
-      const year = Number(yearStr) || 0;
-      if (!day || !month || !year) return false;
-      const date = new Date(year, month - 1, day);
-      return date < new Date();
+      if (!v) {
+        return true;
+      }
+      const date = dayjs(v, "DD-MM-YYYY");
+      return date.isValid() && date.isBefore(dayjs());
     }),
 
   budget: yup
     .number()
     .nullable()
     .transform((_, o) => {
-      if (o == null || o === "") return null;
+      if (o == null || o === "") {
+        return null;
+      }
       const n = Number(String(o).replace(/[^\d]/g, ""));
       return Number.isFinite(n) ? n : null;
     })
@@ -228,7 +218,7 @@ const draftSchema = yup.object({
 /* -------------------------------------------- */
 
 export default function EditProfileModal(): JSX.Element {
-  const uid = auth.currentUser?.uid ?? null;
+  const uid = useUser()?.uid;
 
   const [tab, setTab] = useState<Tab>(Tab.Edit);
   const [form, setForm] = useState<Draft | null>(null);
@@ -237,32 +227,41 @@ export default function EditProfileModal(): JSX.Element {
   const [dobPickerOpen, setDobPickerOpen] = useState(false);
 
   const dobDisplay = useMemo(() => {
-    if (!form?.dob) return "";
-    if (form.dob instanceof Timestamp) return formatDDMMYYYY(form.dob.toDate());
-    if (typeof form.dob === "string") return form.dob;
+    if (!form?.dob) {
+      return "";
+    }
+    if (form.dob instanceof Timestamp) {
+      return formatDDMMYYYY(form.dob.toDate());
+    }
+    if (typeof form.dob === "string") {
+      return form.dob;
+    }
     return "";
   }, [form?.dob]);
 
   const dobInitialDate = useMemo(() => {
-    if (form?.dob instanceof Timestamp) return form.dob.toDate();
-    if (typeof form?.dob === "string")
+    if (form?.dob instanceof Timestamp) {
+      return form.dob.toDate();
+    }
+    if (typeof form?.dob === "string") {
       return parseDDMMYYYY(form.dob) ?? new Date(2000, 0, 1);
+    }
     return new Date(2000, 0, 1);
   }, [form?.dob]);
 
-  useEffect((): (() => void) => {
+  useEffect(() => {
     if (!uid) {
-      router.replace("/login");
-
-      return (): void => undefined;
+      return;
     }
 
     const alive = { current: true };
 
     const run = async (): Promise<void> => {
       try {
-        const snap = await getDoc(doc(db, "users", uid));
-        if (!alive.current) return;
+        const snap = await getDoc(doc(getFirestore(), "users", uid));
+        if (!alive.current) {
+          return;
+        }
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
         setForm(d);
         setPhotos([d.avatarUrl || "", "", ""]);
@@ -289,7 +288,9 @@ export default function EditProfileModal(): JSX.Element {
   );
 
   async function onSave(): Promise<void> {
-    if (!uid || !form) return;
+    if (!uid || !form) {
+      return;
+    }
 
     try {
       const candidate = {
@@ -308,7 +309,7 @@ export default function EditProfileModal(): JSX.Element {
       }
 
       await setDoc(
-        doc(db, "users", uid),
+        doc(getFirestore(), "users", uid),
         toFirestorePayload({
           ...form,
           dob:
@@ -342,38 +343,34 @@ export default function EditProfileModal(): JSX.Element {
     }
   }
 
-  if (!form)
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  if (!form) {
     return (
       <View style={styles.center}>
         <Text>Loading…</Text>
       </View>
     );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.topbar}>
-        <TouchableOpacity
-          onPress={() => {
-            router.back();
-          }}
-          style={{ padding: 8 }}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.topTitle}>Profile</Text>
-        {tab === Tab.Edit ? (
-          <TouchableOpacity
-            onPress={() => {
-              void onSave();
-            }}
-            style={{ padding: 8 }}
-          >
-            <Text style={{ color: "#6B46FF", fontWeight: "700" }}>Save</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 44 }} />
-        )}
-      </View>
+      <Stack.Screen
+        options={{
+          title: "Profile",
+          headerShown: true,
+          headerRight: () => (
+            <Text
+              onPress={() => {
+                void onSave();
+              }}
+              style={{ color: "#6846FF", fontWeight: "700", fontSize: 16 }}
+            >
+              Save
+            </Text>
+          ),
+        }}
+      />
 
       {/* Tabs */}
       <View style={styles.tabs}>
@@ -394,21 +391,28 @@ export default function EditProfileModal(): JSX.Element {
       </View>
 
       {tab === Tab.Edit ? (
-        <FlatList
-          data={[0]}
-          keyExtractor={() => "form"}
-          renderItem={() => null}
-          ListHeaderComponent={
-            <>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={"height"}
+          keyboardVerticalOffset={0}
+        >
+          <ScrollView
+            ref={scrollViewRef}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          >
+            <View>
               {/* Photos */}
-              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+              <View>
                 <Text style={{ fontSize: 16, fontWeight: "700" }}>
                   Photos{" "}
                   <Text style={{ fontSize: 12, color: "#777" }}>
                     (Maximum of 3)
                   </Text>
                 </Text>
-
+                {/* TODO: actual avatar upload */}
                 <View
                   style={{
                     flexDirection: "row",
@@ -448,7 +452,7 @@ export default function EditProfileModal(): JSX.Element {
               </View>
 
               {/* About me */}
-              <View style={{ marginTop: 20 }}>
+              <View style={{ marginTop: 20, paddingBottom: 100 }}>
                 <Text style={styles.sectionTitle}>About me</Text>
 
                 {/* Username */}
@@ -465,7 +469,11 @@ export default function EditProfileModal(): JSX.Element {
                 {/* Date of Birth */}
                 <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
                   <Text
-                    style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "700",
+                      marginBottom: 8,
+                    }}
                   >
                     Date of Birth
                   </Text>
@@ -539,9 +547,9 @@ export default function EditProfileModal(): JSX.Element {
                   multiline
                 />
               </View>
-            </>
-          }
-        />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       ) : (
         <ProfilePreview
           source="data"
