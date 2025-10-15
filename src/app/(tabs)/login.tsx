@@ -4,19 +4,19 @@ import HeaderLogo from "@/components/HeaderLogo";
 import { logout } from "@/services/logout";
 import { createGroup } from "@/services/message";
 import {
-  FirebaseAuthTypes,
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
+    FirebaseAuthTypes,
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
 } from "@react-native-firebase/auth";
 import { type JSX, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Button,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Button,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 
 export default function ProfileScreen(): JSX.Element {
@@ -38,7 +38,7 @@ export default function ProfileScreen(): JSX.Element {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator />
       </View>
-    );
+    ); 
   } else if (!user) {
     return <Login />;
   }
