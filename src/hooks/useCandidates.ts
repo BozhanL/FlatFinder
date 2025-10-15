@@ -29,13 +29,17 @@ export default function useCandidates(my_uid: string | null): CandidatesResult {
       try {
         setLoading(true);
         const rows = await loadCandidates(my_uid, { limit: 30 });
-        if (alive) setItems(rows);
+        if (alive) {
+          setItems(rows);
+        }
         console.log(
           "candidates:",
           rows.map((r) => r.id),
         );
       } finally {
-        if (alive) setLoading(false);
+        if (alive) {
+          setLoading(false);
+        }
       }
     })();
     return (): void => {

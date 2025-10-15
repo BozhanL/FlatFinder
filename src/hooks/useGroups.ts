@@ -33,7 +33,10 @@ export default function useGroups(uid: string): Group[] {
             if (data.name === null) {
               const other = data.members.find((m) => m !== uid);
               if (other) {
-                data.name = (await getUserByUidAsync(other))?.name || null;
+                const user = await getUserByUidAsync(other);
+                data.name = user?.name ?? null;
+                data.avatar =
+                  typeof user?.avatar === "string" ? user.avatar : null;
               }
             }
             return data;

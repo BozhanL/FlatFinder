@@ -63,4 +63,9 @@ export default defineConfig([
       "import/no-named-as-default-member": "off",
     },
   },
+  {
+    rules: {
+      curly: ["error", "all"],
+    },
+  },
 ]);
