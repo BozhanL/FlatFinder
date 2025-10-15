@@ -11,7 +11,7 @@ import {
 const SUGGESTED = [
   "student",
   "cat lover",
-  "non-smoker",
+  "non smoker",
   "gym",
   "early bird",
   "gamer",
@@ -123,7 +123,6 @@ export default function TagInputField({
               onChangeText={handleChangeText}
               onSubmitEditing={handleSubmitEditing}
               placeholder={value.length ? "" : "e.g. student, cat lover"}
-              blurOnSubmit={false}
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"

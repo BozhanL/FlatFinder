@@ -1,3 +1,4 @@
+import Slider from "@react-native-community/slider";
 import React, { useState, type JSX } from "react";
 import {
   StyleSheet,
@@ -6,15 +7,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Slider from "@react-native-community/slider";
 
 const PRESETS = [150, 200, 250, 300, 350, 400];
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(Math.max(n, lo), hi);
-}
-function roundStep(n: number, step = 10): number {
-  return Math.round(n / step) * step;
 }
 function formatNZD(n?: number): string {
   if (n == null || isNaN(n)) {
@@ -52,13 +49,13 @@ export default function BudgetField({
       return;
     }
 
-    const clamped = clamp(roundStep(n, step), min, max);
+    const clamped = clamp(n, min, max);
     onChange(clamped);
     setInputText("");
   }
 
   function inc(delta: number): void {
-    const v = clamp(roundStep((value ?? 0) + delta, step), min, max);
+    const v = clamp((value ?? 0) + delta, min, max);
     onChange(v);
   }
 
