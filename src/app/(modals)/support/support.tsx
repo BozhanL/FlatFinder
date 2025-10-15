@@ -1,5 +1,4 @@
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
+import useUser from "@/hooks/useUser";
 import {
   addDoc,
   collection,
@@ -20,12 +19,9 @@ import {
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 export default function SupportModal(): JSX.Element {
-  const user = auth.currentUser;
+  const user = useUser();
 
   const [name, setName] = useState<string>(user?.displayName ?? "");
   const [email, setEmail] = useState<string>(user?.email ?? "");
@@ -50,7 +46,7 @@ export default function SupportModal(): JSX.Element {
     }
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "support_tickets"), {
+      await addDoc(collection(getFirestore(), "support_tickets"), {
         createdAt: serverTimestamp(),
         status: "open",
         uid: user?.uid ?? null,
@@ -128,6 +124,7 @@ export default function SupportModal(): JSX.Element {
           <View style={{ height: 16 }} />
 
           <TouchableOpacity
+            testID="submit-btn"
             disabled={!canSubmit || submitting}
             onPress={() => {
               void handleSubmit();

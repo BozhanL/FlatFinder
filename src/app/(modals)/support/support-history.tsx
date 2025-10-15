@@ -1,5 +1,4 @@
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
+import useUser from "@/hooks/useUser";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -19,10 +18,6 @@ import {
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 type Ticket = {
   id: string;
   createdAt?: { toDate?: () => Date } | null;
@@ -32,7 +27,7 @@ type Ticket = {
 };
 
 export default function SupportHistory(): JSX.Element {
-  const user = auth.currentUser;
+  const user = useUser();
   const [items, setItems] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +39,7 @@ export default function SupportHistory(): JSX.Element {
     }
 
     const q = query(
-      collection(db, "support_tickets"),
+      collection(getFirestore(), "support_tickets"),
       where("uid", "==", user.uid),
       orderBy("createdAt", "desc"),
     );
