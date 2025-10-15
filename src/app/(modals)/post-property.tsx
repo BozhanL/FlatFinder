@@ -2,9 +2,11 @@ import useAddressSearch from "@/hooks/useAddressSearch";
 import usePropertyForm from "@/hooks/usePostForm";
 import { styles } from "@/styles/posting-style";
 import type { PlaceSuggestion } from "@/types/PostProperty";
+import * as ImagePicker from "expo-image-picker";
 import { Stack } from "expo-router";
 import { useEffect, useRef, type JSX } from "react";
 import {
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -21,7 +23,9 @@ export default function PostPropertyPage(): JSX.Element {
     errors,
     isSubmitting,
     isFormValid,
+    selectedImage,
     updateField,
+    setSelectedImage,
     handleSubmit,
   } = usePropertyForm();
 
@@ -36,6 +40,17 @@ export default function PostPropertyPage(): JSX.Element {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const addressInputRef = useRef<TextInput>(null);
+
+  // Request image library permissions
+  useEffect(() => {
+    (async (): Promise<void> => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("Image library permission denied");
+      }
+    })();
+  }, []);
 
   // Handle keyboard events
   useEffect(() => {
@@ -83,6 +98,26 @@ export default function PostPropertyPage(): JSX.Element {
     clearSuggestions();
   };
 
+  const pickImage = async (): Promise<void> => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
+
+      if (!result.canceled) {
+        const asset = result.assets?.[0];
+        if (asset?.uri) {
+          setSelectedImage(asset.uri);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -105,6 +140,42 @@ export default function PostPropertyPage(): JSX.Element {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContentContainer}
         >
+          {/* Property Image */}
+          <Text style={styles.inputLabel}>Property Image</Text>
+          <TouchableOpacity
+            style={[
+              styles.input,
+              {
+                height: 200,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: selectedImage ? "#f0f0f0" : "#e8e8e8",
+              },
+            ]}
+            onPress={pickImage}
+          >
+            {selectedImage ? (
+              <Image
+                source={{ uri: selectedImage }}
+                style={{ width: "100%", height: "100%", borderRadius: 8 }}
+              />
+            ) : (
+              <Text style={{ fontSize: 16, color: "#666" }}>
+                Tap to select image
+              </Text>
+            )}
+          </TouchableOpacity>
+          {selectedImage && (
+            <TouchableOpacity
+              onPress={(): void => setSelectedImage(null)}
+              style={{ marginTop: 8 }}
+            >
+              <Text style={{ color: "#e74c3c", fontSize: 14 }}>
+                Remove image
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Property Title */}
           <Text style={styles.inputLabel}>Property Title *</Text>
           <TextInput

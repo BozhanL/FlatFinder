@@ -1,4 +1,5 @@
 import useUser from "@/hooks/useUser";
+import { supabase } from "@/services/supabaseClient";
 import type { FormData, FormErrors } from "@/types/PostProperty";
 import {
   GeoPoint,
@@ -29,7 +30,9 @@ type UsePropertyFormReturn = {
   errors: FormErrors;
   isSubmitting: boolean;
   isFormValid: boolean;
+  selectedImage: string | null;
   updateField: (field: keyof FormData, value: string) => void;
+  setSelectedImage: (uri: string | null) => void;
   handleSubmit: () => Promise<void>;
 };
 
@@ -38,10 +41,57 @@ export default function usePropertyForm(): UsePropertyFormReturn {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const updateField = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const uploadImageToSupabase = async (
+  imageUri: string,
+  userId: string,
+): Promise<string | null> => {
+  try {
+    console.log("Starting upload for:", imageUri);
+    
+    // Convert image to base64
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    // Convert blob to ArrayBuffer
+    const arrayBuffer = await new Response(blob).arrayBuffer();
+    
+    const timestamp = Date.now();
+    const filename = `${userId}/${timestamp}.jpg`;
+    console.log("Uploading to:", filename);
+
+    // Upload as ArrayBuffer instead of Blob
+    const { data, error } = await supabase.storage
+      .from("property-images")
+      .upload(filename, arrayBuffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+      });
+
+    if (error) {
+      console.error("Supabase upload error:", error);
+      return null;
+    }
+
+    console.log("Upload successful:", data);
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from("property-images")
+      .getPublicUrl(filename);
+
+    console.log("Public URL:", publicUrl);
+    return publicUrl;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    return null;
+  }
+};
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -162,6 +212,18 @@ export default function usePropertyForm(): UsePropertyFormReturn {
     setIsSubmitting(true);
 
     try {
+      let imageUrl: string | null = null;
+
+      // Upload image to Supabase if one is selected
+      if (selectedImage) {
+        imageUrl = await uploadImageToSupabase(selectedImage, user.uid);
+        if (!imageUrl) {
+          Alert.alert("Error", "Failed to upload image. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const db = getFirestore();
       const propertiesCollection = collection(db, "properties");
 
@@ -183,6 +245,7 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         ...(formData.type === "rental" && {
           contract: Number(formData.minContractLength),
         }),
+        imageUrl: imageUrl, // Add image URL to the document
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       };
@@ -224,7 +287,9 @@ export default function usePropertyForm(): UsePropertyFormReturn {
     errors,
     isSubmitting,
     isFormValid,
+    selectedImage,
     updateField,
+    setSelectedImage,
     handleSubmit,
   };
 }
