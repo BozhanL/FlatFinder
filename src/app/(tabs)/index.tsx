@@ -6,7 +6,7 @@ import useCandidates from "@/hooks/useCandidates";
 import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import type { FilterState } from "@/types/FilterState";
-import type { Property } from "@/types/Prop";
+import type { Property } from "@/types/Property";
 import { SwipeAction } from "@/types/SwipeAction";
 import {
   getGlobalFilters,
@@ -133,7 +133,9 @@ export default function Index(): JSX.Element {
 
   const { items, setItems } = useCandidates(user?.uid || null);
 
-  if (!user) return <></>;
+  if (!user) {
+    return <></>;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>

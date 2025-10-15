@@ -1,5 +1,4 @@
 import { calculateAge } from "@/utils/date";
-import { getApp } from "@react-native-firebase/app";
 import {
   doc,
   getFirestore,
@@ -9,9 +8,6 @@ import {
 import { useEffect, useMemo, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-
-const app = getApp();
-const db = getFirestore(app);
 
 type PreviewData = {
   id: string;
@@ -64,7 +60,9 @@ function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
 }
 
 function formatNZD(n?: number): string {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) {
+    return "—";
+  }
   return (
     "$" +
     Number(n).toLocaleString("en-NZ", {
@@ -88,8 +86,10 @@ export default function ProfilePreview(props: Props): JSX.Element {
   const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
 
   useEffect(() => {
-    if (props.source !== "uid") return;
-    const ref = doc(db, "users", props.uid);
+    if (props.source !== "uid") {
+      return;
+    }
+    const ref = doc(getFirestore(), "users", props.uid);
     const unsub = onSnapshot(
       ref,
       (snap) => {

@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SwipeCard from "./SwipeCard";
+import { SwipeAction } from "@/types/SwipeAction";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
@@ -49,10 +50,15 @@ export default function SwipeDeck({
   }, [top?.id, translateX, translateY]);
 
   const commitSwipe = useCallback(
-    (dir: 1 | -1) => {
-      if (!top) return;
-      if (dir === 1) onLike?.(top);
-      else onPass?.(top);
+    (action: SwipeAction) => {
+      if (!top) {
+        return;
+      }
+      if (action === SwipeAction.Like) {
+        onLike?.(top);
+      } else {
+        onPass?.(top);
+      }
     },
     [top, onLike, onPass],
   );
@@ -66,12 +72,14 @@ export default function SwipeDeck({
         })
         .onEnd(() => {
           if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const dir: 1 | -1 = translateX.value > 0 ? 1 : -1;
+            const action =
+              translateX.value > 0 ? SwipeAction.Like : SwipeAction.Pass;
+            const sign = action === SwipeAction.Like ? 1 : -1;
             translateX.value = withTiming(
-              dir * SCREEN_W * 1.2,
+              sign * SCREEN_W * 1.2,
               { duration: 180 },
               () => {
-                runOnJS(commitSwipe)(dir);
+                runOnJS(commitSwipe)(action);
               },
             );
           } else {
@@ -82,13 +90,16 @@ export default function SwipeDeck({
     [translateX, translateY, commitSwipe],
   );
 
-  function fling(dir: 1 | -1): void {
-    if (!top) return;
+  function fling(action: SwipeAction): void {
+    if (!top) {
+      return;
+    }
+    const sign = action === SwipeAction.Like ? 1 : -1;
     translateX.value = withTiming(
-      dir * SCREEN_W * 1.2,
+      sign * SCREEN_W * 1.2,
       { duration: 180 },
       () => {
-        runOnJS(commitSwipe)(dir);
+        runOnJS(commitSwipe)(action);
       },
     );
   }
@@ -169,10 +180,9 @@ export default function SwipeDeck({
         pointerEvents="box-none"
       >
         <TouchableOpacity
-          // IMPROVE: Use enum instead of number @G2CCC
           testID="btn-nope"
           onPress={() => {
-            fling(-1);
+            fling(SwipeAction.Pass);
           }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
@@ -183,7 +193,7 @@ export default function SwipeDeck({
         <TouchableOpacity
           testID="btn-like"
           onPress={() => {
-            fling(1);
+            fling(SwipeAction.Like);
           }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}
