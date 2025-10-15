@@ -1,9 +1,14 @@
-import { createGroup, sendMessage } from "@/services/message";
+import {
+  createGroup,
+  markMessagesAsReceived,
+  sendMessage,
+} from "@/services/message";
 import {
   doc,
   getFirestore,
   runTransaction,
   Timestamp,
+  updateDoc,
 } from "@react-native-firebase/firestore";
 
 jest.mock("@react-native-firebase/firestore", () => {
@@ -24,6 +29,7 @@ jest.mock("@react-native-firebase/firestore", () => {
       return orig.Timestamp.fromMillis(0);
     }),
     runTransaction: jest.fn(),
+    updateDoc: jest.fn(),
   };
 });
 
@@ -61,6 +67,7 @@ describe("@/services/message.ts", () => {
         name: null,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
+        avatar: null,
       },
     );
   });
@@ -99,8 +106,26 @@ describe("@/services/message.ts", () => {
         id: "jestDocId",
         message: "test",
         sender: "uid",
+        received: null,
         timestamp: Timestamp.fromMillis(0),
       },
+    );
+  });
+
+  test("Test markMessagesAsReceived", async () => {
+    await markMessagesAsReceived("gid", "mid");
+
+    expect(getFirestore).toHaveBeenCalled();
+    expect(doc).toHaveBeenCalledWith(
+      "db",
+      "messages",
+      "gid",
+      "messages",
+      "mid",
+    );
+    expect(updateDoc).toHaveBeenCalledWith(
+      (doc as jest.Mock).mock.results[0]?.value,
+      { received: Timestamp.fromMillis(0) },
     );
   });
 });
