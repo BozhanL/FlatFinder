@@ -48,18 +48,12 @@ export default function BlockedList(): JSX.Element | null {
   return (
     <FlatList
       data={blockedUserList}
-      renderItem={({ item }) => renderItem({ item, uid: user.uid })}
+      renderItem={({ item }) => renderItem(item, user.uid)}
     />
   );
 }
 
-function renderItem({
-  item,
-  uid,
-}: {
-  item: blockedUserItem;
-  uid: string;
-}): JSX.Element {
+function renderItem(item: blockedUserItem, uid: string): JSX.Element {
   return (
     <View style={styles.card}>
       <Image source={item.avatar ?? undefined} style={styles.avatar} />
