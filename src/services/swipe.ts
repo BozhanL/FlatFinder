@@ -1,5 +1,6 @@
 import { createGroup, getGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
+import { SwipeAction } from "@/types/SwipeAction";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
@@ -13,12 +14,23 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   where,
 } from "@react-native-firebase/firestore";
 
 type SwipeDoc = {
-  dir: "like" | "pass";
+  dir: SwipeAction;
   createdAt?: FirebaseFirestoreTypes.Timestamp | null;
+};
+
+type UserDoc = {
+  name?: string;
+  dob?: Timestamp | null;
+  bio?: string;
+  budget?: number | null;
+  location?: string | null;
+  tags?: unknown;
+  avatarUrl?: string | null;
 };
 
 /** Set of swiped users */
@@ -55,12 +67,10 @@ export async function loadCandidates(
   if (area) {
     constraints.push(where("location", "==", area));
   }
-
   if (maxBudget != null) {
     constraints.push(where("budget", "<=", maxBudget));
     constraints.push(orderBy("budget", "asc"));
   }
-
   constraints.push(orderBy("lastActiveAt", "desc"));
   constraints.push(qLimit(limit));
 
@@ -68,25 +78,25 @@ export async function loadCandidates(
   const s = await getDocs(qBuild);
 
   const list: Flatmate[] = s.docs
-    .map((d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-      // IMPROVE: use correct type @G2CCC
-      const data = d.data();
-      const fm: Flatmate = {
-        id: d.id,
-        name: data["name"] ?? "",
-        age: data["age"] ?? null,
-        bio: data["bio"] ?? "",
-        budget: data["budget"] ?? null,
-        location: data["location"] ?? null,
-        tags: Array.isArray(data["tags"]) ? data["tags"] : [],
-        avatar: data["avatarUrl"]
-          ? { uri: data["avatarUrl"] }
-          : pickAvatarFor(d.id),
-      };
-      return fm;
-    })
-    .filter((u: Flatmate) => u.id !== uid)
-    .filter((u: Flatmate) => !swiped.has(u.id));
+    .map(
+      (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<UserDoc>): Flatmate => {
+        const data = d.data();
+        return {
+          id: d.id,
+          name: data.name ?? "",
+          dob: data.dob ?? null,
+          bio: data.bio ?? "",
+          budget: data.budget ?? null,
+          location: data.location ?? null,
+          tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+          avatar: data.avatarUrl
+            ? { uri: data.avatarUrl }
+            : pickAvatarFor(d.id),
+        };
+      },
+    )
+    .filter((u: { id: string }) => u.id !== uid)
+    .filter((u: { id: string }) => !swiped.has(u.id));
 
   return list;
 }
@@ -95,7 +105,7 @@ export async function loadCandidates(
 export async function swipe(
   me: string,
   target: string,
-  dir: "like" | "pass",
+  dir: SwipeAction,
 ): Promise<void> {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
   await setDoc(ref, { dir, createdAt: serverTimestamp() }, { merge: true });
@@ -112,7 +122,7 @@ export async function ensureMatchIfMutualLike(
 
   const data = back.exists() ? (back.data() as SwipeDoc) : undefined;
 
-  if (data?.dir === "like") {
+  if (data?.dir === SwipeAction.Like) {
     await createGroup([me, target]);
   }
 }
@@ -127,6 +137,7 @@ export async function blockUser(gid: string, uid: string): Promise<void> {
   }
 
   for (const otherUid of group.members.filter((id) => id !== uid)) {
-    await swipe(uid, otherUid, "pass");
+    await swipe(uid, otherUid, SwipeAction.Pass);
   }
 }
+export { SwipeAction };
