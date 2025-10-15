@@ -70,7 +70,9 @@ export default function WatchlistModal(): JSX.Element {
     >
       <TouchableOpacity
         onPress={(): void => {
-          if (!uid) {return;}
+          if (!uid) {
+            return;
+          }
           const db = getFirestore();
           void (async (): Promise<void> => {
             await deleteDoc(
