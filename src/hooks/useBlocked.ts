@@ -2,6 +2,7 @@
 // This file mainly contains code for IO, and unable to be tested in unit tests.
 // react-native-firebase does not work in jest unit test environment.
 // Mocking it is possible, but it may not represent real world situation.
+import { SwipeAction } from "@/types/SwipeAction";
 import type { SwipeDoc } from "@/types/SwipeDoc";
 import {
   collection,
@@ -26,7 +27,7 @@ export default function useBlocked(): SwipeDoc[] {
 
     const db = getFirestore();
     const swipeRef = collection(db, "users", uid, "swipes");
-    const q = query(swipeRef, where("dir", "==", "pass"));
+    const q = query(swipeRef, where("dir", "==", SwipeAction.Pass));
 
     return onSnapshot(
       q,
