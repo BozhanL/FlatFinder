@@ -27,10 +27,6 @@ export default function BlockedList(): JSX.Element | null {
   const blocked = useBlocked();
   const userList = useUserMap();
 
-  if (!user) {
-    return null;
-  }
-
   const blockedUserList: blockedUserItem[] = useMemo(
     () =>
       blocked.map((b) => {
@@ -44,6 +40,10 @@ export default function BlockedList(): JSX.Element | null {
       }),
     [blocked, userList],
   );
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <FlatList
