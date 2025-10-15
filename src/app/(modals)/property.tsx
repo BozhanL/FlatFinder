@@ -2,15 +2,24 @@ import { styles } from "@/styles/property-style";
 import type { Property } from "@/types/Property";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getAuth } from "@react-native-firebase/auth";
-import { deleteDoc,
+import {
+  deleteDoc,
   doc,
   getDoc,
   getFirestore,
   serverTimestamp,
-  setDoc, } from "@react-native-firebase/firestore";
+  setDoc,
+} from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { type JSX, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Text,TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function PropertyDetailsPage(): JSX.Element {
   const auth = getAuth();
@@ -90,7 +99,9 @@ export default function PropertyDetailsPage(): JSX.Element {
 
   // Toggle favorite status@G2CCC
   const toggleFavorite = async (): Promise<void> => {
-    if (!uid || !property) return;
+    if (!uid || !property) {
+      return;
+    }
     const db = getFirestore();
     const favRef = doc(db, "users", uid, "watchlist", property.id);
 
@@ -176,7 +187,9 @@ export default function PropertyDetailsPage(): JSX.Element {
           //Add favorite button to header @G2CCC
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => { void toggleFavorite(); }}
+              onPress={() => {
+                void toggleFavorite();
+              }}
               accessibilityLabel={
                 isFav ? "Remove from watchlist" : "Add to watchlist"
               }

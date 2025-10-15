@@ -143,7 +143,9 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="star-outline"
             title="Watchlist"
-            onPress={() => { router.push("/(modals)/watchlist"); }}
+            onPress={() => {
+              router.push("/(modals)/watchlist");
+            }}
           />
           <MenuItem
             icon="cog-outline"

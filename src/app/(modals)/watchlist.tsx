@@ -22,8 +22,6 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
-const auth = getAuth();
-
 type WatchItem = {
   propertyId: string;
   title: string;
@@ -35,7 +33,7 @@ type WatchItem = {
 };
 
 export default function WatchlistModal(): JSX.Element {
-  const uid = auth.currentUser?.uid ?? null;
+  const uid = getAuth().currentUser?.uid ?? null;
   const [items, setItems] = useState<WatchItem[] | null>(null);
 
   useEffect(() => {
@@ -43,14 +41,13 @@ export default function WatchlistModal(): JSX.Element {
       setItems([]);
       return;
     }
-    const db = getFirestore();
     const q = query(
-      collection(db, "users", uid, "watchlist"),
+      collection(getFirestore(), "users", uid, "watchlist"),
       orderBy("createdAt", "desc"),
     );
     const unsub = onSnapshot(q, (snap) => {
-      const list: WatchItem[] = snap.docs.map(
-        (d: { data: () => WatchItem }) => d.data(),
+      const list: WatchItem[] = snap.docs.map((d: { data: () => WatchItem }) =>
+        d.data(),
       );
       setItems(list);
     });
@@ -73,10 +70,12 @@ export default function WatchlistModal(): JSX.Element {
     >
       <TouchableOpacity
         onPress={(): void => {
-          if (!uid) return;
+          if (!uid) {return;}
           const db = getFirestore();
           void (async (): Promise<void> => {
-            await deleteDoc(doc(db, "users", uid, "watchlist", item.propertyId));
+            await deleteDoc(
+              doc(db, "users", uid, "watchlist", item.propertyId),
+            );
           })();
         }}
         style={{
@@ -91,7 +90,12 @@ export default function WatchlistModal(): JSX.Element {
     </View>
   );
 
-  const keyExtractor = useMemo(() => (it: WatchItem): string => it.propertyId, []);
+  const keyExtractor = useMemo(
+    () =>
+      (it: WatchItem): string =>
+        it.propertyId,
+    [],
+  );
 
   if (items === null) {
     return (
@@ -105,6 +109,7 @@ export default function WatchlistModal(): JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View
         style={{
+          flex: 1,
           marginHorizontal: 12,
           marginVertical: 5,
           borderRadius: 10,
@@ -127,6 +132,7 @@ export default function WatchlistModal(): JSX.Element {
           </View>
         ) : (
           <FlatList
+            style={{ flex: 1, backgroundColor: "#fff" }}
             data={items}
             keyExtractor={keyExtractor}
             contentContainerStyle={{ paddingVertical: 6 }}
@@ -140,12 +146,12 @@ export default function WatchlistModal(): JSX.Element {
               >
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() =>
-                    { router.replace({
+                  onPress={() => {
+                    router.replace({
                       pathname: "/property",
                       params: { id: item.propertyId },
-                    }); }
-                  }
+                    });
+                  }}
                   style={{
                     paddingHorizontal: 12,
                     paddingVertical: 10,
