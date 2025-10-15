@@ -19,7 +19,6 @@ import {
   View,
 } from "react-native";
 
-
 export default function SupportModal(): JSX.Element {
   const user = useUser();
 

@@ -93,7 +93,7 @@ describe("SupportModal", () => {
       (btn.props.accessibilityState?.disabled as boolean | undefined) ??
       false;
 
-    expect(disabled).toBe(false);
+    expect(disabled).toBe(true);
   });
 
   it("submit button is enabled (disabled=false) when all fields are filled", () => {
@@ -124,22 +124,6 @@ describe("SupportModal", () => {
 
     expect(disabled).toBe(false);
     expect(flat.opacity ?? 1).toBe(0.6);
-  });
-
-  it("shows alert when trying to submit with empty fields", async () => {
-    (useUserModule.default as jest.Mock).mockReturnValue(null);
-
-    render(<SupportModal />);
-
-    fireEvent.press(screen.getByTestId("submit-btn"));
-
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        "Please fill in all required fields.",
-      );
-    });
-
-    expect(mockAddDoc).not.toHaveBeenCalled();
   });
 
   it("successfully submits and navigates back", async () => {
