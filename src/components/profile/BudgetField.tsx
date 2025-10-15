@@ -44,7 +44,7 @@ export default function BudgetField({
   max?: number;
   step?: number;
 }): JSX.Element {
-  const [inputText, setInputText] = useState("");
+  const [, setInputText] = useState("");
   function commit(raw: string): void {
     const n = parseNumber(raw);
     if (isNaN(n)) {
@@ -99,7 +99,6 @@ export default function BudgetField({
         <TextInput
           style={styles.input}
           keyboardType="number-pad"
-          value={inputText || formatNZD(value ?? NaN)}
           onChangeText={setInputText}
           onEndEditing={(e): void => {
             commit(e.nativeEvent.text);
