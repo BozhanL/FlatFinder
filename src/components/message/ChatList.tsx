@@ -56,9 +56,9 @@ export default function ChatList({
       user={usercache.get(uid) || { _id: uid }}
       inverted={true}
       bottomOffset={-insets.bottom}
-      renderBubble={(p) => <RenderBubble {...p} />}
-      renderDay={(p) => <RenderDay {...p} />}
-      renderMessage={(p) => <RenderMessage {...p} />}
+      renderBubble={RenderBubble}
+      renderDay={RenderDay}
+      renderMessage={RenderMessage}
       onInputTextChanged={onTyping}
       isTyping={isTyping}
       locale={"en-nz"}
