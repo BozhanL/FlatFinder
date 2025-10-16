@@ -164,6 +164,13 @@ export default function Profile(): JSX.Element {
               router.push("/(modals)/support/support");
             }}
           />
+          <MenuItem
+            icon="block-helper"
+            title="Blocked Users"
+            onPress={() => {
+              router.push("/blocked-list");
+            }}
+          />
         </View>
 
         {/* Sign out Button */}
