@@ -159,7 +159,7 @@ export default function Profile(): JSX.Element {
             icon="email-outline"
             title="Support"
             onPress={() => {
-              router.push("/(modals)/support/support");
+              router.push("/support/support");
             }}
           />
           <MenuItem

@@ -57,7 +57,6 @@ describe("SupportModal", () => {
 
     render(<SupportModal />);
 
-    expect(screen.getByDisplayValue("John Doe")).toBeTruthy();
     expect(screen.getByDisplayValue("john@example.com")).toBeTruthy();
     expect(
       screen.getByPlaceholderText("What do you need help with?"),
@@ -132,6 +131,8 @@ describe("SupportModal", () => {
 
     render(<SupportModal />);
 
+    fireEvent.changeText(screen.getByPlaceholderText("Your name"), "John Doe");
+
     fireEvent.changeText(
       screen.getByPlaceholderText("What do you need help with?"),
       "Account Issue",
@@ -158,9 +159,20 @@ describe("SupportModal", () => {
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
-      "Your support request has been submitted.",
+      "Ticket Submitted",
+      "Your ticket has been created successfully.",
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: "Close",
+          style: "cancel",
+          onPress: expect.any(Function),
+        }),
+        expect.objectContaining({
+          text: "View Tickets",
+          onPress: expect.any(Function),
+        }),
+      ]),
     );
-    expect(router.router.back).toHaveBeenCalled();
   });
 
   it("handles submission error gracefully", async () => {
@@ -168,6 +180,8 @@ describe("SupportModal", () => {
     mockAddDoc.mockRejectedValue(new Error("Network error"));
 
     render(<SupportModal />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Your name"), "John Doe");
 
     fireEvent.changeText(
       screen.getByPlaceholderText("What do you need help with?"),
@@ -199,6 +213,8 @@ describe("SupportModal", () => {
     );
 
     render(<SupportModal />);
+
+    fireEvent.changeText(screen.getByPlaceholderText("Your name"), "John Doe");
 
     fireEvent.changeText(
       screen.getByPlaceholderText("What do you need help with?"),
@@ -271,8 +287,6 @@ describe("SupportModal", () => {
     render(<SupportModal />);
 
     fireEvent.press(screen.getByText("View my tickets"));
-    expect(router.router.push).toHaveBeenCalledWith(
-      "/(modals)/support/support-history",
-    );
+    expect(router.router.push).toHaveBeenCalledWith("/support/support-history");
   });
 });

@@ -8,13 +8,15 @@ import {
   query,
   where,
 } from "@react-native-firebase/firestore";
-import { Stack } from "expo-router";
+import dayjs from "dayjs";
+import { router, Stack } from "expo-router";
 import React, { useEffect, useState, type JSX } from "react";
 import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -76,7 +78,12 @@ export default function SupportHistory(): JSX.Element {
     return (
       <>
         <Stack.Screen
-          options={{ presentation: "modal", title: "My Tickets" }}
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "My Tickets",
+            headerShadowVisible: false,
+          }}
         />
         <View style={styles.center}>
           <ActivityIndicator />
@@ -90,9 +97,10 @@ export default function SupportHistory(): JSX.Element {
     <>
       <Stack.Screen
         options={{
+          presentation: "modal",
           headerShown: true,
           title: "My Tickets",
-          headerShadowVisible: false,
+          headerShadowVisible: true,
         }}
       />
       <FlatList
@@ -100,7 +108,17 @@ export default function SupportHistory(): JSX.Element {
         contentContainerStyle={{ padding: 12 }}
         data={items}
         keyExtractor={(it) => it.id}
-        renderItem={({ item }) => <TicketItem item={item} />}
+        renderItem={({ item }) => (
+          <TicketItem
+            item={item}
+            onPress={() => {
+              router.push({
+                pathname: "/support/support-detail",
+                params: { id: item.id },
+              });
+            }}
+          />
+        )}
         ListEmptyComponent={
           <View style={[styles.center, { paddingVertical: 40 }]}>
             <Text style={{ color: "#666" }}>No tickets yet.</Text>
@@ -111,47 +129,65 @@ export default function SupportHistory(): JSX.Element {
   );
 }
 
-function TicketItem({ item }: { item: Ticket }): JSX.Element {
-  const d = item.createdAt?.toDate ? item.createdAt.toDate() : null;
-  const ts = d
-    ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+function TicketItem({
+  item,
+  onPress,
+}: {
+  item: Ticket;
+  onPress?: () => void;
+}): JSX.Element {
+  const createdDate = item.createdAt?.toDate ? item.createdAt.toDate() : null;
+  const formattedDate = createdDate
+    ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";
-  const status = normalizeStatus(item.status);
+  const status = normalizeStatus(item.status as TicketStatus | undefined);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.title} numberOfLines={1}>
-          {item.title || "(no title)"}
-        </Text>
-        <View style={[styles.badge, { backgroundColor: status.bg }]}>
-          <Text style={[styles.badgeText, { color: status.fg }]}>
-            {status.text}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={styles.card}
+    >
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.title || "(no title)"}
           </Text>
+          <View style={[styles.badge, { backgroundColor: status.bg }]}>
+            <Text style={[styles.badgeText, { color: status.fg }]}>
+              {status.text}
+            </Text>
+          </View>
         </View>
+        <Text style={styles.meta}>{formattedDate}</Text>
+        <Text style={styles.message} numberOfLines={4}>
+          {item.message}
+        </Text>
       </View>
-      <Text style={styles.meta}>{ts}</Text>
-      <Text style={styles.message} numberOfLines={4}>
-        {item.message}
-      </Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
+export enum TicketStatus {
+  Open = "open",
+  InProgress = "in_progress",
+  Closed = "closed",
 }
 
-function normalizeStatus(s?: string): { text: string; bg: string; fg: string } {
+function normalizeStatus(s?: TicketStatus): {
+  text: string;
+  bg: string;
+  fg: string;
+} {
   switch (s) {
-    case "open":
+    case TicketStatus.Open:
       return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case "in_progress":
+    case TicketStatus.InProgress:
       return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case "closed":
+    case TicketStatus.Closed:
       return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
     default:
-      return { text: s || "Unknown", bg: "#EEE", fg: "#555" };
+      return { text: "Unknown", bg: "#EEE", fg: "#555" };
   }
 }
 
