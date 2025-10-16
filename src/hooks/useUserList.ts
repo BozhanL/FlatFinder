@@ -27,7 +27,6 @@ export default function useUserMap(): Map<string, Flatmate> {
 
     return onSnapshot(
       usersRef,
-      //   TODO: Need review from Gary @G2CCC
       (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Flatmate>) => {
         const userList = snapshot.docs.map((doc) => {
           const id = doc.id;
