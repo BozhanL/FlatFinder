@@ -1,6 +1,11 @@
 import SupportModal from "@/app/(modals)/support/support";
 import * as useUserModule from "@/hooks/useUser";
-import * as firestore from "@react-native-firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
 import {
   fireEvent,
   render,
@@ -13,7 +18,14 @@ import { Alert, StyleSheet } from "react-native";
 /* ------------------ Mocks ------------------ */
 
 jest.mock("@/hooks/useUser");
-jest.mock("@react-native-firebase/firestore");
+jest.mock("@react-native-firebase/firestore", () => {
+  return {
+    getFirestore: jest.fn(() => ({})),
+    collection: jest.fn(() => "mock-collection"),
+    addDoc: jest.fn(),
+    serverTimestamp: jest.fn(() => "timestamp"),
+  };
+});
 jest.mock("expo-router", () => ({
   Stack: { Screen: () => null },
   router: { back: jest.fn(), push: jest.fn() },
@@ -27,10 +39,10 @@ const mockUser = {
   email: "john@example.com",
 };
 
-const mockAddDoc = jest.fn();
-const mockCollection = jest.fn();
-const mockGetFirestore = jest.fn();
-const mockServerTimestamp = jest.fn(() => "timestamp");
+const mockAddDoc = addDoc as jest.Mock;
+const mockCollection = collection as jest.Mock;
+const mockGetFirestore = getFirestore as jest.Mock;
+const mockServerTimestamp = serverTimestamp as jest.Mock;
 
 /* ------------------ Setup ------------------ */
 
@@ -40,13 +52,9 @@ beforeEach(() => {
     // intentionally empty for test mock
   });
 
-  (firestore.addDoc as unknown as jest.Mock) = mockAddDoc;
-  (firestore.collection as unknown as jest.Mock) = mockCollection;
-  (firestore.getFirestore as unknown as jest.Mock) = mockGetFirestore;
-  (firestore.serverTimestamp as unknown as jest.Mock) = mockServerTimestamp;
-
   mockCollection.mockReturnValue("mock-collection");
   mockGetFirestore.mockReturnValue("mock-firestore");
+  mockServerTimestamp.mockReturnValue("timestamp");
 });
 
 /* ------------------ Tests ------------------ */
@@ -207,10 +215,6 @@ describe("SupportModal", () => {
 
   it("shows submitting state while pending", async () => {
     (useUserModule.default as jest.Mock).mockReturnValue(mockUser);
-
-    mockAddDoc.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100)),
-    );
 
     render(<SupportModal />);
 
