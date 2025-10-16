@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "@react-native-firebase/auth";
+import { router } from "expo-router";
 import { type JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -56,6 +57,12 @@ export default function ProfileScreen(): JSX.Element {
       <Button title="Logout" onPress={() => void logout()} />
       <TextInput value={groupMembers} onChangeText={setGroupMembers} />
       <Button title="Create Group" onPress={() => void handleCreateGroup()} />
+      <Button
+        title="Blocked Users"
+        onPress={() => {
+          router.push("/blocked-list");
+        }}
+      />
       <Text>UID: {user.uid}</Text>
       <Text>Email: {user.email}</Text>
     </View>
