@@ -109,6 +109,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       appId: "1:245824951682:web:793a4dda12802980ba6b9b",
       measurementId: "G-5XEP9G2HN9",
     },
+    EXPO_PUBLIC_SUPABASE_URL: "https://umkqmotlfupohzavbumf.supabase.co",
+    EXPO_PUBLIC_SUPABASE_ANON_KEY:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVta3Ftb3RsZnVwb2h6YXZidW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzNzEzNzcsImV4cCI6MjA3NTk0NzM3N30._mcxpbhrVCEdIw2DdiEpgrPTgKGdWJSDcVD4eu4dD0U",
   },
   experiments: {
     typedRoutes: true,
