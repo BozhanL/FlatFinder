@@ -6,7 +6,7 @@ import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
 import dayjs from "dayjs";
 import "dayjs/locale/en-nz";
 import relativeTime from "dayjs/plugin/relativeTime";
-import type { JSX } from "react";
+import { type JSX, useCallback } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import {
   Bubble,
@@ -56,9 +56,9 @@ export default function ChatList({
       user={usercache.get(uid) || { _id: uid }}
       inverted={true}
       bottomOffset={-insets.bottom}
-      renderBubble={renderBubble}
-      renderDay={renderDay}
-      renderMessage={renderMessage}
+      renderBubble={(p) => <RenderBubble {...p} />}
+      renderDay={(p) => <RenderDay {...p} />}
+      renderMessage={(p) => <RenderMessage {...p} />}
       onInputTextChanged={onTyping}
       isTyping={isTyping}
       locale={"en-nz"}
@@ -66,7 +66,7 @@ export default function ChatList({
   );
 }
 
-function renderDay(props: DayProps): JSX.Element {
+function RenderDay(props: DayProps): JSX.Element {
   return (
     <Day
       {...props}
@@ -76,44 +76,43 @@ function renderDay(props: DayProps): JSX.Element {
   );
 }
 
-function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
+function RenderBubble(props: BubbleProps<IMessage>): JSX.Element {
   const uid = props.user?._id;
 
-  // IMPROVE: This function may cause bubble re-render, but currently unable to reproduce this issue
-  // Use useCallback to memoize the function if this bug happens
-  const renderTicks = (
-    currentMessage: GiftedChatMessage,
-  ): JSX.Element | null => {
-    if (uid && currentMessage.user._id !== uid) {
+  const renderTicks = useCallback(
+    (currentMessage: GiftedChatMessage): JSX.Element | null => {
+      if (uid && currentMessage.user._id !== uid) {
+        return null;
+      } else if (currentMessage.received && currentMessage.seenTimestamp) {
+        const timestamp = currentMessage.seenTimestamp;
+        const dayJsObject = dayjs(timestamp.toDate());
+        const timeStr = dayJsObject.fromNow();
+
+        return (
+          <View style={styles.tickView}>
+            <Text
+              style={[styles.tick, props.tickStyle]}
+            >{`Seen: ${timeStr}`}</Text>
+          </View>
+        );
+      } else if (currentMessage.sent) {
+        return (
+          <View style={styles.tickView}>
+            <Text style={[styles.tick, props.tickStyle]}>{"✓"}</Text>
+          </View>
+        );
+      } else if (currentMessage.pending) {
+        return (
+          <View style={styles.tickView}>
+            <Text style={[styles.tick, props.tickStyle]}>{"🕓"}</Text>
+          </View>
+        );
+      }
+
       return null;
-    } else if (currentMessage.received && currentMessage.seenTimestamp) {
-      const timestamp = currentMessage.seenTimestamp;
-      const dayJsObject = dayjs(timestamp.toDate());
-      const timeStr = dayJsObject.fromNow();
-
-      return (
-        <View style={styles.tickView}>
-          <Text
-            style={[styles.tick, props.tickStyle]}
-          >{`Seen: ${timeStr}`}</Text>
-        </View>
-      );
-    } else if (currentMessage.sent) {
-      return (
-        <View style={styles.tickView}>
-          <Text style={[styles.tick, props.tickStyle]}>{"✓"}</Text>
-        </View>
-      );
-    } else if (currentMessage.pending) {
-      return (
-        <View style={styles.tickView}>
-          <Text style={[styles.tick, props.tickStyle]}>{"🕓"}</Text>
-        </View>
-      );
-    }
-
-    return null;
-  };
+    },
+    [uid, props.tickStyle],
+  );
 
   return (
     <Bubble
@@ -131,7 +130,7 @@ function renderBubble(props: BubbleProps<IMessage>): JSX.Element {
   );
 }
 
-function renderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
+function RenderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
   if (
     props.currentMessage.received !== true &&
     props.currentMessage.user._id !== props.user._id
