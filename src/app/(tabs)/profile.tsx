@@ -143,7 +143,9 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="star-outline"
             title="Watchlist"
-            onPress={() => undefined}
+            onPress={() => {
+              router.push("/(modals)/watchlist");
+            }}
           />
           <MenuItem
             icon="cog-outline"
@@ -158,7 +160,9 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="email-outline"
             title="Support"
-            onPress={() => undefined}
+            onPress={() => {
+              router.push("/(modals)/support/support");
+            }}
           />
           <MenuItem
             icon="block-helper"
