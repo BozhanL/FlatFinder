@@ -8,7 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
 
-export default function RootAuthLayout(): JSX.Element {
+export default function RootLayout(): JSX.Element {
   const user = useUser();
   useNotification();
   useMessageToken();
