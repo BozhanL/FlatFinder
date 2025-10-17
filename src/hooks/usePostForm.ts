@@ -1,5 +1,5 @@
 import useUser from "@/hooks/useUser";
-import { supabase } from "@/services/supabaseClient";
+import { supabase } from "@/library/supabaseClient";
 import type { FormData, FormErrors } from "@/types/PostProperty";
 import {
   GeoPoint,
@@ -30,68 +30,78 @@ type UsePropertyFormReturn = {
   errors: FormErrors;
   isSubmitting: boolean;
   isFormValid: boolean;
-  selectedImage: string | null;
+  selectedImages: string[];
   updateField: (field: keyof FormData, value: string) => void;
-  setSelectedImage: (uri: string | null) => void;
+  addImage: (uri: string) => void;
+  removeImage: (uri: string) => void;
   handleSubmit: () => Promise<void>;
 };
+
+const MAX_IMAGES = 5;
 
 export default function usePropertyForm(): UsePropertyFormReturn {
   const user = useUser();
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const updateField = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const addImage = (uri: string): void => {
+    if (selectedImages.length >= MAX_IMAGES) {
+      Alert.alert("Maximum Images", `You can only upload up to ${MAX_IMAGES} images.`);
+      return;
+    }
+    setSelectedImages((prev) => [...prev, uri]);
+  };
+
+  const removeImage = (uri: string): void => {
+    setSelectedImages((prev) => prev.filter((img) => img !== uri));
+  };
+
   const uploadImageToSupabase = async (
-  imageUri: string,
-  userId: string,
-): Promise<string | null> => {
-  try {
-    console.log("Starting upload for:", imageUri);
-    
-    // Convert image to base64
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
-    
-    // Convert blob to ArrayBuffer
-    const arrayBuffer = await new Response(blob).arrayBuffer();
-    
-    const timestamp = Date.now();
-    const filename = `${userId}/${timestamp}.jpg`;
-    console.log("Uploading to:", filename);
+    imageUri: string,
+    userId: string,
+    index: number,
+  ): Promise<string | null> => {
+    try {
+      console.log(`Starting upload ${index + 1} for:`, imageUri);
+      
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+      
+      const timestamp = Date.now();
+      const filename = `${userId}/${timestamp}_${index}.jpg`;
+      console.log("Uploading to:", filename);
 
-    // Upload as ArrayBuffer instead of Blob
-    const { data, error } = await supabase.storage
-      .from("property-images")
-      .upload(filename, arrayBuffer, {
-        contentType: "image/jpeg",
-        cacheControl: "3600",
-      });
+      const { data, error } = await supabase.storage
+        .from("property-images")
+        .upload(filename, arrayBuffer, {
+          contentType: "image/jpeg",
+          cacheControl: "3600",
+        });
 
-    if (error) {
-      console.error("Supabase upload error:", error);
+      if (error) {
+        console.error("Supabase upload error:", error);
+        return null;
+      }
+
+      console.log(`Upload ${index + 1} successful:`, data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("property-images")
+        .getPublicUrl(filename);
+
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading image ${index + 1}:`, error);
       return null;
     }
-
-    console.log("Upload successful:", data);
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from("property-images")
-      .getPublicUrl(filename);
-
-    console.log("Public URL:", publicUrl);
-    return publicUrl;
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    return null;
-  }
-};
+  };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -209,25 +219,40 @@ export default function usePropertyForm(): UsePropertyFormReturn {
       return;
     }
 
+    const userId = user.uid;
     setIsSubmitting(true);
 
     try {
-      let imageUrl: string | null = null;
+      const imageUrls: string[] = [];
 
-      // Upload image to Supabase if one is selected
-      if (selectedImage) {
-        imageUrl = await uploadImageToSupabase(selectedImage, user.uid);
-        if (!imageUrl) {
-          Alert.alert("Error", "Failed to upload image. Please try again.");
-          setIsSubmitting(false);
-          return;
+      // Upload all images to Supabase
+      if (selectedImages.length > 0) {
+        for (let i = 0; i < selectedImages.length; i++) {
+          const imageUri = selectedImages[i];
+          if (!imageUri) continue;
+          
+          const imageUrl = await uploadImageToSupabase(
+            imageUri,
+            userId,
+            i
+          );
+          
+          if (!imageUrl) {
+            Alert.alert(
+              "Error",
+              `Failed to upload image ${i + 1}. Please try again.`
+            );
+            setIsSubmitting(false);
+            return;
+          }
+          
+          imageUrls.push(imageUrl);
         }
       }
 
       const db = getFirestore();
       const propertiesCollection = collection(db, "properties");
 
-      // At this point, validation guarantees these are valid numbers
       const propertyData = {
         title: formData.title.trim(),
         type: formData.type,
@@ -245,8 +270,8 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         ...(formData.type === "rental" && {
           contract: Number(formData.minContractLength),
         }),
-        imageUrl: imageUrl, // Add image URL to the document
-        createdBy: user.uid,
+        imageUrl: imageUrls,
+        createdBy: userId,
         createdAt: serverTimestamp(),
       };
 
@@ -287,9 +312,10 @@ export default function usePropertyForm(): UsePropertyFormReturn {
     errors,
     isSubmitting,
     isFormValid,
-    selectedImage,
+    selectedImages,
     updateField,
-    setSelectedImage,
+    addImage,
+    removeImage,
     handleSubmit,
   };
 }

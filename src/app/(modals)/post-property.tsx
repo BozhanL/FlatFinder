@@ -23,9 +23,10 @@ export default function PostPropertyPage(): JSX.Element {
     errors,
     isSubmitting,
     isFormValid,
-    selectedImage,
+    selectedImages,
     updateField,
-    setSelectedImage,
+    addImage,
+    removeImage,
     handleSubmit,
   } = usePropertyForm();
 
@@ -41,7 +42,6 @@ export default function PostPropertyPage(): JSX.Element {
   const scrollViewRef = useRef<ScrollView>(null);
   const addressInputRef = useRef<TextInput>(null);
 
-  // Request image library permissions
   useEffect(() => {
     (async (): Promise<void> => {
       const { status } =
@@ -52,7 +52,6 @@ export default function PostPropertyPage(): JSX.Element {
     })();
   }, []);
 
-  // Handle keyboard events
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
@@ -110,7 +109,7 @@ export default function PostPropertyPage(): JSX.Element {
       if (!result.canceled) {
         const asset = result.assets?.[0];
         if (asset?.uri) {
-          setSelectedImage(asset.uri);
+          addImage(asset.uri);
         }
       }
     } catch (error) {
@@ -140,44 +139,96 @@ export default function PostPropertyPage(): JSX.Element {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContentContainer}
         >
-          {/* Property Image */}
-          <Text style={styles.inputLabel}>Property Image</Text>
-          <TouchableOpacity
-            style={[
-              styles.input,
-              {
-                height: 200,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: selectedImage ? "#f0f0f0" : "#e8e8e8",
-              },
-            ]}
-            onPress={pickImage}
-          >
-            {selectedImage ? (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{ width: "100%", height: "100%", borderRadius: 8 }}
-              />
-            ) : (
-              <Text style={{ fontSize: 16, color: "#666" }}>
-                Tap to select image
-              </Text>
+          {/* Property Images */}
+          <Text style={styles.inputLabel}>
+            Property Images ({selectedImages.length}/5)
+          </Text>
+          
+          {/* Image Grid */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {selectedImages.map((uri, index) => (
+              <View
+                key={uri}
+                style={{
+                  width: "48%",
+                  height: 150,
+                  position: "relative",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                }}
+              >
+                <Image
+                  source={{ uri }}
+                  style={{ width: "100%", height: "100%", borderRadius: 8 }}
+                />
+                <TouchableOpacity
+                  onPress={(): void => removeImage(uri)}
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    borderRadius: 15,
+                    width: 30,
+                    height: 30,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
+                    ×
+                  </Text>
+                </TouchableOpacity>
+                {index === 0 && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: 8,
+                      left: 8,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 4,
+                    }}
+                  >
+                    <Text style={{ color: "#fff", fontSize: 12 }}>Cover</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {/* Add Image Button */}
+            {selectedImages.length < 5 && (
+              <TouchableOpacity
+                style={{
+                  width: "48%",
+                  height: 150,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "#e8e8e8",
+                  borderRadius: 8,
+                  borderWidth: 2,
+                  borderColor: "#ddd",
+                  borderStyle: "dashed",
+                }}
+                onPress={pickImage}
+              >
+                <Text style={{ fontSize: 40, color: "#999" }}>+</Text>
+                <Text style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
+                  Add Image
+                </Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-          {selectedImage && (
-            <TouchableOpacity
-              onPress={(): void => setSelectedImage(null)}
-              style={{ marginTop: 8 }}
-            >
-              <Text style={{ color: "#e74c3c", fontSize: 14 }}>
-                Remove image
-              </Text>
-            </TouchableOpacity>
+          </View>
+
+          {selectedImages.length === 0 && (
+            <Text style={{ fontSize: 12, color: "#999", marginTop: 8 }}>
+              Add at least one image (maximum 5)
+            </Text>
           )}
 
           {/* Property Title */}
-          <Text style={styles.inputLabel}>Property Title *</Text>
+          <Text style={[styles.inputLabel, { marginTop: 16 }]}>Property Title *</Text>
           <TextInput
             style={styles.input}
             value={formData.title}
