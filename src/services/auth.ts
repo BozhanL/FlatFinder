@@ -92,7 +92,6 @@ export async function handlePasswordReset(
     return errorMessage;
   }
 
-  // return "Password reset link sent to your email! Please check your inbox (and spam folder).";
   return null;
 }
 
