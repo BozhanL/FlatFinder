@@ -80,7 +80,7 @@ export async function handlePasswordReset(
     const err = e as FirebaseAuthTypes.NativeFirebaseAuthError;
     switch (err.code) {
       case AuthErrorCodes.USER_DELETED:
-      case AuthErrorCodes.INVALID_PASSWORD:
+      case AuthErrorCodes.INVALID_EMAIL:
         errorMessage =
           "We couldn't find an account associated with that email address.";
         break;
