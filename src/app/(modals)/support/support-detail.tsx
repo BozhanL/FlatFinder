@@ -58,9 +58,7 @@ export default function SupportDetail(): JSX.Element {
       ? docData.createdAt.toDate()
       : null;
   const createdText = created ? dayjs(created).format("YYYY-MM-DD HH:mm") : "—";
-  const statusStyle = normalizeStatus(
-    docData?.status,
-  );
+  const statusStyle = normalizeStatus(docData?.status);
 
   if (loading) {
     return (

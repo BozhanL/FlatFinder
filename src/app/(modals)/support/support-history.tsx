@@ -57,7 +57,8 @@ export default function SupportHistory(): JSX.Element {
               id: d.id,
               createdAt:
                 (data["createdAt"] as { toDate?: () => Date } | null) ?? null,
-              status: (data["status"] as string | undefined) ?? "open",
+              status:
+                (data["status"] as string | undefined) ?? TicketStatus.Open,
               title: (data["title"] as string | undefined) ?? "",
               message: (data["message"] as string | undefined) ?? "",
             };

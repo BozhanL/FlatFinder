@@ -1,4 +1,5 @@
 import useUser from "@/hooks/useUser";
+import { TicketStatus } from "@/types/TicketStatus";
 import {
   addDoc,
   collection,
@@ -53,7 +54,7 @@ export default function SupportModal(): JSX.Element {
     try {
       await addDoc(collection(getFirestore(), "support_tickets"), {
         createdAt: serverTimestamp(),
-        status: "open",
+        status: TicketStatus.Open,
         uid: user?.uid ?? null,
         name: name.trim(),
         email: email.trim(),
