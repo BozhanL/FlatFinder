@@ -2,6 +2,7 @@ import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";
 import useUser from "@/hooks/useUser";
+import { updateLastActive } from "@/services/swipe";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect, type JSX } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -21,6 +22,12 @@ export default function RootLayout(): JSX.Element | null {
       SplashScreen.hide();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      updateLastActive(user.uid);
+    }
+  }, [user?.uid]);
 
   if (user === undefined) {
     return null;
