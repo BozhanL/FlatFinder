@@ -1,5 +1,7 @@
+import { AuthErrorCodes } from "@firebase/auth";
 import {
   createUserWithEmailAndPassword,
+  FirebaseAuthTypes,
   getAuth,
   GoogleAuthProvider,
   sendPasswordResetEmail,
@@ -9,161 +11,179 @@ import {
 } from "@react-native-firebase/auth";
 import {
   GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
   statusCodes,
-  User,
+  type SignInSuccessResponse,
 } from "@react-native-google-signin/google-signin";
+import { deregisterToken } from "./notification";
 
-import { Platform } from "react-native";
-
-// --- TYPE GUARDS ---
-type CodeError = {
-  code: string;
-  message?: string;
-};
-
-function isFirebaseAuthError(e: unknown): e is CodeError {
-  if (typeof e !== "object" || e === null || !("code" in e)) {
-    return false;
-  }
-  const code = (e as Partial<CodeError>).code;
-  return typeof code === "string" && code.startsWith("auth/");
-}
-
-function isGoogleError(e: unknown): e is CodeError {
-  if (typeof e !== "object" || e === null || !("code" in e)) {
-    return false;
-  }
-  const code = (e as Partial<CodeError>).code;
-  return typeof code === "string";
-}
-
-// --- CONFIGURATION ---
-
-// Must be called once on app startup (e.g., in a root hook or App.tsx)
-export const configureGoogleSignIn = (): void => {
-  if (Platform.OS !== "web") {
-    GoogleSignin.configure({
-      webClientId:
-        "245824951682-5f4jdid4ri95nl1qjh9qivkkbga2nem3.apps.googleusercontent.com",
-    });
-  }
-};
-
-// --- AUTH HANDLERS (UNCHANGED) ---
-
-export const handleEmailAuth = async (
+export async function handleAuth(
+  isLogin: boolean,
   email: string,
   password: string,
-  isLogin: boolean,
-): Promise<string> => {
+): Promise<string | null> {
   try {
     if (isLogin) {
       await signInWithEmailAndPassword(getAuth(), email, password);
     } else {
       await createUserWithEmailAndPassword(getAuth(), email, password);
     }
-    return "success";
   } catch (e: unknown) {
-    if (isFirebaseAuthError(e)) {
-      if (e.code === "auth/email-already-in-use") {
-        return "That email address is already in use!";
-      } else if (e.code === "auth/invalid-email") {
-        return "That email address is invalid!";
-      } else if (e.code === "auth/weak-password") {
-        return "Password should be at least 6 characters.";
-      } else if (
-        e.code === "auth/user-not-found" ||
-        e.code === "auth/wrong-password"
-      ) {
-        return "Invalid email or password.";
-      }
-      return e.message || "An unknown Firebase error occurred.";
-    }
-    return "An unknown error occurred during authentication.";
-  }
-};
+    let errorMessage = "An unknown error occurred.";
 
-export const handlePasswordReset = async (email: string): Promise<string> => {
+    const err = e as FirebaseAuthTypes.NativeFirebaseAuthError;
+    switch (err.code) {
+      case AuthErrorCodes.EMAIL_EXISTS:
+        errorMessage = "That email address is already in use!";
+        break;
+      case AuthErrorCodes.INVALID_EMAIL:
+        errorMessage = "That email address is invalid!";
+        break;
+      case AuthErrorCodes.WEAK_PASSWORD:
+        errorMessage = "Password should be at least 6 characters.";
+        break;
+      case AuthErrorCodes.USER_DISABLED:
+        errorMessage = "User account is disabled.";
+        break;
+      case AuthErrorCodes.USER_DELETED:
+      case AuthErrorCodes.INVALID_PASSWORD:
+      case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+        errorMessage = "Invalid email or password.";
+        break;
+      case AuthErrorCodes.OPERATION_NOT_ALLOWED:
+        errorMessage =
+          "Email/Password Sign-In is not enabled. Please contact support.";
+        break;
+      default:
+        errorMessage = err.message || errorMessage;
+        break;
+    }
+
+    return errorMessage;
+  }
+  return null;
+}
+
+export async function handlePasswordReset(
+  email: string,
+): Promise<string | null> {
   if (!email) {
     return "Please enter your email address above to receive a password reset link.";
   }
 
   try {
     await sendPasswordResetEmail(getAuth(), email);
-    return "Password reset link sent to your email! Please check your inbox (and spam folder).";
   } catch (e: unknown) {
-    if (isFirebaseAuthError(e)) {
-      if (e.code === "auth/user-not-found" || e.code === "auth/invalid-email") {
-        return "We couldn't find an account associated with that email address.";
-      }
-      return e.message || "Failed to send password reset email.";
+    let errorMessage = "Failed to send password reset email.";
+
+    const err = e as FirebaseAuthTypes.NativeFirebaseAuthError;
+    switch (err.code) {
+      case AuthErrorCodes.USER_DELETED:
+      case AuthErrorCodes.INVALID_PASSWORD:
+        errorMessage =
+          "We couldn't find an account associated with that email address.";
+        break;
+      default:
+        errorMessage = err.message || errorMessage;
+        break;
     }
-    return "Failed to send password reset email.";
+
+    return errorMessage;
   }
-};
 
-export const handleGoogleSignIn = async (): Promise<string> => {
+  // return "Password reset link sent to your email! Please check your inbox (and spam folder).";
+  return null;
+}
+
+export async function handleGoogleSignIn(): Promise<string | null> {
   try {
-    // 1. Check/Prompt for Google Play Services (Required for Android)
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // 1. Check if Google Play Services are available (Critical for Android)
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
+  } catch (e) {
+    console.error("Play services error:", e);
 
-    // 2. Start the Google Sign-In process (returns a union type)
-    const signInResult: User = await GoogleSignin.signIn();
+    return "Google Play Services are not available or outdated. Please update to continue.";
+  }
 
-    let idToken: string | null = null;
-
-    // 3. Robust Token Extraction (using optional chaining and casting to handle type inconsistencies)
-    // Check root (common on iOS/older versions)
-    idToken = signInResult.idToken;
-
-    // Check nested under user (common on newer Android)
-    if (!idToken) {
-      idToken = signInResult.user?.idToken;
+  let signInResult: SignInSuccessResponse;
+  try {
+    // 2. Start the Google Sign-In process (opens native prompt)
+    const response = await GoogleSignin.signIn();
+    if (isSuccessResponse(response)) {
+      signInResult = response;
+    } else {
+      throw new Error("Google Sign-In was not successful.");
+    }
+  } catch (e) {
+    let errorMessage = "Google Sign-In was not successful.";
+    console.error("Google Sign-In error:", e);
+    if (isErrorWithCode(e)) {
+      switch (e.code) {
+        // Google Sign-In library specific errors
+        case statusCodes.SIGN_IN_CANCELLED:
+          errorMessage = "Sign-in cancelled by the user.";
+          break;
+        case statusCodes.IN_PROGRESS:
+          errorMessage = "Sign-in is already in progress.";
+          break;
+        case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+          errorMessage =
+            "Google Play services are not available on this device.";
+          break;
+        default:
+          errorMessage = e.message || errorMessage;
+          break;
+      }
     }
 
-    // Check nested under data (if needed, as per your original code)
-    if (!idToken) {
-      idToken = (signInResult as any).data?.idToken;
-    }
+    return errorMessage;
+  }
 
+  try {
+    // 3. Robust token retrieval
+    const idToken = signInResult.data.idToken;
     if (!idToken) {
-      throw new Error("No ID token found after successful Google Sign-In.");
+      throw new Error("No ID token found from Google Sign-In result.");
     }
-
-    // 4. Sign in to Firebase using the ID token
+    // 4. Create a Google credential with the token (Modular API)
     const googleCredential = GoogleAuthProvider.credential(idToken);
+    // 5. Sign the user into Firebase (Modular API)
     await signInWithCredential(getAuth(), googleCredential);
-
-    return "success";
   } catch (e: unknown) {
-    // 5. Handle errors, including cancellation check
-    if (isGoogleError(e)) {
-      // Handle known statusCodes first
-      if (e.code === statusCodes.SIGN_IN_CANCELLED) {
-        return "Sign-in cancelled by the user.";
-      } else if (e.code === statusCodes.IN_PROGRESS) {
-        return "Sign-in is already in progress.";
-      } else if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        return "Google Play services are not available on this device.";
-      }
+    let errorMessage = "An unknown error occurred during Google sign-in.";
 
-      if (e.code === "8" || e.code === "DEVELOPER_ERROR") {
-        return "Google Sign-In configuration error. Check your SHA-1 fingerprint in Firebase.";
-      }
-
-      return e.message || "An unexpected error occurred during Google sign-in.";
+    const err = e as FirebaseAuthTypes.NativeFirebaseAuthError;
+    switch (err.code) {
+      case AuthErrorCodes.OPERATION_NOT_ALLOWED:
+        errorMessage = "Google Sign-In is not enabled. Please contact support.";
+        break;
+      case AuthErrorCodes.NEED_CONFIRMATION:
+        errorMessage =
+          "An account with this email already exists using a different sign-in method.";
+        break;
+      case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+        errorMessage =
+          "Invalid credential. Check your webClientId configuration.";
+        break;
+      default:
+        errorMessage = err.message || errorMessage;
+        break;
     }
-    console.error("Google Sign-In Error:", e);
-    return "An unexpected error occurred during Google sign-in.";
+    return errorMessage;
   }
-};
 
-export const handleSignOut = async (): Promise<void> => {
+  return null;
+}
+
+export async function logout(): Promise<void> {
   try {
-    await signOut(getAuth());
-    await GoogleSignin.revokeAccess();
+    await deregisterToken();
     await GoogleSignin.signOut();
+    await signOut(getAuth());
   } catch (e: unknown) {
     console.error("Sign Out Error:", e);
   }
-};
+}

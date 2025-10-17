@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 //temp login page, please move the file outside of (tab) in actual developing
 import HeaderLogo from "@/components/HeaderLogo";
-import { logout } from "@/services/logout";
+import { logout } from "@/services/auth";
 import { createGroup } from "@/services/message";
 import {
   FirebaseAuthTypes,
