@@ -1,9 +1,6 @@
 import useGroups from "@/hooks/useGroups";
 import type { Group } from "@/types/Group";
-import dayjs from "dayjs";
-import "dayjs/locale/en-nz";
-import LocalizedFormat from "dayjs/plugin/localizedFormat";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { router } from "expo-router";
 import type { JSX } from "react";
 import {
@@ -14,10 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-dayjs.extend(relativeTime);
-dayjs.extend(LocalizedFormat);
-dayjs.locale("en-nz");
 
 export default function MessageList({ uid }: { uid: string }): JSX.Element {
   const sortedGroups = useGroups(uid);
@@ -45,11 +38,7 @@ function renderItem(item: Group, uid: string): JSX.Element {
     >
       <View style={styles.card}>
         <Image
-          source={
-            item.avatar
-              ? { uri: item.avatar }
-              : require("assets/images/react-logo.png")
-          }
+          source={require("assets/images/react-logo.png")}
           style={styles.avatar}
         />
 
@@ -57,16 +46,43 @@ function renderItem(item: Group, uid: string): JSX.Element {
           <Text style={styles.group_name}>{item.name}</Text>
           <Text style={styles.last_message} numberOfLines={1}>
             {item.lastMessage ||
-              `Matched on ${dayjs(item.lastTimestamp.toDate()).format("L")}`}
+              `Matched on ${item.lastTimestamp.toDate().toLocaleDateString()}`}
           </Text>
         </View>
 
         <Text style={styles.timestamp}>
-          {dayjs(item.lastTimestamp.toDate()).fromNow()}
+          {formatTimestamp(item.lastTimestamp)}
         </Text>
       </View>
     </TouchableOpacity>
   );
+}
+
+function formatTimestamp(timestamp?: FirebaseFirestoreTypes.Timestamp): string {
+  if (!timestamp) {
+    return "";
+  }
+  const d = timestamp.toDate();
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const minutes = Math.floor(diff / 1000 / 60);
+  const hours = Math.floor(diff / 1000 / 60 / 60);
+  const days = Math.floor(diff / 1000 / 60 / 60 / 24);
+  const weeks = Math.floor(diff / 1000 / 60 / 60 / 24 / 7);
+
+  if (weeks > 4) {
+    return d.toLocaleDateString();
+  } else if (weeks > 0) {
+    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+  } else if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else {
+    return "Just now";
+  }
 }
 
 const styles = StyleSheet.create({
@@ -112,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export const __test__ = { renderItem };
+export const __test__ = { renderItem, formatTimestamp };

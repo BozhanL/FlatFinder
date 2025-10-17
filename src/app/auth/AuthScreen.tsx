@@ -1,8 +1,23 @@
-// src/app/auth/AuthScreen.tsx
-
-import { type JSX, useEffect, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signOut,
+  type FirebaseAuthTypes,
+} from "@react-native-firebase/auth";
+import {
+  GoogleSignin,
+  statusCodes,
+  type SignInResponse,
+} from "@react-native-google-signin/google-signin";
+import { useEffect, useState, type JSX } from "react";
 import {
   Image,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -10,70 +25,264 @@ import {
   View,
 } from "react-native";
 
-// Import the auth service functions
-import {
-  configureGoogleSignIn,
-  handleEmailAuth,
-  handleGoogleSignIn,
-  handlePasswordReset,
-} from "@/services/auth";
-// The path for @/services/auth is crucial!
+// --- TYPE GUARDS AND TYPES ---
+
+// Define a common type for errors that carry a code (like Firebase/Google errors)
+type CodeError = {
+  code: string;
+  message?: string;
+};
+
+// 1. Type for props used by UserStatusScreen
+type UserStatusScreenProps = {
+  user: FirebaseAuthTypes.User;
+  handleSignOut: () => Promise<void>;
+};
+
+// 2. Type guard for Firebase Auth errors
+function isFirebaseAuthError(e: unknown): e is CodeError {
+  if (typeof e !== "object" || e === null || !("code" in e)) {
+    return false;
+  }
+  const code = (e as Partial<CodeError>).code;
+  return typeof code === "string" && code.startsWith("auth/");
+}
+
+// 3. Type guard for Google Sign-In errors
+function isGoogleError(e: unknown): e is CodeError {
+  if (typeof e !== "object" || e === null || !("code" in e)) {
+    return false;
+  }
+  const code = (e as Partial<CodeError>).code;
+  return typeof code === "string";
+}
+
+// --- PROTECTED CONTENT COMPONENT ---
+const UserStatusScreen = ({
+  user,
+  handleSignOut,
+}: UserStatusScreenProps): JSX.Element => (
+  <View style={styles.protectedContainer}>
+    <Text style={styles.protectedTitle}>Welcome to FlatFinder!</Text>
+    <Text style={styles.protectedText}>
+      You are successfully authenticated.
+    </Text>
+    <Text style={styles.protectedEmail}>User: {user.email || "Anonymous"}</Text>
+    <Text style={styles.protectedEmail}>UID: {user.uid}</Text>
+    <TouchableOpacity
+      style={styles.protectedButton}
+      onPress={() => void handleSignOut()}
+    >
+      <Text style={styles.protectedButtonText}>Sign Out</Text>
+    </TouchableOpacity>
+    <Text style={styles.protectedInfo}>
+      This screen acts as the **Protected Content** that the Auth Guard shows.
+    </Text>
+  </View>
+);
+// --- END PROTECTED CONTENT COMPONENT ---
 
 const AuthScreen = (): JSX.Element => {
-  // State for the form UI remains
+  // Explicitly type the user state
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Configure Google Sign-In only once
+  // --- AUTH STATE LISTENER (THE GUARD LOGIC) ---
+  useEffect((): (() => void) => {
+    const authInstance = getAuth();
+    const subscriber = onAuthStateChanged(authInstance, (currentUser) => {
+      setUser(currentUser);
+      if (isAuthLoading) {
+        setIsAuthLoading(false);
+      }
+    });
+    return subscriber;
+  }, [isAuthLoading]);
+
+  // --- Sign Out Handler ---
+  const handleSignOut = async (): Promise<void> => {
+    try {
+      await signOut(getAuth());
+    } catch (e: unknown) {
+      console.error("Sign Out Error:", e);
+    }
+  };
+  // --- END ADDED HANDLER ---
+
+  // Configure Google Sign-In on component mount for Android
   useEffect((): void => {
-    // This calls the GoogleSignin.configure() method
-    configureGoogleSignIn();
+    if (Platform.OS !== "web") {
+      GoogleSignin.configure({
+        webClientId:
+          "245824951682-5f4jdid4ri95nl1qjh9qivkkbga2nem3.apps.googleusercontent.com",
+      });
+    }
   }, []);
 
-  // --- Handlers using the imported service functions ---
-
-  // NOTE: These internal component handlers are kept simple,
-  // focusing only on UI state (loading/error) and calling the service.
-
-  const handleAuthSubmit = async (): Promise<void> => {
+  const handleAuth = async (): Promise<void> => {
     setLoading(true);
     setError("");
 
-    const result = await handleEmailAuth(email, password, isLogin);
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(getAuth(), email, password);
+      } else {
+        await createUserWithEmailAndPassword(getAuth(), email, password);
+      }
+    } catch (e: unknown) {
+      let errorMessage = "An unknown error occurred.";
 
-    if (result !== "success") {
-      setError(result);
+      if (isFirebaseAuthError(e)) {
+        if (e.code === "auth/email-already-in-use") {
+          errorMessage = "That email address is already in use!";
+        } else if (e.code === "auth/invalid-email") {
+          errorMessage = "That email address is invalid!";
+        } else if (e.code === "auth/weak-password") {
+          errorMessage = "Password should be at least 6 characters.";
+        } else if (
+          e.code === "auth/user-not-found" ||
+          e.code === "auth/wrong-password"
+        ) {
+          errorMessage = "Invalid email or password.";
+        } else {
+          errorMessage = e.message || e.code;
+        }
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-    // Success (result === "success") is handled by the RootLayout's Auth Guard.
-    setLoading(false);
   };
 
-  const handleResetSubmit = async (): Promise<void> => {
-    setLoading(true);
-    setError("");
-
-    const result = await handlePasswordReset(email);
-    // Password reset uses the error state to display a success/failure message
-    setError(result);
-    setLoading(false);
-  };
-
-  const handleGoogleSubmit = async (): Promise<void> => {
-    setLoading(true);
-    setError("");
-
-    const result = await handleGoogleSignIn();
-
-    if (result !== "success") {
-      setError(result);
+  // ADDED: Password Reset Function
+  const handlePasswordReset = async (): Promise<void> => {
+    if (!email) {
+      setError(
+        "Please enter your email address above to receive a password reset link.",
+      );
+      return;
     }
-    setLoading(false);
+    setLoading(true);
+    setError("");
+
+    try {
+      await sendPasswordResetEmail(getAuth(), email);
+
+      setError(
+        "Password reset link sent to your email! Please check your inbox (and spam folder).",
+      );
+    } catch (e: unknown) {
+      let errorMessage = "Failed to send password reset email.";
+
+      if (isFirebaseAuthError(e)) {
+        if (
+          e.code === "auth/user-not-found" ||
+          e.code === "auth/invalid-email"
+        ) {
+          errorMessage =
+            "We couldn't find an account associated with that email address.";
+        } else {
+          errorMessage = e.message || e.code;
+        }
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+  // END ADDED: Password Reset Function
+
+  const handleGoogleSignIn = async (): Promise<void> => {
+    setLoading(true);
+    setError("");
+    try {
+      // 1. Check if Google Play Services are available (Critical for Android)
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
+
+      // 2. Start the Google Sign-In process (opens native prompt)
+      const signInResult: SignInResponse = await GoogleSignin.signIn();
+
+      // 3. Robust token retrieval (TypeScript fix applied here)
+      const idToken = (signInResult as { idToken?: string }).idToken;
+
+      if (!idToken) {
+        throw new Error("No ID token found from Google Sign-In result.");
+      }
+
+      // 4. Create a Google credential with the token (Modular API)
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+
+      // 5. Sign the user into Firebase (Modular API)
+      await signInWithCredential(getAuth(), googleCredential);
+    } catch (e: unknown) {
+      let errorMessage = "An unknown error occurred during Google sign-in.";
+
+      if (isGoogleError(e)) {
+        // Handle Google Sign-In library specific errors
+        if (e.code === statusCodes.SIGN_IN_CANCELLED) {
+          errorMessage = "Sign-in cancelled by the user.";
+        } else if (e.code === statusCodes.IN_PROGRESS) {
+          errorMessage = "Sign-in is already in progress.";
+        } else if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          errorMessage =
+            "Google Play services are not available on this device.";
+        }
+        // Handle Firebase errors (which can be thrown after the token is obtained)
+        else if (e.code === "auth/operation-not-allowed") {
+          errorMessage =
+            "Google Sign-In is not enabled. Please enable it in the Firebase console.";
+        } else if (e.code === "auth/account-exists-with-different-credential") {
+          errorMessage =
+            "An account with this email already exists using a different sign-in method.";
+        } else if (e.code === "auth/invalid-credential") {
+          errorMessage =
+            "Invalid credential. Check your webClientId configuration.";
+        } else if (e.message) {
+          errorMessage = e.message;
+        }
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+
+      console.error("Google Sign-In Error:", e);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // --- UI Rendering ---
+  // --- GUARD CHECK RENDERING ---
+  // 1. Show a loading screen while checking the initial auth state.
+  if (isAuthLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>
+          Checking authentication status...
+        </Text>
+      </View>
+    );
+  }
+
+  // 2. If the user is logged in (i.e., the guard passes), show the protected content.
+  if (user) {
+    return <UserStatusScreen user={user} handleSignOut={handleSignOut} />;
+  }
+
+  // 3. Otherwise (user is NOT logged in), show the authentication screen.
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -85,11 +294,11 @@ const AuthScreen = (): JSX.Element => {
           Enter your email to {isLogin ? "sign in" : "sign up"} for this app
         </Text>
 
+        {/* Note: The error state is now also used for success messages */}
         {error ? (
           <Text
             style={[
               styles.errorText,
-              // Check for success messages (like password reset sent)
               error.includes("sent") && styles.successText,
             ]}
           >
@@ -115,10 +324,10 @@ const AuthScreen = (): JSX.Element => {
           placeholderTextColor="#888"
         />
 
+        {/* Forgot Password Link (only visible during sign in) */}
         {isLogin && (
           <TouchableOpacity
-            // Refactored: Call handler directly with 'void' to suppress warning
-            onPress={() => void handleResetSubmit()}
+            onPress={() => void handlePasswordReset()}
             style={styles.forgotPassword}
           >
             <Text style={styles.link}>Forgot password?</Text>
@@ -127,8 +336,7 @@ const AuthScreen = (): JSX.Element => {
 
         <TouchableOpacity
           style={styles.button}
-          // Refactored: Call handler directly with 'void'
-          onPress={() => void handleAuthSubmit()}
+          onPress={() => void handleAuth()}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
@@ -144,8 +352,7 @@ const AuthScreen = (): JSX.Element => {
 
         <TouchableOpacity
           style={styles.socialButton}
-          // Refactored: Call handler directly with 'void'
-          onPress={() => void handleGoogleSubmit()}
+          onPress={() => void handleGoogleSignIn()}
           disabled={loading}
         >
           <Image
@@ -166,9 +373,6 @@ const AuthScreen = (): JSX.Element => {
         <TouchableOpacity
           onPress={() => {
             setIsLogin(!isLogin);
-            // Clear errors and password when toggling mode
-            setError("");
-            setPassword("");
           }}
           style={styles.toggleButton}
         >
@@ -182,8 +386,6 @@ const AuthScreen = (): JSX.Element => {
     </View>
   );
 };
-
-// ... (Styles remain the same) ...
 
 const styles = StyleSheet.create({
   container: {
@@ -299,6 +501,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
+  // Style for the Forgot Password link positioning
   forgotPassword: {
     alignSelf: "flex-end",
     marginBottom: 8,
@@ -312,14 +515,14 @@ const styles = StyleSheet.create({
     width: "100%",
     textAlign: "center",
   },
+  // Style for success message (like password reset confirmation)
   successText: {
-    color: "#065F46",
-    backgroundColor: "#D1FAE5",
-    borderColor: "#10B981",
+    color: "#065F46", // Dark green text
+    backgroundColor: "#D1FAE5", // Light green background
+    borderColor: "#10B981", // Green border for better contrast
     borderWidth: 1,
   },
-  // All other styles (protected, loading) are left here for completeness
-  // but are not used since the Auth Guard logic is outside this component.
+  // --- ADDED STYLES FOR GUARD AND PROTECTED SCREEN ---
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -329,19 +532,19 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#4F46E5",
+    color: "#4F46E5", // Indigo color
   },
   protectedContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#E0F2F1",
+    backgroundColor: "#E0F2F1", // Light teal background
     padding: 32,
   },
   protectedTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#047857",
+    color: "#047857", // Dark teal
     marginBottom: 16,
   },
   protectedText: {
@@ -356,7 +559,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   protectedButton: {
-    backgroundColor: "#EF4444",
+    backgroundColor: "#EF4444", // Red for sign out
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 12,

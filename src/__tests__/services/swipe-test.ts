@@ -1,7 +1,6 @@
 // Mock dependencies BEFORE importing the SUT
 // Import SUT after mocks
 import * as swipeSvc from "@/services/swipe";
-import { SwipeAction } from "@/services/swipe";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
@@ -208,7 +207,8 @@ describe("loadCandidates", () => {
 describe("swipe", () => {
   it("writes dir and createdAt to user swipes doc", async () => {
     serverTimestampMock.mockReturnValueOnce({ __server_ts: true });
-    await swipeSvc.swipe("me", "target", SwipeAction.Like);
+
+    await swipeSvc.swipe("me", "target", "like");
 
     expect(docMock).toHaveBeenCalledWith(
       expect.anything(),

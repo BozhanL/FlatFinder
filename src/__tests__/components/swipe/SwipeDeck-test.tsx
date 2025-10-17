@@ -1,14 +1,10 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react-native";
+import type { Props as SwipeCardProps } from "@/components/swipe/SwipeCard";
 import SwipeDeck from "@/components/swipe/SwipeDeck";
-import type { Flatmate } from "@/types/Flatmate";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
-// ---- Mocks ----
 jest.mock("react-native-reanimated", () => {
   const Reanimated = jest.requireActual("react-native-reanimated/mock");
-  Reanimated.runOnJS = <T extends (...args: unknown[]) => unknown>(fn: T): T =>
-    fn;
-
+  Reanimated.runOnJS = jest.fn((fn) => fn);
   return Reanimated;
 });
 
@@ -18,44 +14,41 @@ jest.mock("@expo/vector-icons", () => ({
 
 jest.mock("@/components/swipe/SwipeCard", () => {
   const { Text, View } = jest.requireActual("react-native");
-
-  type MockProps = { item: { id: string; name: string } };
-  function SwipeCard(props: MockProps) {
+  return function SwipeCard(props: SwipeCardProps) {
+    const { item } = props;
     return (
-      <View testID={`card-${props.item.id}`}>
-        <Text>{props.item.name}</Text>
+      <View testID={`card-${item.id}`}>
+        <Text>{item.name}</Text>
       </View>
     );
-  }
-  return SwipeCard;
+  };
 });
 
-// ---- Helpers ----
-function fm(partial: Partial<Flatmate> = {}, i = 0): Flatmate {
+function fm(partial = {}, i = 0) {
   return {
     id: `u${i}`,
     name: `User ${i}`,
-    dob: null,
+    age: 21,
     location: "City",
     budget: 200,
     bio: "bio",
     tags: ["a", "b"],
     avatar: { uri: "x" },
     ...partial,
-  } as Flatmate;
+  };
 }
 
-// ---- Tests ----
 describe("SwipeDeck", () => {
   it('renders "Looking for more…" when no data', () => {
     render(<SwipeDeck data={[]} />);
     expect(screen.getByText(/Looking for more/i)).toBeTruthy();
   });
 
-  it("renders the top card", () => {
+  it("renders top and next cards", () => {
     render(<SwipeDeck data={[fm({}, 1), fm({}, 2)]} />);
-    expect(screen.getByTestId("card-u1")).toBeTruthy();
-    expect(screen.queryByTestId("card-u2")).toBeNull();
+
+    expect(screen.getByText("User 1")).toBeTruthy();
+    expect(screen.getByText("User 2")).toBeTruthy();
   });
 
   it("pressing heart button triggers onLike(top)", () => {
@@ -69,7 +62,12 @@ describe("SwipeDeck", () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId("btn-like"));
+    // IMPROVE: use safe variant @G2CCC
+    const buttons = screen.UNSAFE_getAllByType(
+      jest.requireActual("react-native").TouchableOpacity,
+    );
+    const heartBtn = buttons[1];
+    fireEvent.press(heartBtn);
 
     expect(like).toHaveBeenCalledTimes(1);
     expect(like.mock.calls[0][0].name).toBe("Top");
@@ -87,7 +85,12 @@ describe("SwipeDeck", () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId("btn-nope"));
+    // IMPROVE: use safe variant @G2CCC
+    const buttons = screen.UNSAFE_getAllByType(
+      jest.requireActual("react-native").TouchableOpacity,
+    );
+    const closeBtn = buttons[0];
+    fireEvent.press(closeBtn);
 
     expect(pass).toHaveBeenCalledTimes(1);
     expect(pass.mock.calls[0][0].name).toBe("Top");
@@ -96,7 +99,12 @@ describe("SwipeDeck", () => {
 
   it("does not crash when no callbacks are provided", () => {
     render(<SwipeDeck data={[fm({}, 1), fm({}, 2)]} />);
-    fireEvent.press(screen.getByTestId("btn-nope"));
-    fireEvent.press(screen.getByTestId("btn-like"));
+
+    // IMPROVE: use safe variant @G2CCC
+    const buttons = screen.UNSAFE_getAllByType(
+      jest.requireActual("react-native").TouchableOpacity,
+    );
+    fireEvent.press(buttons[0]);
+    fireEvent.press(buttons[1]);
   });
 });

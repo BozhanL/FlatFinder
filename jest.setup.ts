@@ -2,7 +2,6 @@
 import { jest } from "@jest/globals";
 import ReactNative from "react-native";
 import { setUpTests as reanimatedSetUpTests } from "react-native-reanimated";
-import "react-native-gesture-handler/jestSetup";
 import mockSafeAreaContext from "react-native-safe-area-context/jest/mock";
 
 // Avoid log pollution with emulator URL remap messages during testing
@@ -137,5 +136,3 @@ jest.mock("@notifee/react-native", () =>
 );
 
 jest.mock("react-native-safe-area-context", () => mockSafeAreaContext);
-
-jest.mock("@expo/vector-icons", () => ({ AntDesign: () => null }));

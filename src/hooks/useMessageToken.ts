@@ -1,7 +1,5 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-// react-native-firebase does not work in jest unit test environment.
-// Mocking it is possible, but it may not represent real world situation.
 import useUser from "@/hooks/useUser";
 import {
   doc,

@@ -1,5 +1,5 @@
 import type { FilterState } from "@/types/FilterState";
-import type { Property } from "@/types/Property";
+import type { Property } from "@/types/Prop";
 
 // Pure filtering function - no React hooks, just logic
 export function applyPropertyFilters(

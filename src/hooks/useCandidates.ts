@@ -1,7 +1,5 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-// react-native-firebase does not work in jest unit test environment.
-// Mocking it is possible, but it may not represent real world situation.
 import { loadCandidates } from "@/services/swipe";
 import type { Flatmate } from "@/types/Flatmate";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
@@ -29,17 +27,13 @@ export default function useCandidates(my_uid: string | null): CandidatesResult {
       try {
         setLoading(true);
         const rows = await loadCandidates(my_uid, { limit: 30 });
-        if (alive) {
-          setItems(rows);
-        }
+        if (alive) setItems(rows);
         console.log(
           "candidates:",
           rows.map((r) => r.id),
         );
       } finally {
-        if (alive) {
-          setLoading(false);
-        }
+        if (alive) setLoading(false);
       }
     })();
     return (): void => {

@@ -1,6 +1,6 @@
 import type { Flatmate } from "@/types/Flatmate";
 import { AntDesign } from "@expo/vector-icons";
-import { type JSX, useCallback, useEffect, useMemo } from "react";
+import type { JSX } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -19,7 +19,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SwipeCard from "./SwipeCard";
-import { SwipeAction } from "@/types/SwipeAction";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_W * 0.25;
@@ -27,82 +26,62 @@ const ROTATE = 15; // degrees
 
 export type Props = {
   data: Flatmate[];
-  onLike?: (user: Flatmate) => void;
-  onPass?: (user: Flatmate) => void;
-  onCardPress?: (user: Flatmate) => void;
+  onLike?: (user: Flatmate) => Promise<void>;
+  onPass?: (user: Flatmate) => Promise<void>;
 };
 
 export default function SwipeDeck({
   data,
   onLike,
   onPass,
-  onCardPress,
 }: Props): JSX.Element {
   const top = data[0];
+  const next = data[1];
 
   const insets = useSafeAreaInsets();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  useEffect(() => {
-    translateX.value = 0;
-    translateY.value = 0;
-  }, [top?.id, translateX, translateY]);
-
-  const commitSwipe = useCallback(
-    (action: SwipeAction) => {
-      if (!top) {
-        return;
-      }
-      if (action === SwipeAction.Like) {
-        onLike?.(top);
-      } else {
-        onPass?.(top);
-      }
-    },
-    [top, onLike, onPass],
-  );
-
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        .onChange((e) => {
-          translateX.value = e.translationX;
-          translateY.value = e.translationY;
-        })
-        .onEnd(() => {
-          if (Math.abs(translateX.value) > SWIPE_THRESHOLD) {
-            const action =
-              translateX.value > 0 ? SwipeAction.Like : SwipeAction.Pass;
-            const sign = action === SwipeAction.Like ? 1 : -1;
-            translateX.value = withTiming(
-              sign * SCREEN_W * 1.2,
-              { duration: 180 },
-              () => {
-                runOnJS(commitSwipe)(action);
-              },
-            );
-          } else {
-            translateX.value = withSpring(0);
-            translateY.value = withSpring(0);
-          }
-        }),
-    [translateX, translateY, commitSwipe],
-  );
-
-  function fling(action: SwipeAction): void {
+  const commitSwipe = (dir: 1 | -1): void => {
     if (!top) {
       return;
+    } else if (dir === 1) {
+      void onLike?.(top);
+    } else {
+      void onPass?.(top);
     }
-    const sign = action === SwipeAction.Like ? 1 : -1;
-    translateX.value = withTiming(
-      sign * SCREEN_W * 1.2,
-      { duration: 180 },
-      () => {
-        runOnJS(commitSwipe)(action);
-      },
+    // reset & next card
+    translateX.set(0);
+    translateY.set(0);
+  };
+
+  const gesture = Gesture.Pan()
+    .onChange((e) => {
+      translateX.set(e.translationX);
+      translateY.set(e.translationY);
+    })
+    .onEnd(() => {
+      if (Math.abs(translateX.get()) > SWIPE_THRESHOLD) {
+        const dir: 1 | -1 = translateX.get() > 0 ? 1 : -1;
+        translateX.set(
+          withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
+            runOnJS(commitSwipe)(dir);
+          }),
+        );
+      } else {
+        translateX.set(withSpring(0));
+        translateY.set(withSpring(0));
+      }
+    });
+
+  const fling = (dir: 1 | -1): void => {
+    if (!top) return;
+    translateX.set(
+      withTiming(dir * SCREEN_W * 1.2, { duration: 180 }, () => {
+        runOnJS(commitSwipe)(dir);
+      }),
     );
-  }
+  };
 
   //like animate
   const likeBadgeStyle = useAnimatedStyle(() => {
@@ -118,6 +97,16 @@ export default function SwipeDeck({
       [0, 1],
     );
     return { opacity };
+  });
+
+  const nextStyle = useAnimatedStyle(() => {
+    // For the next card at the back
+    const scale = interpolate(
+      Math.abs(translateX.get()),
+      [0, SWIPE_THRESHOLD],
+      [0.95, 1],
+    );
+    return { transform: [{ scale }] };
   });
 
   const topStyle = useAnimatedStyle(() => {
@@ -142,12 +131,21 @@ export default function SwipeDeck({
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {/* swipe card */}
-        <GestureDetector gesture={pan}>
+        {/* next card */}
+        {next && (
+          <Animated.View
+            style={[StyleSheet.absoluteFill, { padding: 16 }, nextStyle]}
+          >
+            <SwipeCard item={next} />
+          </Animated.View>
+        )}
+
+        {/* top card */}
+        <GestureDetector gesture={gesture}>
           <Animated.View
             style={[StyleSheet.absoluteFill, { padding: 16 }, topStyle]}
           >
-            <SwipeCard item={top} onPress={() => onCardPress?.(top)} />
+            <SwipeCard item={top} />
 
             {/* LIKE / NOPE tag */}
             <Animated.View
@@ -156,7 +154,6 @@ export default function SwipeDeck({
                 { left: 28, top: 40, borderColor: "#1DB954" },
                 likeBadgeStyle,
               ]}
-              pointerEvents="none"
             >
               <Text style={[styles.badgeText, { color: "#1DB954" }]}>LIKE</Text>
             </Animated.View>
@@ -180,9 +177,9 @@ export default function SwipeDeck({
         pointerEvents="box-none"
       >
         <TouchableOpacity
-          testID="btn-nope"
+          // IMPROVE: Use enum instead of number @G2CCC
           onPress={() => {
-            fling(SwipeAction.Pass);
+            fling(-1);
           }}
           activeOpacity={0.9}
           style={[styles.fab, styles.nopeFab]}
@@ -191,9 +188,8 @@ export default function SwipeDeck({
         </TouchableOpacity>
 
         <TouchableOpacity
-          testID="btn-like"
           onPress={() => {
-            fling(SwipeAction.Like);
+            fling(1);
           }}
           activeOpacity={0.9}
           style={[styles.fab, styles.likeFab]}

@@ -6,8 +6,7 @@ import useCandidates from "@/hooks/useCandidates";
 import useUser from "@/hooks/useUser";
 import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
 import type { FilterState } from "@/types/FilterState";
-import type { Property } from "@/types/Property";
-import { SwipeAction } from "@/types/SwipeAction";
+import type { Property } from "@/types/Prop";
 import {
   getGlobalFilters,
   registerApplyFilter,
@@ -133,9 +132,7 @@ export default function Index(): JSX.Element {
 
   const { items, setItems } = useCandidates(user?.uid || null);
 
-  if (!user) {
-    return <></>;
-  }
+  if (!user) return <></>;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -177,23 +174,15 @@ export default function Index(): JSX.Element {
         {mode === TabMode.Flatmates ? (
           <SwipeDeck
             data={items}
-            onLike={(u) => {
+            onLike={async (u) => {
+              // IMPROVE: Use enum instead of string @G2CCC
+              await swipe(user.uid, u.id, "like");
+              await ensureMatchIfMutualLike(user.uid, u.id);
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              void swipe(user.uid, u.id, SwipeAction.Like).catch(() => {
-                /* N/A */
-              });
-              void ensureMatchIfMutualLike(user.uid, u.id).catch(() => {
-                /* N/A */
-              });
             }}
-            onPass={(u) => {
+            onPass={async (u) => {
+              await swipe(user.uid, u.id, "pass");
               setItems((prev) => prev.filter((x) => x.id !== u.id));
-              void swipe(user.uid, u.id, SwipeAction.Pass).catch(() => {
-                /* N/A */
-              });
-            }}
-            onCardPress={(user) => {
-              router.push(`/profile/${user.id}`);
             }}
           />
         ) : (

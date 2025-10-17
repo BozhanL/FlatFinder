@@ -1,8 +1,6 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-// react-native-firebase does not work in jest unit test environment.
-// Mocking it is possible, but it may not represent real world situation.
-import type { Property } from "@/types/Property";
+import type { Property } from "@/types/Prop";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -26,10 +24,7 @@ export default function useProperties(): UsePropertiesResult {
   const user = useUser();
 
   useEffect(() => {
-    // Wait for auth to be checked before showing error
-    if (user === undefined) {
-      return;
-    } else if (!user) {
+    if (!user) {
       setLoading(false);
       setError("User not authenticated");
       return;

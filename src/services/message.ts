@@ -10,7 +10,6 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
-  updateDoc,
 } from "@react-native-firebase/firestore";
 import type { IMessage, User } from "react-native-gifted-chat";
 
@@ -27,7 +26,6 @@ export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
         message: msg.text,
         sender: msg.user._id.toString(),
         timestamp: serverTimestamp() as Timestamp,
-        received: null,
       };
       transaction.set(docref, m);
       transaction.update(groupRef, {
@@ -39,21 +37,7 @@ export async function sendMessage(msg: IMessage, gid: string): Promise<void> {
     });
     console.log("Transaction successfully committed!");
   } catch (e) {
-    console.error("Transaction failed: ", e);
-  }
-}
-
-export async function markMessagesAsReceived(
-  gid: string,
-  mid: string,
-): Promise<void> {
-  const db = getFirestore();
-
-  try {
-    const docref = doc(db, "messages", gid, "messages", mid);
-    await updateDoc(docref, { received: serverTimestamp() as Timestamp });
-  } catch (e) {
-    console.error("Failed to mark message as received: ", e);
+    console.log("Transaction failed: ", e);
   }
 }
 
@@ -80,14 +64,13 @@ export async function createGroup(
         lastTimestamp: serverTimestamp() as Timestamp,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
-        avatar: null,
       };
       transaction.set(groupRef, g);
       return Promise.resolve(groupRef.id);
     });
     return p;
   } catch (e) {
-    console.error("Transaction failed: ", e);
+    console.log("Transaction failed: ", e);
   }
 
   return null;
@@ -110,9 +93,10 @@ export async function getGroup(gid: string): Promise<Group | null> {
   return data;
 }
 
+// TODO: Implement when user profile is available @G2CCC
 export async function getUserByUidAsync(uid: string): Promise<User | null> {
   const db = getFirestore();
-  const userDoc = await getDoc(doc(db, "users", uid));
+  const userDoc = await getDoc(doc(db, "message_test_user", uid));
   if (!userDoc.exists()) {
     return null;
   }
