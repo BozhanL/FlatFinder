@@ -46,9 +46,6 @@ export async function handleAuth(
       case AuthErrorCodes.INVALID_EMAIL:
         errorMessage = "That email address is invalid!";
         break;
-      case AuthErrorCodes.WEAK_PASSWORD:
-        errorMessage = "Password should be at least 6 characters.";
-        break;
       case AuthErrorCodes.USER_DISABLED:
         errorMessage = "User account is disabled.";
         break;
