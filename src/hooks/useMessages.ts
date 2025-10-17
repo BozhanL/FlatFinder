@@ -1,6 +1,9 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
+// react-native-firebase does not work in jest unit test environment.
+// Mocking it is possible, but it may not represent real world situation.
 import { getUserByUidAsync } from "@/services/message";
+import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
 import type { Group } from "@/types/Group";
 import type { Message } from "@/types/Message";
 import {
@@ -11,13 +14,13 @@ import {
   onSnapshot,
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import type { IMessage, User } from "react-native-gifted-chat";
+import type { User } from "react-native-gifted-chat";
 
 export default function useMessages(
   gid: string,
   gname: string,
 ): {
-  sortedMessages: IMessage[];
+  sortedMessages: GiftedChatMessage[];
   loading: boolean;
   usercache: Map<string, User>;
 } {
@@ -80,10 +83,14 @@ export default function useMessages(
         createdAt: msg.timestamp.toDate(),
         name: gname,
         user: usercache.get(msg.sender) || { _id: msg.sender },
+        sent: true,
+        received: msg.received !== null,
+        gid: gid,
+        seenTimestamp: msg.received,
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return m;
-  }, [messages, gname, usercache]);
+  }, [messages, gname, usercache, gid]);
 
   return { sortedMessages, loading, usercache };
 }
