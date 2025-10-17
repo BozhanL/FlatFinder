@@ -1,4 +1,4 @@
-import { AuthErrorCodes } from "@firebase/auth";
+import { AuthErrorCodes, type PasswordPolicy } from "@firebase/auth";
 import {
   createUserWithEmailAndPassword,
   FirebaseAuthTypes,
@@ -8,6 +8,7 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
+  validatePassword,
 } from "@react-native-firebase/auth";
 import {
   GoogleSignin,
@@ -23,6 +24,11 @@ export async function handleAuth(
   email: string,
   password: string,
 ): Promise<string | null> {
+  const result = await validateUserPassword(password);
+  if (result) {
+    return result;
+  }
+
   try {
     if (isLogin) {
       await signInWithEmailAndPassword(getAuth(), email, password);
@@ -62,6 +68,32 @@ export async function handleAuth(
 
     return errorMessage;
   }
+  return null;
+}
+
+export async function validateUserPassword(
+  password: string,
+): Promise<string | null> {
+  const status = await validatePassword(getAuth(), password);
+  const policy: PasswordPolicy = status.passwordPolicy;
+  console.log("Password validation status:", status);
+
+  if (status.isValid) {
+    return null;
+  } else if (status.meetsMinPasswordLength === false) {
+    return `Password should be at least ${policy.customStrengthOptions.minPasswordLength} characters`;
+  } else if (status.meetsMaxPasswordLength === false) {
+    return `Password should be at most ${policy.customStrengthOptions.maxPasswordLength} characters`;
+  } else if (status.containsLowercaseLetter === false) {
+    return `Password should contain at least one lowercase letter`;
+  } else if (status.containsUppercaseLetter === false) {
+    return `Password should contain at least one uppercase letter`;
+  } else if (status.containsNumericCharacter === false) {
+    return `Password should contain at least one numeric character`;
+  } else if (status.containsNonAlphanumericCharacter === false) {
+    return `Password should contain at least one special character`;
+  }
+
   return null;
 }
 
