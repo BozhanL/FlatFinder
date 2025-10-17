@@ -19,11 +19,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { TicketStatus,normalizeStatus } from "@/types/TicketStatus";
 
 type Ticket = {
   id: string;
   createdAt?: { toDate?: () => Date } | null;
-  status?: string;
+  status?: TicketStatus;
   title?: string;
   message?: string;
 };
@@ -148,7 +149,6 @@ function TicketItem({
       activeOpacity={0.85}
       style={styles.card}
     >
-      <View style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.title} numberOfLines={1}>
             {item.title || "(no title)"}
@@ -163,33 +163,10 @@ function TicketItem({
         <Text style={styles.message} numberOfLines={4}>
           {item.message}
         </Text>
-      </View>
     </TouchableOpacity>
   );
 }
 
-export enum TicketStatus {
-  Open = "open",
-  InProgress = "in_progress",
-  Closed = "closed",
-}
-
-function normalizeStatus(s?: TicketStatus): {
-  text: string;
-  bg: string;
-  fg: string;
-} {
-  switch (s) {
-    case TicketStatus.Open:
-      return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case TicketStatus.InProgress:
-      return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case TicketStatus.Closed:
-      return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
-    default:
-      return { text: "Unknown", bg: "#EEE", fg: "#555" };
-  }
-}
 
 const styles = StyleSheet.create({
   center: {

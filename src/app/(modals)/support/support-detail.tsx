@@ -14,33 +14,11 @@ import {
   onSnapshot,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
-
-export enum TicketStatus {
-  Open = "open",
-  InProgress = "in_progress",
-  Closed = "closed",
-}
-
-function normalizeStatus(s?: TicketStatus): {
-  text: string;
-  bg: string;
-  fg: string;
-} {
-  switch (s) {
-    case TicketStatus.Open:
-      return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case TicketStatus.InProgress:
-      return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case TicketStatus.Closed:
-      return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
-    default:
-      return { text: "Unknown", bg: "#EEE", fg: "#555" };
-  }
-}
+import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
 
 type TicketDoc = {
   createdAt?: { toDate?: () => Date } | null;
-  status?: string;
+  status?: TicketStatus;
   uid?: string | null;
   name?: string;
   email?: string;
