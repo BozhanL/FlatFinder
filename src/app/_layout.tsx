@@ -25,7 +25,7 @@ export default function RootLayout(): JSX.Element | null {
 
   useEffect(() => {
     if (user?.uid) {
-      updateLastActive(user.uid);
+      void updateLastActive(user.uid);
     }
   }, [user?.uid]);
 
