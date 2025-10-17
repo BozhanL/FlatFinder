@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { TicketStatus,normalizeStatus } from "@/types/TicketStatus";
+import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
 
 type Ticket = {
   id: string;
@@ -141,7 +141,7 @@ function TicketItem({
   const formattedDate = createdDate
     ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";
-  const status = normalizeStatus(item.status as TicketStatus | undefined);
+  const status = normalizeStatus(item.status);
 
   return (
     <TouchableOpacity
@@ -149,24 +149,23 @@ function TicketItem({
       activeOpacity={0.85}
       style={styles.card}
     >
-        <View style={styles.row}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.title || "(no title)"}
-          </Text>
-          <View style={[styles.badge, { backgroundColor: status.bg }]}>
-            <Text style={[styles.badgeText, { color: status.fg }]}>
-              {status.text}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.meta}>{formattedDate}</Text>
-        <Text style={styles.message} numberOfLines={4}>
-          {item.message}
+      <View style={styles.row}>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title || "(no title)"}
         </Text>
+        <View style={[styles.badge, { backgroundColor: status.bg }]}>
+          <Text style={[styles.badgeText, { color: status.fg }]}>
+            {status.text}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.meta}>{formattedDate}</Text>
+      <Text style={styles.message} numberOfLines={4}>
+        {item.message}
+      </Text>
     </TouchableOpacity>
   );
 }
-
 
 const styles = StyleSheet.create({
   center: {

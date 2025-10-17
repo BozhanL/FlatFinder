@@ -59,7 +59,7 @@ export default function SupportDetail(): JSX.Element {
       : null;
   const createdText = created ? dayjs(created).format("YYYY-MM-DD HH:mm") : "—";
   const statusStyle = normalizeStatus(
-    docData?.status as TicketStatus | undefined,
+    docData?.status,
   );
 
   if (loading) {
