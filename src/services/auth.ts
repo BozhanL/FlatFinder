@@ -146,7 +146,7 @@ export async function handleGoogleSignIn(): Promise<string | null> {
     // 3. Robust token retrieval
     const idToken = signInResult.data.idToken;
     if (!idToken) {
-      throw new Error("No ID token found from Google Sign-In result.");
+      return "Failed to retrieve ID token from Google Sign-In.";
     }
     // 4. Create a Google credential with the token (Modular API)
     const googleCredential = GoogleAuthProvider.credential(idToken);

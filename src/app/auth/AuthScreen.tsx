@@ -131,7 +131,8 @@ export default function AuthScreen(): JSX.Element {
 
         <TouchableOpacity
           onPress={() => {
-            setIsLogin(!isLogin);
+            setIsLogin((prev) => !prev);
+            setReturned("");
           }}
           style={styles.toggleButton}
         >
@@ -280,61 +281,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#D1FAE5", // Light green background
     borderColor: "#10B981", // Green border for better contrast
     borderWidth: 1,
-  },
-  // --- ADDED STYLES FOR GUARD AND PROTECTED SCREEN ---
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#4F46E5", // Indigo color
-  },
-  protectedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#E0F2F1", // Light teal background
-    padding: 32,
-  },
-  protectedTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#047857", // Dark teal
-    marginBottom: 16,
-  },
-  protectedText: {
-    fontSize: 18,
-    color: "#065F46",
-    marginBottom: 8,
-  },
-  protectedEmail: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#065F46",
-    marginBottom: 4,
-  },
-  protectedButton: {
-    backgroundColor: "#EF4444", // Red for sign out
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  protectedButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  protectedInfo: {
-    fontSize: 12,
-    color: "#065F46",
-    marginTop: 40,
-    fontStyle: "italic",
-    textAlign: "center",
   },
 });
