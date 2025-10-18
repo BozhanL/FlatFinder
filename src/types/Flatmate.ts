@@ -13,4 +13,6 @@ export type Flatmate = {
   budget?: number | null;
   location?: string | { area?: string } | null;
   tags?: string[];
+  avatarUrl?: string | null;
+  photoUrls?: string[];
 };
