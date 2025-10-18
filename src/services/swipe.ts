@@ -2,7 +2,6 @@ import { createGroup, getGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
 import { SwipeAction } from "@/types/SwipeAction";
 import type { SwipeDoc } from "@/types/SwipeDoc";
-import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
   deleteDoc,
@@ -28,6 +27,7 @@ type UserDoc = {
   location?: string | null;
   tags?: unknown;
   avatarUrl?: string | null;
+  photoUrls?: string[];
 };
 
 /** Set of swiped users */
@@ -35,11 +35,11 @@ export async function fetchSwipedSet(uid: string): Promise<Set<string>> {
   const qRef = query(
     collection(getFirestore(), "users", uid, "swipes"),
     orderBy("createdAt", "desc"),
-    qLimit(500),
+    qLimit(500)
   );
   const s = await getDocs(qRef);
   const ids = s.docs.map(
-    (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<SwipeDoc>) => d.id,
+    (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<SwipeDoc>) => d.id
   );
   return new Set(ids);
 }
@@ -51,7 +51,7 @@ export async function loadCandidates(
     area,
     maxBudget,
     limit = 30,
-  }: { area?: string; maxBudget?: number | null; limit?: number } = {},
+  }: { area?: string; maxBudget?: number | null; limit?: number } = {}
 ): Promise<Flatmate[]> {
   const swiped = await fetchSwipedSet(uid);
 
@@ -78,6 +78,10 @@ export async function loadCandidates(
     .map(
       (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<UserDoc>): Flatmate => {
         const data = d.data();
+        const mainPhoto =
+          Array.isArray(data.photoUrls) && data.photoUrls.length > 0
+            ? data.photoUrls[0]
+            : data.avatarUrl;
         return {
           id: d.id,
           name: data.name ?? "",
@@ -86,11 +90,15 @@ export async function loadCandidates(
           budget: data.budget ?? null,
           location: data.location ?? null,
           tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
-          avatar: data.avatarUrl
-            ? { uri: data.avatarUrl }
-            : pickAvatarFor(d.id),
+          avatar: mainPhoto
+            ? { uri: mainPhoto }
+            : {
+                uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
+                  data.name ?? "U"
+                )}`,
+              },
         };
-      },
+      }
     )
     .filter((u: { id: string }) => u.id !== uid)
     .filter((u: { id: string }) => !swiped.has(u.id));
@@ -102,7 +110,7 @@ export async function loadCandidates(
 export async function swipe(
   me: string,
   target: string,
-  dir: SwipeAction,
+  dir: SwipeAction
 ): Promise<void> {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
   const data: SwipeDoc = {
@@ -117,7 +125,7 @@ export async function swipe(
 /** Create match between users if mutual like*/
 export async function ensureMatchIfMutualLike(
   me: string,
-  target: string,
+  target: string
 ): Promise<void> {
   //check if the user liked me
   const backRef = doc(getFirestore(), "users", target, "swipes", me);
