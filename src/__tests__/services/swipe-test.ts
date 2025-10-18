@@ -149,7 +149,11 @@ describe("loadCandidates", () => {
       });
 
     // Act: call the function so mocks are exercised
-    await swipeSvc.loadCandidates("me", { area: "CBD", maxBudget: 500, limit: 30 });
+    await swipeSvc.loadCandidates("me", {
+      area: "CBD",
+      maxBudget: 500,
+      limit: 30,
+    });
 
     // Constraints built
     expect(whereMock).toHaveBeenCalledWith("location", "==", "CBD");
