@@ -1,8 +1,15 @@
-import * as ImagePicker from "expo-image-picker";
-import mime from "mime";
 import { supabase } from "@/lib/supabase";
 import { getAuth } from "@react-native-firebase/auth";
-import { doc, getFirestore, getDoc, updateDoc } from "@react-native-firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  updateDoc,
+} from "@react-native-firebase/firestore";
+import * as ImagePicker from "expo-image-picker";
+import mime from "mime";
+import * as FileSystem from "expo-file-system";
+import { decode } from "base64-arraybuffer";
 
 type PhotoUrls = string[];
 
@@ -18,8 +25,19 @@ async function writePhotoUrls(uid: string, urls: PhotoUrls) {
 }
 
 function toPublicUrl(path: string, w = 1024, h = 1024) {
-  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  const { data } = supabase.storage.from("avatar").getPublicUrl(path);
   return `${data.publicUrl}?width=${w}&height=${h}&resize=cover&quality=80&v=${Date.now()}`;
+}
+
+function storagePathFromPublicUrl(publicUrl: string): string | null {
+  try {
+    const marker = "/storage/v1/object/public/avatar/";
+    const idx = publicUrl.indexOf(marker);
+    if (idx === -1) return null;
+    return publicUrl.substring(idx + marker.length); // => "uid/xxx.jpg"
+  } catch {
+    return null;
+  }
 }
 
 /** list user photos */
@@ -46,9 +64,9 @@ export async function uploadUserPhoto(): Promise<string | null> {
     aspect: [1, 1],
     quality: 0.92,
   });
-  if (picked.canceled) return null;
+  if (picked.canceled || !picked.assets?.length) return null;
 
-  const asset = picked.assets?.[0]!;
+  const asset = picked.assets[0]!;
   const ext =
     mime.getExtension(asset.mimeType || "") ||
     asset.uri.split(".").pop() ||
@@ -57,14 +75,22 @@ export async function uploadUserPhoto(): Promise<string | null> {
   const fileName = `${Date.now()}.${ext}`;
   const path = `${uid}/${fileName}`;
 
-  const resp = await fetch(asset.uri);
-  const blob = await resp.blob();
+  let readUri = asset.uri;
+  if (readUri.startsWith("content://")) {
+    const tmp = FileSystem.cacheDirectory + fileName;
+    await FileSystem.copyAsync({ from: readUri, to: tmp });
+    readUri = tmp;
+  }
+  const base64 = await FileSystem.readAsStringAsync(readUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const arrayBuffer = decode(base64);
 
   const { error } = await supabase.storage
-    .from("avatars")
-    .upload(path, blob, {
+    .from("avatar")
+    .upload(path, arrayBuffer, {
       contentType: asset.mimeType || "image/jpeg",
-      upsert: false,
+      upsert: true,
     });
   if (error) throw error;
 
@@ -73,32 +99,46 @@ export async function uploadUserPhoto(): Promise<string | null> {
   const next = [...urls, publicUrl];
   await writePhotoUrls(uid, next);
 
+  await updateDoc(doc(getFirestore(), "users", uid), {
+    avatarUrl: next[0] ?? null,
+  });
+
+  console.log("Uploaded to:", path);
+  console.log("Public URL:", publicUrl);
+
   return publicUrl;
 }
 
 /** delete a photo by index */
-export async function deleteUserPhoto(index: number): Promise<void> {
+export async function deleteUserPhoto(index: number): Promise<string[]> {
   const uid = getAuth().currentUser?.uid;
-  if (!uid) throw new Error("unauthenticated");
+  if (!uid) throw new Error("Unauthenticated");
 
   const urls = await readPhotoUrls(uid);
-  if (index < 0 || index >= urls.length) return;
+  const target = urls[index];
+  if (!target) return urls;
 
-  const url = urls?.[index]!;
-
-  try {
-    const marker = "/storage/v1/object/public/avatars/";
-    const qIdx = url.indexOf("?");
-    const cut = url.substring(url.indexOf(marker) + marker.length, qIdx === -1 ? url.length : qIdx);
-    await supabase.storage.from("avatars").remove([cut]);
-  } catch {
+  const storagePath = storagePathFromPublicUrl(target);
+  if (storagePath) {
+    const { error } = await supabase.storage.from("avatars").remove([storagePath]);
+    if (error) throw error;
   }
 
   const next = urls.filter((_, i) => i !== index);
+
   await writePhotoUrls(uid, next);
+
+  await updateDoc(doc(getFirestore(), "users", uid), {
+    avatarUrl: next[0] ?? null,
+  });
+
+  return next;
 }
 
-export async function moveUserPhoto(index: number, newIndex: number): Promise<void> {
+export async function moveUserPhoto(
+  index: number,
+  newIndex: number
+): Promise<void> {
   const uid = getAuth().currentUser?.uid;
   if (!uid) throw new Error("unauthenticated");
 
@@ -111,4 +151,18 @@ export async function moveUserPhoto(index: number, newIndex: number): Promise<vo
   if (item === undefined) return;
   arr.splice(newIndex, 0, item);
   await writePhotoUrls(uid, arr);
+}
+
+export async function syncAvatarFromPhotos(photos: string[], setForm: Function) {
+  const first = photos.find(u => typeof u === "string" && u.trim().length > 0) ?? null;
+  const uid = getAuth().currentUser?.uid;
+  if (!uid) return;
+
+
+  setForm((prev: any) => {
+    const cur = prev?.avatarUrl ?? null;
+    if (cur === first) return prev;
+    updateDoc(doc(getFirestore(), "users", uid), { avatarUrl: first }).catch(console.error);
+    return prev ? { ...prev, avatarUrl: first } : prev;
+  });
 }

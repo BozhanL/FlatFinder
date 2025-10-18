@@ -3,6 +3,12 @@ import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
 import useUser from "@/hooks/useUser";
+import {
+  deleteUserPhoto,
+  listUserPhotos,
+  syncAvatarFromPhotos,
+  uploadUserPhoto,
+} from "@/services/avatar";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -84,7 +90,7 @@ function toDraft(uid: string, d?: UserDocData): Draft {
     ? { uri: avatarUrl }
     : {
         uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-          name || "U",
+          name || "U"
         )}`,
       };
 
@@ -130,7 +136,7 @@ function normalizeTag(s: string): string {
 function toFirestorePayload(x: Draft): FirestorePayload {
   const raw = Array.isArray(x.tags) ? x.tags : [];
   const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
-    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })
   );
 
   return {
@@ -164,7 +170,7 @@ const draftSchema = yup.object({
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
     .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
-      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false,
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
     ),
 
   dob: yup
@@ -209,8 +215,8 @@ const draftSchema = yup.object({
         .max(16, "Tag too long")
         .matches(
           /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
-          "Only letters, numbers, space",
-        ),
+          "Only letters, numbers, space"
+        )
     )
     .max(5, "Too many tags"),
 });
@@ -264,7 +270,16 @@ export default function EditProfileModal(): JSX.Element {
         }
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
         setForm(d);
-        setPhotos([d.avatarUrl || "", "", ""]);
+
+        const list = await listUserPhotos();
+        setPhotos(list);
+        if (!alive.current) return;
+        setPhotos(list);
+        setForm((prev) =>
+          prev
+            ? { ...prev, avatarUrl: list[0] ?? prev.avatarUrl ?? null }
+            : prev
+        );
       } catch (err) {
         console.error(err);
       }
@@ -276,16 +291,6 @@ export default function EditProfileModal(): JSX.Element {
       alive.current = false;
     };
   }, [uid]);
-
-  const avatarSource: ImageSourcePropType | undefined = useMemo(
-    () =>
-      form?.avatarUrl
-        ? { uri: form.avatarUrl }
-        : (form?.avatar ?? {
-            uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
-          }),
-    [form?.avatarUrl, form?.avatar],
-  );
 
   async function onSave(): Promise<void> {
     if (!uid || !form) {
@@ -317,7 +322,7 @@ export default function EditProfileModal(): JSX.Element {
               ? dateStringToTimestamp(form.dob)
               : (form.dob ?? null),
         }),
-        { merge: true },
+        { merge: true }
       );
 
       Alert.alert("Saved", "Your profile has been updated.");
@@ -404,149 +409,349 @@ export default function EditProfileModal(): JSX.Element {
             contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           >
             <View>
-              {/* Photos */}
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: "700" }}>
-                  Photos{" "}
-                  <Text style={{ fontSize: 12, color: "#777" }}>
-                    (Maximum of 3)
-                  </Text>
+              <Text style={styles.sectionTitle}>
+                Photos{" "}
+                <Text style={{ fontSize: 12, color: "#777" }}>
+                  (Maximum of 3)
                 </Text>
-                {/* TODO: actual avatar upload */}
-                <View
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 16,
+                  marginTop: 10,
+                  paddingHorizontal: 16,
+                }}
+              >
+                {/* left side: 1st photo display larger */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={async () => {
+                    try {
+                      const url = await uploadUserPhoto();
+                      if (url) {
+                        const list = await listUserPhotos();
+                        setPhotos(list);
+                        await syncAvatarFromPhotos(list, setForm);
+                      }
+                    } catch (e) {
+                      Alert.alert(
+                        "upload failed",
+                        String((e as Error).message ?? e)
+                      );
+                    }
+                  }}
+                  onLongPress={async () => {
+                    if (!photos[0]) return;
+                    Alert.alert(
+                      "Confirm delete",
+                      "Are you sure you want to delete this photo?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: async () => {
+                            try {
+                              setPhotos((prev) =>
+                                prev.filter((_, i) => i !== 0)
+                              );
+
+                              const next = await deleteUserPhoto(0);
+
+                              setForm((prev) =>
+                                prev
+                                  ? { ...prev, avatarUrl: next[0] ?? null }
+                                  : prev
+                              );
+                            } catch (e) {
+                              Alert.alert(
+                                "Delete failed",
+                                String((e as Error)?.message ?? e)
+                              );
+
+                              setPhotos(await listUserPhotos());
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }}
                   style={{
-                    flexDirection: "row",
+                    width: 210,
+                    height: 230,
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    backgroundColor: "#F0F0F0",
                     alignItems: "center",
-                    gap: 16,
-                    marginTop: 12,
+                    justifyContent: "center",
                   }}
                 >
-                  <TouchableOpacity activeOpacity={0.8}>
-                    <Image source={avatarSource} style={styles.bigAvatar} />
-                  </TouchableOpacity>
+                  {photos[0] ? (
+                    <Image
+                      source={{ uri: photos[0] }}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="plus"
+                      size={30}
+                      color="#777"
+                    />
+                  )}
+                </TouchableOpacity>
 
-                  <View style={{ gap: 12 }}>
-                    <View style={{ flexDirection: "row", gap: 12 }}>
-                      <CircleThumb
-                        uri={photos[1] ?? ""}
-                        onPress={() => void 0}
+                {/* right side photos */}
+                <View style={{ gap: 12 }}>
+                  {/* 2nd at right top */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={async () => {
+                      try {
+                        const url = await uploadUserPhoto();
+                        if (url) {
+                          const list = await listUserPhotos();
+                          setPhotos(list);
+                          await syncAvatarFromPhotos(list, setForm);
+                        }
+                      } catch (e) {
+                        Alert.alert(
+                          "upload failed",
+                          String((e as Error).message ?? e)
+                        );
+                      }
+                    }}
+                    onLongPress={async () => {
+                      if (!photos[1]) return;
+                      Alert.alert(
+                        "Confirm delete",
+                        "Are you sure you want to delete this photo?",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Delete",
+                            style: "destructive",
+                            onPress: async () => {
+                              try {
+                                setPhotos((prev) =>
+                                  prev.filter((_, i) => i !== 0)
+                                );
+
+                                const next = await deleteUserPhoto(1);
+
+                                setForm((prev) =>
+                                  prev
+                                    ? { ...prev, avatarUrl: next[0] ?? null }
+                                    : prev
+                                );
+                              } catch (e) {
+                                Alert.alert(
+                                  "Delete failed",
+                                  String((e as Error)?.message ?? e)
+                                );
+
+                                setPhotos(await listUserPhotos());
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      backgroundColor: "#F0F0F0",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {photos[1] ? (
+                      <Image
+                        source={{ uri: photos[1] }}
+                        style={{ width: "100%", height: "100%" }}
                       />
-                      <CircleThumb
-                        uri={photos[2] ?? ""}
-                        onPress={() => void 0}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      style={styles.addCircle}
-                      onPress={() => void 0}
-                      activeOpacity={0.8}
-                    >
+                    ) : (
                       <MaterialCommunityIcons
                         name="plus"
-                        size={22}
-                        color="#555"
+                        size={24}
+                        color="#777"
                       />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-
-              {/* About me */}
-              <View style={{ marginTop: 20, paddingBottom: 100 }}>
-                <Text style={styles.sectionTitle}>About me</Text>
-
-                {/* Username */}
-                <FieldInput
-                  label="Username"
-                  value={form.name ?? ""}
-                  placeholder="yourname"
-                  onChangeText={(t) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, name: t.trim() } : prev,
-                    );
-                  }}
-                />
-                {/* Date of Birth */}
-                <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "700",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Date of Birth
-                  </Text>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      setDobPickerOpen(true);
-                    }}
-                    activeOpacity={0.8}
-                    style={styles.input}
-                  >
-                    <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                      {dobDisplay || "DD-MM-YYYY"}
-                    </Text>
+                    )}
                   </TouchableOpacity>
 
-                  <DateTimePickerModal
-                    isVisible={dobPickerOpen}
-                    mode="date"
-                    date={dobInitialDate}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1900, 0, 1)}
-                    onConfirm={(date) => {
-                      const str = formatDDMMYYYY(date);
-                      setForm((prev) => (prev ? { ...prev, dob: str } : prev));
-                      setDobPickerOpen(false);
+                  {/* 3rd at right bottom */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={async () => {
+                      try {
+                        const url = await uploadUserPhoto();
+                        if (url) {
+                          const list = await listUserPhotos();
+                          setPhotos(list);
+                          await syncAvatarFromPhotos(list, setForm);
+                        }
+                      } catch (e) {
+                        Alert.alert(
+                          "upload failed",
+                          String((e as Error).message ?? e)
+                        );
+                      }
                     }}
-                    onCancel={() => {
-                      setDobPickerOpen(false);
+                    onLongPress={async () => {
+                      if (!photos[2]) return;
+                      Alert.alert(
+                        "Confirm delete",
+                        "Are you sure you want to delete this photo?",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Delete",
+                            style: "destructive",
+                            onPress: async () => {
+                              try {
+                                setPhotos((prev) =>
+                                  prev.filter((_, i) => i !== 0)
+                                );
+
+                                const next = await deleteUserPhoto(2);
+
+                                setForm((prev) =>
+                                  prev
+                                    ? { ...prev, avatarUrl: next[0] ?? null }
+                                    : prev
+                                );
+                              } catch (e) {
+                                Alert.alert(
+                                  "Delete failed",
+                                  String((e as Error)?.message ?? e)
+                                );
+
+                                setPhotos(await listUserPhotos());
+                              }
+                            },
+                          },
+                        ]
+                      );
                     }}
-                  />
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      backgroundColor: "#F0F0F0",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {photos[2] ? (
+                      <Image
+                        source={{ uri: photos[2] }}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={24}
+                        color="#777"
+                      />
+                    )}
+                  </TouchableOpacity>
                 </View>
-
-                {/* Budget */}
-                <BudgetField
-                  value={form.budget ?? null}
-                  onChange={(n) => {
-                    setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+              </View>
+              {/* Form fields */}
+              {/* Username */}
+              <FieldInput
+                label="Username"
+                value={form.name ?? ""}
+                placeholder="yourname"
+                onChangeText={(t) => {
+                  setForm((prev) =>
+                    prev ? { ...prev, name: t.trim() } : prev
+                  );
+                }}
+              />
+              {/* Date of Birth */}
+              <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    marginBottom: 8,
                   }}
-                  min={50}
-                  max={2000}
-                  step={10}
-                />
+                >
+                  Date of Birth
+                </Text>
 
-                {/* Preferred Location */}
-                <NZLocationPickerField
-                  value={form.location ?? ""}
-                  onChange={(loc) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, location: loc } : prev,
-                    );
+                <TouchableOpacity
+                  onPress={() => {
+                    setDobPickerOpen(true);
                   }}
-                />
+                  activeOpacity={0.8}
+                  style={styles.input}
+                >
+                  <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                    {dobDisplay || "DD-MM-YYYY"}
+                  </Text>
+                </TouchableOpacity>
 
-                {/* Tag */}
-                <TagInputField
-                  value={form.tags ?? []}
-                  onChange={(tags) => {
-                    setForm((prev) => (prev ? { ...prev, tags } : prev));
+                <DateTimePickerModal
+                  isVisible={dobPickerOpen}
+                  mode="date"
+                  date={dobInitialDate}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  onConfirm={(date) => {
+                    const str = formatDDMMYYYY(date);
+                    setForm((prev) => (prev ? { ...prev, dob: str } : prev));
+                    setDobPickerOpen(false);
                   }}
-                />
-
-                {/* Bio */}
-                <FieldInput
-                  label="Bio"
-                  placeholder="Tell the world about YOU.."
-                  value={form.bio ?? ""}
-                  onChangeText={(t) => {
-                    setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                  onCancel={() => {
+                    setDobPickerOpen(false);
                   }}
-                  multiline
                 />
               </View>
+
+              {/* Budget */}
+              <BudgetField
+                value={form.budget ?? null}
+                onChange={(n) => {
+                  setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                }}
+                min={50}
+                max={2000}
+                step={10}
+              />
+
+              {/* Preferred Location */}
+              <NZLocationPickerField
+                value={form.location ?? ""}
+                onChange={(loc) => {
+                  setForm((prev) => (prev ? { ...prev, location: loc } : prev));
+                }}
+              />
+
+              {/* Tag */}
+              <TagInputField
+                value={form.tags ?? []}
+                onChange={(tags) => {
+                  setForm((prev) => (prev ? { ...prev, tags } : prev));
+                }}
+              />
+
+              {/* Bio */}
+              <FieldInput
+                label="Bio"
+                placeholder="Tell the world about YOU.."
+                value={form.bio ?? ""}
+                onChangeText={(t) => {
+                  setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                }}
+                multiline
+              />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -578,6 +783,7 @@ export default function EditProfileModal(): JSX.Element {
                     } as ImageSourcePropType),
                   avatarUrl: null,
                 }),
+            photoUrls: photos,
           }}
         />
       )}
@@ -605,29 +811,6 @@ function TabButton({
       </Text>
       <View
         style={[styles.tabUnderline, active && { backgroundColor: "#6B46FF" }]}
-      />
-    </TouchableOpacity>
-  );
-}
-
-function CircleThumb({
-  uri,
-  onPress,
-}: {
-  uri?: string;
-  onPress: () => void;
-}): JSX.Element {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Image
-        source={
-          uri
-            ? { uri }
-            : {
-                uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=+",
-              }
-        }
-        style={styles.smallAvatar}
       />
     </TouchableOpacity>
   );

@@ -7,7 +7,15 @@ import {
 } from "@react-native-firebase/firestore";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SwiperFlatList } from "react-native-swiper-flatlist";
 
 type PreviewData = {
   id: string;
@@ -19,6 +27,7 @@ type PreviewData = {
   tags?: string[];
   avatar?: ImageSourcePropType;
   avatarUrl?: string | null;
+  photoUrls?: string[];
 };
 
 type Props =
@@ -33,6 +42,7 @@ type UserDoc = {
   location?: string;
   tags?: unknown;
   avatarUrl?: string | null;
+  photoUrls?: string[];
 };
 
 function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
@@ -46,12 +56,15 @@ function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
     ...(Array.isArray(d?.tags) && d.tags.length
       ? { tags: d.tags as string[] }
       : {}),
+    ...(Array.isArray(d?.photoUrls) && d.photoUrls.length
+      ? { photoUrls: (d.photoUrls as string[]).filter(Boolean) }
+      : {}),
     ...(d?.avatarUrl
       ? { avatar: { uri: d.avatarUrl }, avatarUrl: d.avatarUrl }
       : {
           avatar: {
             uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-              d?.name ?? "U",
+              d?.name ?? "U"
             )}`,
           },
           avatarUrl: null,
@@ -74,13 +87,24 @@ function formatNZD(n?: number): string {
 
 export default function ProfilePreview(props: Props): JSX.Element {
   const [live, setLive] = useState<PreviewData | null>(
-    props.source === "data" ? props.data : null,
+    props.source === "data" ? props.data : null
   );
 
   const avatarSource: ImageSourcePropType | undefined = useMemo(
     () =>
       live?.avatarUrl ? { uri: live.avatarUrl } : (live?.avatar ?? undefined),
-    [live?.avatarUrl, live?.avatar],
+    [live?.avatarUrl, live?.avatar]
+  );
+
+  const pics =
+    live?.photoUrls && live?.photoUrls.length
+      ? live?.photoUrls
+      : live?.avatarUrl
+        ? [live?.avatarUrl]
+        : [];
+
+  const data = (pics.length ? pics : [(avatarSource as any)?.uri]).filter(
+    Boolean
   );
 
   const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
@@ -97,7 +121,7 @@ export default function ProfilePreview(props: Props): JSX.Element {
       },
       (err) => {
         console.error("ProfilePreview onSnapshot error:", err);
-      },
+      }
     );
     return unsub;
   }, [props]);
@@ -112,31 +136,63 @@ export default function ProfilePreview(props: Props): JSX.Element {
 
   const tags = (live.tags ?? []).slice(0, 5);
   const extra = Math.max(0, (live.tags?.length ?? 0) - tags.length);
+  const size = Math.min(Dimensions.get("window").width - 32, 320);
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
       <View style={{ alignItems: "center", marginTop: 4 }}>
-        <View style={styles.avatarWrap}>
-          {!!avatarSource && (
-            <Image source={avatarSource} style={styles.avatar} />
-          )}
-          {Number.isFinite(age ?? NaN) && (
+        {/* Avatar Section */}
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: 12,
+            overflow: "hidden",
+            backgroundColor: "#eee",
+          }}
+        >
+          <SwiperFlatList
+            data={data}
+            showPagination
+            paginationActiveColor="#333"
+            paginationDefaultColor="#ccc"
+            nestedScrollEnabled
+            autoplay={false}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item as string }}
+                style={{ width: size, height: size }}
+                resizeMode="cover"
+              />
+            )}
+            style={{ width: size, height: size }}
+          />
+        </View>
+        {/* Name Section */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 12,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "800",
+              color: "#111",
+            }}
+          >
+            {live.name || "Unnamed"}
+          </Text>
+
+          {!!age && (
             <View style={styles.ageBadge}>
               <Text style={styles.ageTxt}>{age}</Text>
             </View>
           )}
         </View>
-
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: "800",
-            marginTop: 12,
-            color: "#111",
-          }}
-        >
-          {live.name || "Unnamed"}
-        </Text>
 
         {!!live.bio && (
           <Text
@@ -220,28 +276,14 @@ function Divider(): JSX.Element {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  avatarWrap: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 1,
-    borderColor: "#EAEAEA",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   ageBadge: {
-    position: "absolute",
-    right: -2,
-    bottom: -2,
+    marginLeft: 6,
     backgroundColor: "#111",
-    borderRadius: 12,
+    borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   ageTxt: { color: "#fff", fontSize: 12, fontWeight: "800" },
   card: {
