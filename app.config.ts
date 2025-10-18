@@ -34,6 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "@react-native-firebase/app",
     "@react-native-firebase/auth",
     "@maplibre/maplibre-react-native",
+    "@react-native-google-signin/google-signin",
     [
       "expo-splash-screen",
       {
@@ -109,6 +110,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       appId: "1:245824951682:web:793a4dda12802980ba6b9b",
       measurementId: "G-5XEP9G2HN9",
     },
+    googleWebClientId:
+      "245824951682-5f4jdid4ri95nl1qjh9qivkkbga2nem3.apps.googleusercontent.com",
   },
   experiments: {
     typedRoutes: true,
