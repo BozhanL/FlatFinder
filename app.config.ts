@@ -34,6 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "@react-native-firebase/app",
     "@react-native-firebase/auth",
     "@maplibre/maplibre-react-native",
+    "@react-native-google-signin/google-signin",
     [
       "expo-splash-screen",
       {
