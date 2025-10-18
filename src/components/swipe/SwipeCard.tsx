@@ -8,10 +8,21 @@ type Props = { item: Flatmate; onPress: () => void };
 
 export default function SwipeCard({ item, onPress }: Props): JSX.Element {
   const age = useMemo(() => calculateAge(item.dob), [item.dob]);
-  const avatarSrc = item.avatar ?? {
-    uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
-  };
+  const avatarSrc = useMemo(() => {
+    const mainPhoto =
+      Array.isArray(item.photoUrls) && item.photoUrls.length > 0
+        ? item.photoUrls[0]
+        : item.avatarUrl;
 
+    if (mainPhoto && typeof mainPhoto === "string" && mainPhoto.trim() !== "") {
+      return { uri: mainPhoto };
+    }
+
+    return {
+      uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=" +
+        encodeURIComponent(item.name ?? "U"),
+    };
+  }, [item.photoUrls, item.avatarUrl, item.name]);
   return (
     <Pressable onPress={onPress} testID={`swipe-card-${item.id}`}>
       <View
