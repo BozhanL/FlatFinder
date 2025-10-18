@@ -13,6 +13,7 @@ export type FormData = {
   bedrooms: string;
   bathrooms: string;
   minContractLength: string;
+  imageUrl?: string;
 };
 
 export type FormErrors = Record<string, string>;
