@@ -90,7 +90,7 @@ function toDraft(uid: string, d?: UserDocData): Draft {
     ? { uri: avatarUrl }
     : {
         uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-          name || "U"
+          name || "U",
         )}`,
       };
 
@@ -136,7 +136,7 @@ function normalizeTag(s: string): string {
 function toFirestorePayload(x: Draft): FirestorePayload {
   const raw = Array.isArray(x.tags) ? x.tags : [];
   const tags = Array.from(new Set(raw.map(normalizeTag).filter(Boolean))).sort(
-    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
 
   return {
@@ -170,7 +170,7 @@ const draftSchema = yup.object({
     .required("Username cannot be empty")
     .matches(usernameRegex, "3-20 characters, letters/numbers/._ only")
     .test("no-edge-dot-underscore", "Cannot start or end with . or _", (v) =>
-      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false
+      v ? !/^[._]/.test(v) && !/[._]$/.test(v) : false,
     ),
 
   dob: yup
@@ -215,8 +215,8 @@ const draftSchema = yup.object({
         .max(16, "Tag too long")
         .matches(
           /^[a-z0-9](?:[a-z0-9 ]*[a-z0-9])?$/i,
-          "Only letters, numbers, space"
-        )
+          "Only letters, numbers, space",
+        ),
     )
     .max(5, "Too many tags"),
 });
@@ -245,6 +245,74 @@ export default function EditProfileModal(): JSX.Element {
     return "";
   }, [form?.dob]);
 
+  const showError = (title: string, e: unknown): void => {
+    const msg = e instanceof Error ? e.message : String(e);
+    Alert.alert(title, msg);
+  };
+
+  const handleUpload = (
+    setPhotos: React.Dispatch<React.SetStateAction<string[]>>,
+    setForm: React.Dispatch<React.SetStateAction<Draft | null>>,
+  ): void => {
+    void (async (): Promise<void> => {
+      try {
+        const url = await uploadUserPhoto();
+        if (!url) {
+          return;
+        }
+        const list = await listUserPhotos();
+        setPhotos(list);
+        await syncAvatarFromPhotos(list, setForm);
+      } catch (e) {
+        showError("upload failed", e);
+      }
+    })();
+  };
+
+  const confirmDelete = (
+    index: number,
+    photos: string[],
+    setPhotos: React.Dispatch<React.SetStateAction<string[]>>,
+    setForm: React.Dispatch<React.SetStateAction<Draft | null>>,
+  ): void => {
+    if (!photos[index]) {
+      return;
+    }
+
+    Alert.alert(
+      "Confirm delete",
+      "Are you sure you want to delete this photo?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: (): void => {
+            void (async (): Promise<void> => {
+              try {
+                setPhotos((prev) => prev.filter((_, i) => i !== index));
+
+                const next = await deleteUserPhoto(index);
+
+                setForm((prev) =>
+                  prev ? { ...prev, avatarUrl: next[0] ?? null } : prev,
+                );
+              } catch (e) {
+                showError("Delete failed", e);
+                try {
+                  const list = await listUserPhotos();
+                  setPhotos(list);
+                } catch (inner) {
+                  showError("Reload failed", inner);
+                }
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
+
   const dobInitialDate = useMemo(() => {
     if (form?.dob instanceof Timestamp) {
       return form.dob.toDate();
@@ -260,12 +328,12 @@ export default function EditProfileModal(): JSX.Element {
       return;
     }
 
-    const alive = { current: true };
+    let alive = true;
 
     const run = async (): Promise<void> => {
       try {
         const snap = await getDoc(doc(getFirestore(), "users", uid));
-        if (!alive.current) {
+        if (!alive) {
           return;
         }
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
@@ -273,12 +341,10 @@ export default function EditProfileModal(): JSX.Element {
 
         const list = await listUserPhotos();
         setPhotos(list);
-        if (!alive.current) return;
-        setPhotos(list);
         setForm((prev) =>
           prev
             ? { ...prev, avatarUrl: list[0] ?? prev.avatarUrl ?? null }
-            : prev
+            : prev,
         );
       } catch (err) {
         console.error(err);
@@ -288,7 +354,7 @@ export default function EditProfileModal(): JSX.Element {
     void run();
 
     return (): void => {
-      alive.current = false;
+      alive = false;
     };
   }, [uid]);
 
@@ -322,7 +388,7 @@ export default function EditProfileModal(): JSX.Element {
               ? dateStringToTimestamp(form.dob)
               : (form.dob ?? null),
         }),
-        { merge: true }
+        { merge: true },
       );
 
       Alert.alert("Saved", "Your profile has been updated.");
@@ -428,56 +494,14 @@ export default function EditProfileModal(): JSX.Element {
                 {/* left side: 1st photo display larger */}
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={async () => {
-                    try {
-                      const url = await uploadUserPhoto();
-                      if (url) {
-                        const list = await listUserPhotos();
-                        setPhotos(list);
-                        await syncAvatarFromPhotos(list, setForm);
-                      }
-                    } catch (e) {
-                      Alert.alert(
-                        "upload failed",
-                        String((e as Error).message ?? e)
-                      );
+                  onPress={(): void => {
+                    if (photos[0]) {
+                      return;
                     }
+                    handleUpload(setPhotos, setForm);
                   }}
-                  onLongPress={async () => {
-                    if (!photos[0]) return;
-                    Alert.alert(
-                      "Confirm delete",
-                      "Are you sure you want to delete this photo?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Delete",
-                          style: "destructive",
-                          onPress: async () => {
-                            try {
-                              setPhotos((prev) =>
-                                prev.filter((_, i) => i !== 0)
-                              );
-
-                              const next = await deleteUserPhoto(0);
-
-                              setForm((prev) =>
-                                prev
-                                  ? { ...prev, avatarUrl: next[0] ?? null }
-                                  : prev
-                              );
-                            } catch (e) {
-                              Alert.alert(
-                                "Delete failed",
-                                String((e as Error)?.message ?? e)
-                              );
-
-                              setPhotos(await listUserPhotos());
-                            }
-                          },
-                        },
-                      ]
-                    );
+                  onLongPress={(): void => {
+                    confirmDelete(0, photos, setPhotos, setForm);
                   }}
                   style={{
                     width: 210,
@@ -508,61 +532,19 @@ export default function EditProfileModal(): JSX.Element {
                   {/* 2nd at right top */}
                   <TouchableOpacity
                     activeOpacity={0.85}
-                    onPress={async () => {
-                      try {
-                        const url = await uploadUserPhoto();
-                        if (url) {
-                          const list = await listUserPhotos();
-                          setPhotos(list);
-                          await syncAvatarFromPhotos(list, setForm);
-                        }
-                      } catch (e) {
-                        Alert.alert(
-                          "upload failed",
-                          String((e as Error).message ?? e)
-                        );
+                    onPress={(): void => {
+                      if (photos[1]) {
+                        return;
                       }
+                      handleUpload(setPhotos, setForm);
                     }}
-                    onLongPress={async () => {
-                      if (!photos[1]) return;
-                      Alert.alert(
-                        "Confirm delete",
-                        "Are you sure you want to delete this photo?",
-                        [
-                          { text: "Cancel", style: "cancel" },
-                          {
-                            text: "Delete",
-                            style: "destructive",
-                            onPress: async () => {
-                              try {
-                                setPhotos((prev) =>
-                                  prev.filter((_, i) => i !== 0)
-                                );
-
-                                const next = await deleteUserPhoto(1);
-
-                                setForm((prev) =>
-                                  prev
-                                    ? { ...prev, avatarUrl: next[0] ?? null }
-                                    : prev
-                                );
-                              } catch (e) {
-                                Alert.alert(
-                                  "Delete failed",
-                                  String((e as Error)?.message ?? e)
-                                );
-
-                                setPhotos(await listUserPhotos());
-                              }
-                            },
-                          },
-                        ]
-                      );
+                    onLongPress={(): void => {
+                      confirmDelete(1, photos, setPhotos, setForm);
                     }}
                     style={{
                       width: 110,
                       height: 110,
-                      borderRadius: 10,
+                      borderRadius: 14,
                       overflow: "hidden",
                       backgroundColor: "#F0F0F0",
                       alignItems: "center",
@@ -577,7 +559,7 @@ export default function EditProfileModal(): JSX.Element {
                     ) : (
                       <MaterialCommunityIcons
                         name="plus"
-                        size={24}
+                        size={30}
                         color="#777"
                       />
                     )}
@@ -586,61 +568,19 @@ export default function EditProfileModal(): JSX.Element {
                   {/* 3rd at right bottom */}
                   <TouchableOpacity
                     activeOpacity={0.85}
-                    onPress={async () => {
-                      try {
-                        const url = await uploadUserPhoto();
-                        if (url) {
-                          const list = await listUserPhotos();
-                          setPhotos(list);
-                          await syncAvatarFromPhotos(list, setForm);
-                        }
-                      } catch (e) {
-                        Alert.alert(
-                          "upload failed",
-                          String((e as Error).message ?? e)
-                        );
+                    onPress={(): void => {
+                      if (photos[2]) {
+                        return;
                       }
+                      handleUpload(setPhotos, setForm);
                     }}
-                    onLongPress={async () => {
-                      if (!photos[2]) return;
-                      Alert.alert(
-                        "Confirm delete",
-                        "Are you sure you want to delete this photo?",
-                        [
-                          { text: "Cancel", style: "cancel" },
-                          {
-                            text: "Delete",
-                            style: "destructive",
-                            onPress: async () => {
-                              try {
-                                setPhotos((prev) =>
-                                  prev.filter((_, i) => i !== 0)
-                                );
-
-                                const next = await deleteUserPhoto(2);
-
-                                setForm((prev) =>
-                                  prev
-                                    ? { ...prev, avatarUrl: next[0] ?? null }
-                                    : prev
-                                );
-                              } catch (e) {
-                                Alert.alert(
-                                  "Delete failed",
-                                  String((e as Error)?.message ?? e)
-                                );
-
-                                setPhotos(await listUserPhotos());
-                              }
-                            },
-                          },
-                        ]
-                      );
+                    onLongPress={(): void => {
+                      confirmDelete(2, photos, setPhotos, setForm);
                     }}
                     style={{
                       width: 110,
                       height: 110,
-                      borderRadius: 10,
+                      borderRadius: 14,
                       overflow: "hidden",
                       backgroundColor: "#F0F0F0",
                       alignItems: "center",
@@ -655,7 +595,7 @@ export default function EditProfileModal(): JSX.Element {
                     ) : (
                       <MaterialCommunityIcons
                         name="plus"
-                        size={24}
+                        size={30}
                         color="#777"
                       />
                     )}
@@ -670,7 +610,7 @@ export default function EditProfileModal(): JSX.Element {
                 placeholder="yourname"
                 onChangeText={(t) => {
                   setForm((prev) =>
-                    prev ? { ...prev, name: t.trim() } : prev
+                    prev ? { ...prev, name: t.trim() } : prev,
                   );
                 }}
               />

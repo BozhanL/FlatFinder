@@ -19,8 +19,9 @@ export default function SwipeCard({ item, onPress }: Props): JSX.Element {
     }
 
     return {
-      uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=" +
-        encodeURIComponent(item.name ?? "U"),
+      uri:
+        "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=" +
+        encodeURIComponent(item.name),
     };
   }, [item.photoUrls, item.avatarUrl, item.name]);
   return (

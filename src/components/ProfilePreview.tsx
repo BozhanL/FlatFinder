@@ -57,14 +57,14 @@ function mapDocToPreview(uid: string, d: UserDoc | undefined): PreviewData {
       ? { tags: d.tags as string[] }
       : {}),
     ...(Array.isArray(d?.photoUrls) && d.photoUrls.length
-      ? { photoUrls: (d.photoUrls as string[]).filter(Boolean) }
+      ? { photoUrls: d.photoUrls.filter(Boolean) }
       : {}),
     ...(d?.avatarUrl
       ? { avatar: { uri: d.avatarUrl }, avatarUrl: d.avatarUrl }
       : {
           avatar: {
             uri: `https://ui-avatars.com/api/?background=EAEAEA&color=111&name=${encodeURIComponent(
-              d?.name ?? "U"
+              d?.name ?? "U",
             )}`,
           },
           avatarUrl: null,
@@ -87,25 +87,30 @@ function formatNZD(n?: number): string {
 
 export default function ProfilePreview(props: Props): JSX.Element {
   const [live, setLive] = useState<PreviewData | null>(
-    props.source === "data" ? props.data : null
+    props.source === "data" ? props.data : null,
   );
 
   const avatarSource: ImageSourcePropType | undefined = useMemo(
     () =>
       live?.avatarUrl ? { uri: live.avatarUrl } : (live?.avatar ?? undefined),
-    [live?.avatarUrl, live?.avatar]
+    [live?.avatarUrl, live?.avatar],
   );
 
-  const pics =
-    live?.photoUrls && live?.photoUrls.length
-      ? live?.photoUrls
-      : live?.avatarUrl
-        ? [live?.avatarUrl]
-        : [];
+  const pics = live
+    ? live.photoUrls?.length
+      ? live.photoUrls
+      : live.avatarUrl
+        ? [live.avatarUrl]
+        : []
+    : [];
 
-  const data = (pics.length ? pics : [(avatarSource as any)?.uri]).filter(
-    Boolean
-  );
+  const resolved = avatarSource
+    ? Image.resolveAssetSource(avatarSource)
+    : undefined;
+
+  const avatarUri = resolved?.uri;
+
+  const data = (pics.length ? pics : [avatarUri]).filter(Boolean) as string[];
 
   const age = useMemo(() => calculateAge(live?.dob), [live?.dob]);
 
@@ -121,7 +126,7 @@ export default function ProfilePreview(props: Props): JSX.Element {
       },
       (err) => {
         console.error("ProfilePreview onSnapshot error:", err);
-      }
+      },
     );
     return unsub;
   }, [props]);

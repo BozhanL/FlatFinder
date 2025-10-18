@@ -10,6 +10,7 @@ import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import mime from "mime";
+import type { Dispatch, SetStateAction } from "react";
 
 type PhotoUrls = string[];
 
@@ -17,14 +18,14 @@ type PhotoUrls = string[];
 async function readPhotoUrls(uid: string): Promise<PhotoUrls> {
   const snap = await getDoc(doc(getFirestore(), "users", uid));
   const data = snap.data() as { photoUrls?: unknown } | undefined;
-  return Array.isArray(data?.photoUrls) ? (data!.photoUrls as string[]) : [];
+  return Array.isArray(data?.photoUrls) ? (data.photoUrls as string[]) : [];
 }
 
-async function writePhotoUrls(uid: string, urls: PhotoUrls) {
+async function writePhotoUrls(uid: string, urls: PhotoUrls): Promise<void> {
   await updateDoc(doc(getFirestore(), "users", uid), { photoUrls: urls });
 }
 
-function toPublicUrl(path: string, w = 1024, h = 1024) {
+function toPublicUrl(path: string, w = 1024, h = 1024): string {
   const { data } = supabase.storage.from("avatar").getPublicUrl(path);
   return `${data.publicUrl}?width=${w}&height=${h}&resize=cover&quality=80&v=${Date.now()}`;
 }
@@ -33,7 +34,9 @@ function storagePathFromPublicUrl(publicUrl: string): string | null {
   try {
     const marker = "/storage/v1/object/public/avatar/";
     const idx = publicUrl.indexOf(marker);
-    if (idx === -1) return null;
+    if (idx === -1) {
+      return null;
+    }
     return publicUrl.substring(idx + marker.length); // => "uid/xxx.jpg"
   } catch {
     return null;
@@ -43,20 +46,28 @@ function storagePathFromPublicUrl(publicUrl: string): string | null {
 /** list user photos */
 export async function listUserPhotos(): Promise<string[]> {
   const uid = getAuth().currentUser?.uid;
-  if (!uid) throw new Error("Unauthenticated");
+  if (!uid) {
+    throw new Error("Unauthenticated");
+  }
   return readPhotoUrls(uid);
 }
 
 /** upload a photo, append to the end of the array (error if more than 3) */
 export async function uploadUserPhoto(): Promise<string | null> {
   const uid = getAuth().currentUser?.uid;
-  if (!uid) throw new Error("Unauthenticated");
+  if (!uid) {
+    throw new Error("Unauthenticated");
+  }
 
   const urls = await readPhotoUrls(uid);
-  if (urls.length >= 3) throw new Error("No more than 3 photos allowed");
+  if (urls.length >= 3) {
+    throw new Error("No more than 3 photos allowed");
+  }
 
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== "granted") throw new Error("media library permission denied");
+  if (status !== ImagePicker.PermissionStatus.GRANTED) {
+    throw new Error("media library permission denied");
+  }
 
   const picked = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ["images"],
@@ -64,9 +75,14 @@ export async function uploadUserPhoto(): Promise<string | null> {
     aspect: [1, 1],
     quality: 0.92,
   });
-  if (picked.canceled || !picked.assets?.length) return null;
+  if (picked.canceled || !picked.assets.length) {
+    return null;
+  }
 
-  const asset = picked.assets[0]!;
+  const asset = picked.assets[0];
+  if (!asset) {
+    return null;
+  }
   const ext =
     mime.getExtension(asset.mimeType || "") ||
     asset.uri.split(".").pop() ||
@@ -77,7 +93,8 @@ export async function uploadUserPhoto(): Promise<string | null> {
 
   let readUri = asset.uri;
   if (readUri.startsWith("content://")) {
-    const tmp = FileSystem.cacheDirectory + fileName;
+    const cacheDir = FileSystem.cacheDirectory ?? "";
+    const tmp = cacheDir + fileName;
     await FileSystem.copyAsync({ from: readUri, to: tmp });
     readUri = tmp;
   }
@@ -92,7 +109,9 @@ export async function uploadUserPhoto(): Promise<string | null> {
       contentType: asset.mimeType || "image/jpeg",
       upsert: true,
     });
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const publicUrl = toPublicUrl(path);
 
@@ -112,18 +131,24 @@ export async function uploadUserPhoto(): Promise<string | null> {
 /** delete a photo by index */
 export async function deleteUserPhoto(index: number): Promise<string[]> {
   const uid = getAuth().currentUser?.uid;
-  if (!uid) throw new Error("Unauthenticated");
+  if (!uid) {
+    throw new Error("Unauthenticated");
+  }
 
   const urls = await readPhotoUrls(uid);
   const target = urls[index];
-  if (!target) return urls;
+  if (!target) {
+    return urls;
+  }
 
   const storagePath = storagePathFromPublicUrl(target);
   if (storagePath) {
     const { error } = await supabase.storage
-      .from("avatars")
+      .from("avatar")
       .remove([storagePath]);
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
   }
 
   const next = urls.filter((_, i) => i !== index);
@@ -136,22 +161,28 @@ export async function deleteUserPhoto(index: number): Promise<string[]> {
 
   return next;
 }
-
 export async function syncAvatarFromPhotos(
   photos: string[],
-  setForm: Function
-) {
+  setForm: Dispatch<SetStateAction<{ avatarUrl?: string | null } | null>>,
+): Promise<void> {
   const first =
     photos.find((u) => typeof u === "string" && u.trim().length > 0) ?? null;
   const uid = getAuth().currentUser?.uid;
-  if (!uid) return;
+  if (!uid) {
+    return;
+  }
 
-  setForm((prev: any) => {
+  setForm((prev: { avatarUrl?: string | null } | null) => {
     const cur = prev?.avatarUrl ?? null;
-    if (cur === first) return prev;
-    updateDoc(doc(getFirestore(), "users", uid), { avatarUrl: first }).catch(
-      console.error
-    );
+    if (cur === first) {
+      return prev;
+    }
     return prev ? { ...prev, avatarUrl: first } : prev;
   });
+
+  try {
+    await updateDoc(doc(getFirestore(), "users", uid), { avatarUrl: first });
+  } catch (err) {
+    console.error(err);
+  }
 }

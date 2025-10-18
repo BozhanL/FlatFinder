@@ -61,7 +61,7 @@ export default function Index(): JSX.Element {
   const user = useUser();
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
-    null
+    null,
   );
   const [isVisible, setIsVisible] = useState(false);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -86,7 +86,7 @@ export default function Index(): JSX.Element {
     (_allProps: Property[], filteredProps: Property[]) => {
       setFilteredProperties(filteredProps);
     },
-    []
+    [],
   );
 
   // Handle marker press
@@ -119,13 +119,13 @@ export default function Index(): JSX.Element {
       return (): void => {
         closePropertyTile();
       };
-    }, [])
+    }, []),
   );
 
   // Count active filters using utility function
   const activeFilterCount: number = useMemo(
     () => countActiveFilters(filters),
-    [filters]
+    [filters],
   );
 
   // Check if any filters are active using utility function
