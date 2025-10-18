@@ -6,10 +6,10 @@ import {
   getFirestore,
   updateDoc,
 } from "@react-native-firebase/firestore";
+import { decode } from "base64-arraybuffer";
+import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import mime from "mime";
-import * as FileSystem from "expo-file-system";
-import { decode } from "base64-arraybuffer";
 
 type PhotoUrls = string[];
 
@@ -120,7 +120,9 @@ export async function deleteUserPhoto(index: number): Promise<string[]> {
 
   const storagePath = storagePathFromPublicUrl(target);
   if (storagePath) {
-    const { error } = await supabase.storage.from("avatars").remove([storagePath]);
+    const { error } = await supabase.storage
+      .from("avatars")
+      .remove([storagePath]);
     if (error) throw error;
   }
 
@@ -135,34 +137,21 @@ export async function deleteUserPhoto(index: number): Promise<string[]> {
   return next;
 }
 
-export async function moveUserPhoto(
-  index: number,
-  newIndex: number
-): Promise<void> {
-  const uid = getAuth().currentUser?.uid;
-  if (!uid) throw new Error("unauthenticated");
-
-  const arr = await readPhotoUrls(uid);
-  if (index < 0 || index >= arr.length) return;
-  if (newIndex < 0) newIndex = 0;
-  if (newIndex >= arr.length) newIndex = arr.length - 1;
-
-  const [item] = arr.splice(index, 1);
-  if (item === undefined) return;
-  arr.splice(newIndex, 0, item);
-  await writePhotoUrls(uid, arr);
-}
-
-export async function syncAvatarFromPhotos(photos: string[], setForm: Function) {
-  const first = photos.find(u => typeof u === "string" && u.trim().length > 0) ?? null;
+export async function syncAvatarFromPhotos(
+  photos: string[],
+  setForm: Function
+) {
+  const first =
+    photos.find((u) => typeof u === "string" && u.trim().length > 0) ?? null;
   const uid = getAuth().currentUser?.uid;
   if (!uid) return;
-
 
   setForm((prev: any) => {
     const cur = prev?.avatarUrl ?? null;
     if (cur === first) return prev;
-    updateDoc(doc(getFirestore(), "users", uid), { avatarUrl: first }).catch(console.error);
+    updateDoc(doc(getFirestore(), "users", uid), { avatarUrl: first }).catch(
+      console.error
+    );
     return prev ? { ...prev, avatarUrl: first } : prev;
   });
 }
