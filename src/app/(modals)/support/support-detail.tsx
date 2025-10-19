@@ -17,7 +17,7 @@ import {
 import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
 
 type TicketDoc = {
-  createdAt?: { toDate?: () => Date } | null;
+  createdAt?: FirebaseFirestoreTypes.Timestamp | null;
   status?: TicketStatus;
   uid?: string | null;
   name?: string;
