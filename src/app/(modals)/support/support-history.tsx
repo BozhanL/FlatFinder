@@ -1,4 +1,7 @@
 import useUser from "@/hooks/useUser";
+import { normalizeStatus } from "@/services/normalizeStatus";
+import type { TicketDoc } from "@/types/TicketDoc";
+import { TicketStatus } from "@/types/TicketStatus";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -19,19 +22,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
-
-type Ticket = {
-  id: string;
-  createdAt?: { toDate?: () => Date } | null;
-  status?: TicketStatus;
-  title?: string;
-  message?: string;
-};
 
 export default function SupportHistory(): JSX.Element {
   const user = useUser();
-  const [items, setItems] = useState<Ticket[]>([]);
+  const [items, setItems] = useState<TicketDoc[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,7 +44,7 @@ export default function SupportHistory(): JSX.Element {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const arr: Ticket[] = snap.docs.map(
+        const arr: TicketDoc[] = snap.docs.map(
           (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
             const data = d.data() as Record<string, unknown>;
             return {
@@ -58,7 +52,7 @@ export default function SupportHistory(): JSX.Element {
               createdAt:
                 (data["createdAt"] as { toDate?: () => Date } | null) ?? null,
               status:
-                (data["status"] as TicketStatus | undefined) ?? TicketStatus.Open,
+                (data["status"] as string | undefined) ?? TicketStatus.Open,
               title: (data["title"] as string | undefined) ?? "",
               message: (data["message"] as string | undefined) ?? "",
             };
@@ -109,7 +103,7 @@ export default function SupportHistory(): JSX.Element {
         style={{ flex: 1, backgroundColor: "#fff" }}
         contentContainerStyle={{ padding: 12 }}
         data={items}
-        keyExtractor={(it) => it.id}
+        keyExtractor={(it) => it.id || ""}
         renderItem={({ item }) => (
           <TicketItem
             item={item}
@@ -135,10 +129,10 @@ function TicketItem({
   item,
   onPress,
 }: {
-  item: Ticket;
+  item: TicketDoc;
   onPress?: () => void;
 }): JSX.Element {
-  const createdDate = item.createdAt?.toDate?.();
+  const createdDate = item.createdAt?.toDate();
   const formattedDate = createdDate
     ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";

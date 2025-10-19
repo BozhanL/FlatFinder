@@ -4,7 +4,7 @@ import type { TicketStatus } from "./TicketStatus";
 export type TicketDoc = {
   createdAt?: FirebaseFirestoreTypes.Timestamp | null;
   status?: TicketStatus;
-  id?: string;
+  id?: string | null;
   name?: string;
   email?: string;
   title?: string;

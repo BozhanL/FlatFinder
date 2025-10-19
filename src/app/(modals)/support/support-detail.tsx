@@ -1,3 +1,9 @@
+import {
+  doc,
+  FirebaseFirestoreTypes,
+  getFirestore,
+  onSnapshot,
+} from "@react-native-firebase/firestore";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState, type JSX } from "react";
@@ -8,14 +14,9 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  doc,
-  getFirestore,
-  onSnapshot,
-  FirebaseFirestoreTypes,
-} from "@react-native-firebase/firestore";
-import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
+import { normalizeStatus } from "@/services/normalizeStatus";
 import type { TicketDoc } from "@/types/TicketDoc";
+
 export default function SupportDetail(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [docData, setDocData] = useState<TicketDoc | null>(null);
@@ -45,6 +46,7 @@ export default function SupportDetail(): JSX.Element {
 
   const created = docData?.createdAt?.toDate();
   const createdText = created ? dayjs(created).format("YYYY-MM-DD HH:mm") : "—";
+
   const statusStyle = normalizeStatus(docData?.status);
 
   if (loading) {
