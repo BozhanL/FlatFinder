@@ -107,7 +107,9 @@ export default function PropertyDetailsPage(): JSX.Element {
   // Gets the images on firebase, which was uploaded to supabase
   // uses a URL
   const getImageUrls = (): string[] => {
-    if (!property?.imageUrl) return [];
+    if (!property?.imageUrl) {
+      return [];
+    }
 
     if (Array.isArray(property.imageUrl)) {
       return property.imageUrl;

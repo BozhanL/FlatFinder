@@ -232,7 +232,9 @@ export default function usePropertyForm(): UsePropertyFormReturn {
       if (selectedImages.length > 0) {
         for (let i = 0; i < selectedImages.length; i++) {
           const imageUri = selectedImages[i];
-          if (!imageUri) continue;
+          if (!imageUri) {
+            continue;
+          }
 
           const imageUrl = await uploadImageToSupabase(imageUri, userId, i);
 
