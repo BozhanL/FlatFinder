@@ -67,7 +67,7 @@ export default function SupportDetail(): JSX.Element {
           options={{
             presentation: "modal",
             headerShown: true,
-            title: `Ticket`,
+            title: "Ticket Detail",
             headerShadowVisible: true,
           }}
         />
