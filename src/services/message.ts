@@ -80,6 +80,7 @@ export async function createGroup(
         lastTimestamp: serverTimestamp() as Timestamp,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
+        avatar: null,
       };
       transaction.set(groupRef, g);
       return Promise.resolve(groupRef.id);
@@ -109,10 +110,9 @@ export async function getGroup(gid: string): Promise<Group | null> {
   return data;
 }
 
-// TODO: Implement when user profile is available @G2CCC
 export async function getUserByUidAsync(uid: string): Promise<User | null> {
   const db = getFirestore();
-  const userDoc = await getDoc(doc(db, "message_test_user", uid));
+  const userDoc = await getDoc(doc(db, "users", uid));
   if (!userDoc.exists()) {
     return null;
   }
