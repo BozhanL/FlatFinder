@@ -138,7 +138,7 @@ function TicketItem({
   item: Ticket;
   onPress?: () => void;
 }): JSX.Element {
-const createdDate = item.createdAt?.toDate?.();
+  const createdDate = item.createdAt?.toDate?.();
   const formattedDate = createdDate
     ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";
