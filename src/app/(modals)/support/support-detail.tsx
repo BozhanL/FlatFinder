@@ -15,17 +15,7 @@ import {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import { TicketStatus, normalizeStatus } from "@/types/TicketStatus";
-
-type TicketDoc = {
-  createdAt?: FirebaseFirestoreTypes.Timestamp | null;
-  status?: TicketStatus;
-  uid?: string | null;
-  name?: string;
-  email?: string;
-  title?: string;
-  message?: string;
-};
-
+import type { TicketDoc } from "@/types/TicketDoc";
 export default function SupportDetail(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [docData, setDocData] = useState<TicketDoc | null>(null);
