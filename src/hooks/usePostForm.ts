@@ -52,7 +52,10 @@ export default function usePropertyForm(): UsePropertyFormReturn {
 
   const addImage = (uri: string): void => {
     if (selectedImages.length >= MAX_IMAGES) {
-      Alert.alert("Maximum Images", `You can only upload up to ${MAX_IMAGES} images.`);
+      Alert.alert(
+        "Maximum Images",
+        `You can only upload up to ${MAX_IMAGES} images.`,
+      );
       return;
     }
     setSelectedImages((prev) => [...prev, uri]);
@@ -69,11 +72,11 @@ export default function usePropertyForm(): UsePropertyFormReturn {
   ): Promise<string | null> => {
     try {
       console.log(`Starting upload ${index + 1} for:`, imageUri);
-      
+
       const response = await fetch(imageUri);
       const blob = await response.blob();
       const arrayBuffer = await new Response(blob).arrayBuffer();
-      
+
       const timestamp = Date.now();
       const filename = `${userId}/${timestamp}_${index}.jpg`;
       console.log("Uploading to:", filename);
@@ -92,9 +95,9 @@ export default function usePropertyForm(): UsePropertyFormReturn {
 
       console.log(`Upload ${index + 1} successful:`, data);
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("property-images")
-        .getPublicUrl(filename);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("property-images").getPublicUrl(filename);
 
       return publicUrl;
     } catch (error) {
@@ -230,22 +233,18 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         for (let i = 0; i < selectedImages.length; i++) {
           const imageUri = selectedImages[i];
           if (!imageUri) continue;
-          
-          const imageUrl = await uploadImageToSupabase(
-            imageUri,
-            userId,
-            i
-          );
-          
+
+          const imageUrl = await uploadImageToSupabase(imageUri, userId, i);
+
           if (!imageUrl) {
             Alert.alert(
               "Error",
-              `Failed to upload image ${i + 1}. Please try again.`
+              `Failed to upload image ${i + 1}. Please try again.`,
             );
             setIsSubmitting(false);
             return;
           }
-          
+
           imageUrls.push(imageUrl);
         }
       }

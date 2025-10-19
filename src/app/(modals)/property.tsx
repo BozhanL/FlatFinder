@@ -25,7 +25,9 @@ export default function PropertyDetailsPage(): JSX.Element {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
+  // Fetches property details from database
   useEffect(() => {
+    // Returns error if property ID is not found
     const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
         setError("Property ID not found");
@@ -67,6 +69,7 @@ export default function PropertyDetailsPage(): JSX.Element {
 
           setProperty(propertyDetails);
         }
+        // Catches error if details failed to load.
       } catch (err) {
         console.error("Error getting details:", err);
         setError("Failed to load property details");
@@ -93,19 +96,23 @@ export default function PropertyDetailsPage(): JSX.Element {
     return `${weeks} weeks`;
   };
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>): void => {
+  const handleScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ): void => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / SCREEN_WIDTH);
     setCurrentImageIndex(index);
   };
 
+  // Gets the images on firebase, which was uploaded to supabase
+  // uses a URL
   const getImageUrls = (): string[] => {
     if (!property?.imageUrl) return [];
-    
+
     if (Array.isArray(property.imageUrl)) {
       return property.imageUrl;
     }
-    
+
     return [property.imageUrl];
   };
 
@@ -140,6 +147,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     );
   }
 
+  // Displays error messages
   if (error || !property) {
     return (
       <View style={styles.container}>
@@ -159,6 +167,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     );
   }
 
+  // Gets the images
   const imageUrls = getImageUrls();
 
   return (
@@ -187,7 +196,7 @@ export default function PropertyDetailsPage(): JSX.Element {
                 scrollEventThrottle={16}
                 testID="property-image-carousel"
               />
-              
+
               {/* Image Counter */}
               {imageUrls.length > 1 && (
                 <View
@@ -201,7 +210,9 @@ export default function PropertyDetailsPage(): JSX.Element {
                     borderRadius: 16,
                   }}
                 >
-                  <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+                  <Text
+                    style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}
+                  >
                     {currentImageIndex + 1} / {imageUrls.length}
                   </Text>
                 </View>
@@ -248,6 +259,7 @@ export default function PropertyDetailsPage(): JSX.Element {
           )}
         </View>
 
+        {/* Propertey details */}
         <View style={styles.contentSection}>
           <Text style={styles.propertyTitle} testID="property-title">
             {property.title}

@@ -1,4 +1,5 @@
-// Mock useUser FIRST before any imports
+// Set mock environment variables
+// Import components after all mocks
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
   fireEvent,
@@ -8,11 +9,74 @@ import {
 } from "@testing-library/react-native";
 import { act } from "react";
 import { Alert } from "react-native";
+
+process.env["EXPO_PUBLIC_SUPABASE_URL"] = "https://mock.supabase.co";
+process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] = "mock-key";
+
+// Mock Supabase library
+jest.mock("@supabase/supabase-js", () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      insert: jest.fn(() => ({
+        select: jest.fn(() =>
+          Promise.resolve({ data: [{ id: "test-id" }], error: null }),
+        ),
+      })),
+    })),
+    storage: {
+      from: jest.fn(() => ({
+        upload: jest.fn(() =>
+          Promise.resolve({ data: { path: "test.jpg" }, error: null }),
+        ),
+        getPublicUrl: jest.fn(() => ({
+          data: { publicUrl: "https://example.com/test.jpg" },
+        })),
+      })),
+    },
+  })),
+}));
+
+// Mock expo-image-picker
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(() =>
+    Promise.resolve({
+      status: "granted",
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    }),
+  ),
+  launchImageLibraryAsync: jest.fn(() =>
+    Promise.resolve({
+      canceled: false,
+      assets: [
+        {
+          uri: "test-image-uri",
+          width: 100,
+          height: 100,
+        },
+      ],
+    }),
+  ),
+  MediaTypeOptions: {
+    Images: "Images",
+    Videos: "Videos",
+    All: "All",
+  },
+  PermissionStatus: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    UNDETERMINED: "undetermined",
+  },
+}));
+
+// Mock useUser hook
 jest.mock("@/hooks/useUser", () => ({
   __esModule: true,
   default: () => ({ uid: "test-user-123" }),
 }));
 
+// Mock Firestore
 jest.mock("@react-native-firebase/firestore", () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -27,6 +91,7 @@ jest.mock("@react-native-firebase/firestore", () => ({
   serverTimestamp: jest.fn(() => new Date()),
 }));
 
+// Mock expo-router
 jest.mock("expo-router", () => ({
   router: {
     back: jest.fn(),

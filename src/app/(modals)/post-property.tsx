@@ -43,10 +43,12 @@ export default function PostPropertyPage(): JSX.Element {
   const addressInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    (async (): Promise<void> => {
+    // Fix 1: Explicitly mark async IIFE as void to indicate intentional fire-and-forget
+    void (async (): Promise<void> => {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
+      // Fix 2: Use proper enum value for comparison
+      if (status !== ImagePicker.PermissionStatus.GRANTED) {
         console.warn("Image library permission denied");
       }
     })();
@@ -107,7 +109,8 @@ export default function PostPropertyPage(): JSX.Element {
       });
 
       if (!result.canceled) {
-        const asset = result.assets?.[0];
+        // Fix 3: Remove unnecessary optional chaining since result.assets is always defined
+        const asset = result.assets[0];
         if (asset?.uri) {
           addImage(asset.uri);
         }
@@ -143,7 +146,7 @@ export default function PostPropertyPage(): JSX.Element {
           <Text style={styles.inputLabel}>
             Property Images ({selectedImages.length}/5)
           </Text>
-          
+
           {/* Image Grid */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {selectedImages.map((uri, index) => (
@@ -162,7 +165,9 @@ export default function PostPropertyPage(): JSX.Element {
                   style={{ width: "100%", height: "100%", borderRadius: 8 }}
                 />
                 <TouchableOpacity
-                  onPress={(): void => removeImage(uri)}
+                  onPress={(): void => {
+                    removeImage(uri);
+                  }}
                   style={{
                     position: "absolute",
                     top: 8,
@@ -175,7 +180,9 @@ export default function PostPropertyPage(): JSX.Element {
                     alignItems: "center",
                   }}
                 >
-                  <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
+                  <Text
+                    style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}
+                  >
                     ×
                   </Text>
                 </TouchableOpacity>
@@ -211,7 +218,10 @@ export default function PostPropertyPage(): JSX.Element {
                   borderColor: "#ddd",
                   borderStyle: "dashed",
                 }}
-                onPress={pickImage}
+                // Fix 4: Wrap async function to ensure void return for onPress
+                onPress={(): void => {
+                  void pickImage();
+                }}
               >
                 <Text style={{ fontSize: 40, color: "#999" }}>+</Text>
                 <Text style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
@@ -228,7 +238,9 @@ export default function PostPropertyPage(): JSX.Element {
           )}
 
           {/* Property Title */}
-          <Text style={[styles.inputLabel, { marginTop: 16 }]}>Property Title *</Text>
+          <Text style={[styles.inputLabel, { marginTop: 16 }]}>
+            Property Title *
+          </Text>
           <TextInput
             style={styles.input}
             value={formData.title}
