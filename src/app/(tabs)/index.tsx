@@ -137,29 +137,6 @@ export default function Index(): JSX.Element {
     return <></>;
   }
 
-  // Check if any filters are active
-  const hasActiveFilters = (): boolean => {
-    return (
-      filters.type.length > 0 ||
-      filters.minPrice !== "" ||
-      filters.maxPrice !== "" ||
-      filters.bedrooms !== null ||
-      filters.bathrooms !== null ||
-      filters.minContract !== ""
-    );
-  };
-
-  // Count active filters
-  const getActiveFilterCount = (): number => {
-    let count = 0;
-    if (filters.type.length > 0) count++;
-    if (filters.minPrice !== "" || filters.maxPrice !== "") count++;
-    if (filters.bedrooms !== null) count++;
-    if (filters.bathrooms !== null) count++;
-    if (filters.minContract !== "") count++;
-    return count;
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Logo */}
