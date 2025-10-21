@@ -56,7 +56,7 @@ Tap to view the details in the app: ${shareableUrl}
 
       if (result.action === Share.sharedAction) {
         console.log("Property shared successfully with URL:", shareableUrl);
-      } else if (result.action === Share.dismissedAction) {
+      } else if (Share.dismissedAction) {
         console.log("Share dialog dismissed.");
       }
     } catch (error) {
@@ -181,7 +181,11 @@ Tap to view the details in the app: ${shareableUrl}
           title: property.title,
           presentation: "modal",
           headerRight: () => (
-            <TouchableOpacity onPress={handleShare} testID="share-button">
+            <TouchableOpacity
+              onPress={() => void handleShare()}
+              testID="share-button"
+            >
+              {/* The fix is applying the wrapper: () => void handleShare() */}
               <Ionicons name="share-social-outline" size={24} color="#2563eb" />
             </TouchableOpacity>
           ),
