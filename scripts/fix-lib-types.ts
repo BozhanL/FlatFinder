@@ -35,6 +35,11 @@ const PROBLEMATIC_PACKAGES: PackageConfig[] = [
     sourceDir: "src",
     problemPaths: ["SafeAreaContext.tsx"],
   },
+  {
+    name: "react-native-swiper-flatlist",
+    sourceDir: "src",
+    problemPaths: ["SwiperFlatList.tsx"],
+  },
 ];
 
 async function addTsNoCheck() {
