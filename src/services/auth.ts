@@ -136,17 +136,6 @@ export async function handleGoogleSignIn(): Promise<string | null> {
     return "Google Play Services are not available or outdated. Please update to continue.";
   }
 
-<<<<<<< HEAD
-    let idToken: string | null = null;
-
-    // 3. Robust Token Extraction (using optional chaining and casting to handle type inconsistencies)
-    // Check root (common on iOS/older versions)
-    idToken = signInResult.idToken;
-
-    // Check nested under user (common on newer Android)
-    if (!idToken) {
-      idToken = signInResult.user?.idToken
-=======
   let signInResult: SignInSuccessResponse;
   try {
     // 2. Start the Google Sign-In process (opens native prompt)
@@ -176,7 +165,6 @@ export async function handleGoogleSignIn(): Promise<string | null> {
           errorMessage = e.message || errorMessage;
           break;
       }
->>>>>>> origin/main
     }
 
     return errorMessage;
