@@ -118,7 +118,7 @@ export const handleGoogleSignIn = async (): Promise<string> => {
 
     // Check nested under user (common on newer Android)
     if (!idToken) {
-      idToken = signInResult.user?.idToken;
+      idToken = signInResult.user?.idToken
     }
 
     // Check nested under data (if needed, as per your original code)
