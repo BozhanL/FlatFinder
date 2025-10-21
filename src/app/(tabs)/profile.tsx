@@ -158,7 +158,9 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="email-outline"
             title="Support"
-            onPress={() => undefined}
+            onPress={() => {
+              router.push("/support/support");
+            }}
           />
           <MenuItem
             icon="block-helper"
