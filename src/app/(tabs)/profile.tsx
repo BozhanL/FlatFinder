@@ -1,6 +1,6 @@
 import HeaderLogo from "@/components/HeaderLogo";
 import useUser from "@/hooks/useUser";
-import { logout } from "@/services/logout";
+import { logout } from "@/services/auth";
 import type { Flatmate } from "@/types/Flatmate";
 import { calculateAge } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -161,7 +161,7 @@ export default function Profile(): JSX.Element {
             icon="email-outline"
             title="Support"
             onPress={() => {
-              router.push("/(modals)/support/support");
+              router.push("/support/support");
             }}
           />
           <MenuItem

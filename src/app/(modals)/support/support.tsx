@@ -1,5 +1,5 @@
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
+import useUser from "@/hooks/useUser";
+import { TicketStatus } from "@/types/TicketStatus";
 import {
   addDoc,
   collection,
@@ -7,7 +7,7 @@ import {
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { Stack, router } from "expo-router";
-import React, { useMemo, useState, type JSX } from "react";
+import React, { useEffect, useMemo, useState, type JSX } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -20,19 +20,21 @@ import {
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 export default function SupportModal(): JSX.Element {
-  const user = auth.currentUser;
+  const user = useUser();
 
-  const [name, setName] = useState<string>(user?.displayName ?? "");
-  const [email, setEmail] = useState<string>(user?.email ?? "");
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [message, setMessage] = useState<string>("");
 
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email ?? "");
+    }
+  }, [user]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -50,9 +52,9 @@ export default function SupportModal(): JSX.Element {
     }
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "support_tickets"), {
+      await addDoc(collection(getFirestore(), "support_tickets"), {
         createdAt: serverTimestamp(),
-        status: "open",
+        status: TicketStatus.Open,
         uid: user?.uid ?? null,
         name: name.trim(),
         email: email.trim(),
@@ -60,8 +62,25 @@ export default function SupportModal(): JSX.Element {
         message: message.trim(),
       });
 
-      Alert.alert("Your support request has been submitted.");
-      router.back();
+      Alert.alert(
+        "Ticket Submitted",
+        "Your ticket has been created successfully.",
+        [
+          {
+            text: "Close",
+            style: "cancel",
+            onPress: (): void => {
+              router.back();
+            },
+          },
+          {
+            text: "View Tickets",
+            onPress: (): void => {
+              router.push("/support/support-history");
+            },
+          },
+        ],
+      );
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       Alert.alert("Submit failed", msg);
@@ -74,8 +93,10 @@ export default function SupportModal(): JSX.Element {
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
           presentation: "modal",
           title: "Support",
+          headerShadowVisible: true,
         }}
       />
       <KeyboardAvoidingView
@@ -128,6 +149,7 @@ export default function SupportModal(): JSX.Element {
           <View style={{ height: 16 }} />
 
           <TouchableOpacity
+            testID="submit-btn"
             disabled={!canSubmit || submitting}
             onPress={() => {
               void handleSubmit();
@@ -156,7 +178,7 @@ export default function SupportModal(): JSX.Element {
 
           <TouchableOpacity
             onPress={() => {
-              router.push("/(modals)/support/support-history");
+              router.push("/support/support-history");
             }}
             style={[styles.cancelBtn, { marginTop: 8 }]}
             activeOpacity={0.85}

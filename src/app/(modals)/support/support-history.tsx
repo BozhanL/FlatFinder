@@ -1,5 +1,6 @@
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
+import useUser from "@/hooks/useUser";
+import { normalizeStatus } from "@/services/customer-support";
+import type { TicketDoc } from "@/types/TicketDoc";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -9,31 +10,21 @@ import {
   query,
   where,
 } from "@react-native-firebase/firestore";
-import { Stack } from "expo-router";
+import dayjs from "dayjs";
+import { router, Stack } from "expo-router";
 import React, { useEffect, useState, type JSX } from "react";
 import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-type Ticket = {
-  id: string;
-  createdAt?: { toDate?: () => Date } | null;
-  status?: string;
-  title?: string;
-  message?: string;
-};
-
 export default function SupportHistory(): JSX.Element {
-  const user = auth.currentUser;
-  const [items, setItems] = useState<Ticket[]>([]);
+  const user = useUser();
+  const [items, setItems] = useState<TicketDoc[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +35,7 @@ export default function SupportHistory(): JSX.Element {
     }
 
     const q = query(
-      collection(db, "support_tickets"),
+      collection(getFirestore(), "support_tickets"),
       where("uid", "==", user.uid),
       orderBy("createdAt", "desc"),
     );
@@ -52,17 +43,11 @@ export default function SupportHistory(): JSX.Element {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const arr: Ticket[] = snap.docs.map(
+        const arr: TicketDoc[] = snap.docs.map(
           (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-            const data = d.data() as Record<string, unknown>;
-            return {
-              id: d.id,
-              createdAt:
-                (data["createdAt"] as { toDate?: () => Date } | null) ?? null,
-              status: (data["status"] as string | undefined) ?? "open",
-              title: (data["title"] as string | undefined) ?? "",
-              message: (data["message"] as string | undefined) ?? "",
-            };
+            const data = d.data() as TicketDoc;
+            data.id = d.id;
+            return data;
           },
         );
         setItems(arr);
@@ -81,7 +66,12 @@ export default function SupportHistory(): JSX.Element {
     return (
       <>
         <Stack.Screen
-          options={{ presentation: "modal", title: "My Tickets" }}
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "My Tickets",
+            headerShadowVisible: false,
+          }}
         />
         <View style={styles.center}>
           <ActivityIndicator />
@@ -95,17 +85,28 @@ export default function SupportHistory(): JSX.Element {
     <>
       <Stack.Screen
         options={{
+          presentation: "modal",
           headerShown: true,
           title: "My Tickets",
-          headerShadowVisible: false,
+          headerShadowVisible: true,
         }}
       />
       <FlatList
         style={{ flex: 1, backgroundColor: "#fff" }}
         contentContainerStyle={{ padding: 12 }}
         data={items}
-        keyExtractor={(it) => it.id}
-        renderItem={({ item }) => <TicketItem item={item} />}
+        keyExtractor={(it) => it.id || ""}
+        renderItem={({ item }) => (
+          <TicketItem
+            item={item}
+            onPress={() => {
+              router.push({
+                pathname: "/support/support-detail",
+                params: { id: item.id },
+              });
+            }}
+          />
+        )}
         ListEmptyComponent={
           <View style={[styles.center, { paddingVertical: 40 }]}>
             <Text style={{ color: "#666" }}>No tickets yet.</Text>
@@ -116,15 +117,25 @@ export default function SupportHistory(): JSX.Element {
   );
 }
 
-function TicketItem({ item }: { item: Ticket }): JSX.Element {
-  const d = item.createdAt?.toDate ? item.createdAt.toDate() : null;
-  const ts = d
-    ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+function TicketItem({
+  item,
+  onPress,
+}: {
+  item: TicketDoc;
+  onPress?: () => void;
+}): JSX.Element {
+  const createdDate = item.createdAt?.toDate();
+  const formattedDate = createdDate
+    ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";
   const status = normalizeStatus(item.status);
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={styles.card}
+    >
       <View style={styles.row}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title || "(no title)"}
@@ -135,29 +146,12 @@ function TicketItem({ item }: { item: Ticket }): JSX.Element {
           </Text>
         </View>
       </View>
-      <Text style={styles.meta}>{ts}</Text>
+      <Text style={styles.meta}>{formattedDate}</Text>
       <Text style={styles.message} numberOfLines={4}>
         {item.message}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-function normalizeStatus(s?: string): { text: string; bg: string; fg: string } {
-  switch (s) {
-    case "open":
-      return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case "in_progress":
-      return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case "closed":
-      return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
-    default:
-      return { text: s || "Unknown", bg: "#EEE", fg: "#555" };
-  }
 }
 
 const styles = StyleSheet.create({

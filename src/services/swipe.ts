@@ -143,8 +143,21 @@ export async function blockUser(gid: string, uid: string): Promise<void> {
     await swipe(uid, otherUid, SwipeAction.Pass);
   }
 }
+
 export async function unblockUser(uid: string, target: string): Promise<void> {
   const ref = doc(getFirestore(), "users", uid, "swipes", target);
   await deleteDoc(ref);
 }
+
+export async function updateLastActive(uid: string): Promise<void> {
+  const ref = doc(getFirestore(), "users", uid);
+  await setDoc(
+    ref,
+    {
+      lastActiveAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
 export { SwipeAction };

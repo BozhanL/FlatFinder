@@ -26,6 +26,8 @@ Enabled Sign-in methods:
 - Email/Password
 - Google
 
+Set up Google Sign-In by following this [guide](https://react-native-google-signin.github.io/docs/setting-up/get-config-file?firebase-or-not=firebase#step-2).
+
 #### Firestore Database
 
 Please check the `firestore.rules` and `firestore.indexes.json`
@@ -63,6 +65,7 @@ Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js a
 6. Navigate to the android directory `cd android`
 7. Build the project by `./gradlew assembleRelease`
 8. Final APK can be found in `app/build/outputs/apk/release/app-release.apk`
+9. To enable Google Sign-In, sign the APK with your own keystore. Follow this [guide](https://developer.android.com/tools/apksigner#usage-sign).
 
 ### 3. Enable Notifications
 
