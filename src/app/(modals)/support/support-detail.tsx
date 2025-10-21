@@ -1,3 +1,11 @@
+import { normalizeStatus } from "@/services/customer-support";
+import type { TicketDoc } from "@/types/TicketDoc";
+import {
+  doc,
+  FirebaseFirestoreTypes,
+  getFirestore,
+  onSnapshot,
+} from "@react-native-firebase/firestore";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState, type JSX } from "react";
@@ -8,45 +16,6 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  doc,
-  getFirestore,
-  onSnapshot,
-  FirebaseFirestoreTypes,
-} from "@react-native-firebase/firestore";
-
-export enum TicketStatus {
-  Open = "open",
-  InProgress = "in_progress",
-  Closed = "closed",
-}
-
-function normalizeStatus(s?: TicketStatus): {
-  text: string;
-  bg: string;
-  fg: string;
-} {
-  switch (s) {
-    case TicketStatus.Open:
-      return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case TicketStatus.InProgress:
-      return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case TicketStatus.Closed:
-      return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
-    default:
-      return { text: "Unknown", bg: "#EEE", fg: "#555" };
-  }
-}
-
-type TicketDoc = {
-  createdAt?: { toDate?: () => Date } | null;
-  status?: string;
-  uid?: string | null;
-  name?: string;
-  email?: string;
-  title?: string;
-  message?: string;
-};
 
 export default function SupportDetail(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -75,14 +44,10 @@ export default function SupportDetail(): JSX.Element {
     return unsub;
   }, [id]);
 
-  const created =
-    docData?.createdAt?.toDate && typeof docData.createdAt.toDate === "function"
-      ? docData.createdAt.toDate()
-      : null;
+  const created = docData?.createdAt?.toDate();
   const createdText = created ? dayjs(created).format("YYYY-MM-DD HH:mm") : "—";
-  const statusStyle = normalizeStatus(
-    docData?.status as TicketStatus | undefined,
-  );
+
+  const statusStyle = normalizeStatus(docData?.status);
 
   if (loading) {
     return (
@@ -91,7 +56,7 @@ export default function SupportDetail(): JSX.Element {
           options={{
             presentation: "modal",
             headerShown: true,
-            title: `Ticket`,
+            title: "Ticket Detail",
             headerShadowVisible: true,
           }}
         />
@@ -110,7 +75,7 @@ export default function SupportDetail(): JSX.Element {
           options={{
             presentation: "modal",
             headerShown: true,
-            title: `Ticket`,
+            title: "Ticket Detail",
             headerShadowVisible: true,
           }}
         />

@@ -1,4 +1,6 @@
 import useUser from "@/hooks/useUser";
+import { normalizeStatus } from "@/services/customer-support";
+import type { TicketDoc } from "@/types/TicketDoc";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -20,17 +22,9 @@ import {
   View,
 } from "react-native";
 
-type Ticket = {
-  id: string;
-  createdAt?: { toDate?: () => Date } | null;
-  status?: string;
-  title?: string;
-  message?: string;
-};
-
 export default function SupportHistory(): JSX.Element {
   const user = useUser();
-  const [items, setItems] = useState<Ticket[]>([]);
+  const [items, setItems] = useState<TicketDoc[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,17 +43,11 @@ export default function SupportHistory(): JSX.Element {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const arr: Ticket[] = snap.docs.map(
+        const arr: TicketDoc[] = snap.docs.map(
           (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-            const data = d.data() as Record<string, unknown>;
-            return {
-              id: d.id,
-              createdAt:
-                (data["createdAt"] as { toDate?: () => Date } | null) ?? null,
-              status: (data["status"] as string | undefined) ?? "open",
-              title: (data["title"] as string | undefined) ?? "",
-              message: (data["message"] as string | undefined) ?? "",
-            };
+            const data = d.data() as TicketDoc;
+            data.id = d.id;
+            return data;
           },
         );
         setItems(arr);
@@ -107,7 +95,7 @@ export default function SupportHistory(): JSX.Element {
         style={{ flex: 1, backgroundColor: "#fff" }}
         contentContainerStyle={{ padding: 12 }}
         data={items}
-        keyExtractor={(it) => it.id}
+        keyExtractor={(it) => it.id || ""}
         renderItem={({ item }) => (
           <TicketItem
             item={item}
@@ -133,14 +121,14 @@ function TicketItem({
   item,
   onPress,
 }: {
-  item: Ticket;
+  item: TicketDoc;
   onPress?: () => void;
 }): JSX.Element {
-  const createdDate = item.createdAt?.toDate ? item.createdAt.toDate() : null;
+  const createdDate = item.createdAt?.toDate();
   const formattedDate = createdDate
     ? dayjs(createdDate).format("YYYY-MM-DD HH:mm")
     : "—";
-  const status = normalizeStatus(item.status as TicketStatus | undefined);
+  const status = normalizeStatus(item.status);
 
   return (
     <TouchableOpacity
@@ -148,47 +136,22 @@ function TicketItem({
       activeOpacity={0.85}
       style={styles.card}
     >
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.title || "(no title)"}
-          </Text>
-          <View style={[styles.badge, { backgroundColor: status.bg }]}>
-            <Text style={[styles.badgeText, { color: status.fg }]}>
-              {status.text}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.meta}>{formattedDate}</Text>
-        <Text style={styles.message} numberOfLines={4}>
-          {item.message}
+      <View style={styles.row}>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title || "(no title)"}
         </Text>
+        <View style={[styles.badge, { backgroundColor: status.bg }]}>
+          <Text style={[styles.badgeText, { color: status.fg }]}>
+            {status.text}
+          </Text>
+        </View>
       </View>
+      <Text style={styles.meta}>{formattedDate}</Text>
+      <Text style={styles.message} numberOfLines={4}>
+        {item.message}
+      </Text>
     </TouchableOpacity>
   );
-}
-
-export enum TicketStatus {
-  Open = "open",
-  InProgress = "in_progress",
-  Closed = "closed",
-}
-
-function normalizeStatus(s?: TicketStatus): {
-  text: string;
-  bg: string;
-  fg: string;
-} {
-  switch (s) {
-    case TicketStatus.Open:
-      return { text: "Open", bg: "#FFF7E6", fg: "#9A6B00" };
-    case TicketStatus.InProgress:
-      return { text: "In progress", bg: "#EAF5FF", fg: "#0A5AA6" };
-    case TicketStatus.Closed:
-      return { text: "Closed", bg: "#EEF9F0", fg: "#1C7C3A" };
-    default:
-      return { text: "Unknown", bg: "#EEE", fg: "#555" };
-  }
 }
 
 const styles = StyleSheet.create({
