@@ -1,7 +1,6 @@
 import useUser from "@/hooks/useUser";
-import { normalizeStatus } from "@/services/normalizeStatus";
+import { normalizeStatus } from "@/services/customer-support";
 import type { TicketDoc } from "@/types/TicketDoc";
-import { TicketStatus } from "@/types/TicketStatus";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -46,16 +45,9 @@ export default function SupportHistory(): JSX.Element {
       (snap) => {
         const arr: TicketDoc[] = snap.docs.map(
           (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => {
-            const data = d.data() as Record<string, unknown>;
-            return {
-              id: d.id,
-              createdAt:
-                (data["createdAt"] as { toDate?: () => Date } | null) ?? null,
-              status:
-                (data["status"] as string | undefined) ?? TicketStatus.Open,
-              title: (data["title"] as string | undefined) ?? "",
-              message: (data["message"] as string | undefined) ?? "",
-            };
+            const data = d.data() as TicketDoc;
+            data.id = d.id;
+            return data;
           },
         );
         setItems(arr);

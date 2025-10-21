@@ -1,3 +1,5 @@
+import { normalizeStatus } from "@/services/customer-support";
+import type { TicketDoc } from "@/types/TicketDoc";
 import {
   doc,
   FirebaseFirestoreTypes,
@@ -14,8 +16,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { normalizeStatus } from "@/services/normalizeStatus";
-import type { TicketDoc } from "@/types/TicketDoc";
 
 export default function SupportDetail(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
