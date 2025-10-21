@@ -41,6 +41,7 @@ const PROBLEMATIC_PACKAGES: PackageConfig[] = [
     problemPaths: [
       "index.ts",
       "src/components/Pagination/Pagination.tsx",
+      "src/components/Pagination/PaginationProps.tsx",
       "src/components/SwiperFlatList/SwiperFlatList.tsx",
       "src/components/SwiperFlatList/SwiperFlatListProps.tsx",
     ],
