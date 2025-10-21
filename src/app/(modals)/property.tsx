@@ -56,7 +56,7 @@ Tap to view the details in the app: ${shareableUrl}
 
       if (result.action === Share.sharedAction) {
         console.log("Property shared successfully with URL:", shareableUrl);
-      } else if (Share.dismissedAction) {
+      } else {
         console.log("Share dialog dismissed.");
       }
     } catch (error) {
