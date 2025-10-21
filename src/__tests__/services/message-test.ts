@@ -67,6 +67,7 @@ describe("@/services/message.ts", () => {
         name: null,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
+        avatar: null,
       },
     );
   });

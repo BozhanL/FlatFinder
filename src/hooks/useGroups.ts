@@ -1,5 +1,7 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
+// react-native-firebase does not work in jest unit test environment.
+// Mocking it is possible, but it may not represent real world situation.
 import { getUserByUidAsync } from "@/services/message";
 import type { Group } from "@/types/Group";
 import {
@@ -31,7 +33,10 @@ export default function useGroups(uid: string): Group[] {
             if (data.name === null) {
               const other = data.members.find((m) => m !== uid);
               if (other) {
-                data.name = (await getUserByUidAsync(other))?.name || null;
+                const user = await getUserByUidAsync(other);
+                data.name = user?.name ?? null;
+                data.avatar =
+                  typeof user?.avatar === "string" ? user.avatar : null;
               }
             }
             return data;
