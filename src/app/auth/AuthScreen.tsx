@@ -1,8 +1,11 @@
-// src/app/auth/AuthScreen.tsx
-
-import { type JSX, useEffect, useState } from "react";
 import {
-  Image,
+  handleAuth,
+  handleGoogleSignIn,
+  handlePasswordReset,
+} from "@/services/auth";
+import { Image } from "expo-image";
+import { useCallback, useState, type JSX } from "react";
+import {
   StyleSheet,
   Text,
   TextInput,
@@ -10,70 +13,37 @@ import {
   View,
 } from "react-native";
 
-// Import the auth service functions
-import {
-  configureGoogleSignIn,
-  handleEmailAuth,
-  handleGoogleSignIn,
-  handlePasswordReset,
-} from "@/services/auth";
-// The path for @/services/auth is crucial!
-
-const AuthScreen = (): JSX.Element => {
-  // State for the form UI remains
+export default function AuthScreen(): JSX.Element {
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [returned, setReturned] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Configure Google Sign-In only once
-  useEffect((): void => {
-    // This calls the GoogleSignin.configure() method
-    configureGoogleSignIn();
+  const onAuth = useCallback(async () => {
+    setLoading(true);
+    const result = await handleAuth(isLogin, email, password);
+    setLoading(false);
+    setReturned(result ?? "");
+  }, [isLogin, email, password]);
+
+  const onPasswordReset = useCallback(async () => {
+    setLoading(true);
+    const result = await handlePasswordReset(email);
+    setLoading(false);
+    setReturned(
+      result ??
+        "Password reset link sent to your email! Please check your inbox (and spam folder).",
+    );
+  }, [email]);
+
+  const onGoogleSignIn = useCallback(async () => {
+    setLoading(true);
+    const result = await handleGoogleSignIn();
+    setLoading(false);
+    setReturned(result ?? "");
   }, []);
 
-  // --- Handlers using the imported service functions ---
-
-  // NOTE: These internal component handlers are kept simple,
-  // focusing only on UI state (loading/error) and calling the service.
-
-  const handleAuthSubmit = async (): Promise<void> => {
-    setLoading(true);
-    setError("");
-
-    const result = await handleEmailAuth(email, password, isLogin);
-
-    if (result !== "success") {
-      setError(result);
-    }
-    // Success (result === "success") is handled by the RootLayout's Auth Guard.
-    setLoading(false);
-  };
-
-  const handleResetSubmit = async (): Promise<void> => {
-    setLoading(true);
-    setError("");
-
-    const result = await handlePasswordReset(email);
-    // Password reset uses the error state to display a success/failure message
-    setError(result);
-    setLoading(false);
-  };
-
-  const handleGoogleSubmit = async (): Promise<void> => {
-    setLoading(true);
-    setError("");
-
-    const result = await handleGoogleSignIn();
-
-    if (result !== "success") {
-      setError(result);
-    }
-    setLoading(false);
-  };
-
-  // --- UI Rendering ---
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -85,15 +55,15 @@ const AuthScreen = (): JSX.Element => {
           Enter your email to {isLogin ? "sign in" : "sign up"} for this app
         </Text>
 
-        {error ? (
+        {/* Note: The error state is now also used for success messages */}
+        {returned ? (
           <Text
             style={[
               styles.errorText,
-              // Check for success messages (like password reset sent)
-              error.includes("sent") && styles.successText,
+              returned.includes("sent") && styles.successText,
             ]}
           >
-            {error}
+            {returned}
           </Text>
         ) : null}
 
@@ -115,10 +85,10 @@ const AuthScreen = (): JSX.Element => {
           placeholderTextColor="#888"
         />
 
+        {/* Forgot Password Link (only visible during sign in) */}
         {isLogin && (
           <TouchableOpacity
-            // Refactored: Call handler directly with 'void' to suppress warning
-            onPress={() => void handleResetSubmit()}
+            onPress={() => void onPasswordReset()}
             style={styles.forgotPassword}
           >
             <Text style={styles.link}>Forgot password?</Text>
@@ -127,8 +97,7 @@ const AuthScreen = (): JSX.Element => {
 
         <TouchableOpacity
           style={styles.button}
-          // Refactored: Call handler directly with 'void'
-          onPress={() => void handleAuthSubmit()}
+          onPress={() => void onAuth()}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
@@ -144,14 +113,11 @@ const AuthScreen = (): JSX.Element => {
 
         <TouchableOpacity
           style={styles.socialButton}
-          // Refactored: Call handler directly with 'void'
-          onPress={() => void handleGoogleSubmit()}
+          onPress={() => void onGoogleSignIn()}
           disabled={loading}
         >
           <Image
-            source={{
-              uri: "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",
-            }}
+            source={require("assets/images/google.svg")}
             style={styles.socialIcon}
           />
           <Text style={styles.socialButtonText}>Continue with Google</Text>
@@ -165,10 +131,8 @@ const AuthScreen = (): JSX.Element => {
 
         <TouchableOpacity
           onPress={() => {
-            setIsLogin(!isLogin);
-            // Clear errors and password when toggling mode
-            setError("");
-            setPassword("");
+            setIsLogin((prev) => !prev);
+            setReturned("");
           }}
           style={styles.toggleButton}
         >
@@ -181,9 +145,7 @@ const AuthScreen = (): JSX.Element => {
       </View>
     </View>
   );
-};
-
-// ... (Styles remain the same) ...
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -299,6 +261,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
+  // Style for the Forgot Password link positioning
   forgotPassword: {
     alignSelf: "flex-end",
     marginBottom: 8,
@@ -312,69 +275,11 @@ const styles = StyleSheet.create({
     width: "100%",
     textAlign: "center",
   },
+  // Style for success message (like password reset confirmation)
   successText: {
-    color: "#065F46",
-    backgroundColor: "#D1FAE5",
-    borderColor: "#10B981",
+    color: "#065F46", // Dark green text
+    backgroundColor: "#D1FAE5", // Light green background
+    borderColor: "#10B981", // Green border for better contrast
     borderWidth: 1,
   },
-  // All other styles (protected, loading) are left here for completeness
-  // but are not used since the Auth Guard logic is outside this component.
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#4F46E5",
-  },
-  protectedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#E0F2F1",
-    padding: 32,
-  },
-  protectedTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#047857",
-    marginBottom: 16,
-  },
-  protectedText: {
-    fontSize: 18,
-    color: "#065F46",
-    marginBottom: 8,
-  },
-  protectedEmail: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#065F46",
-    marginBottom: 4,
-  },
-  protectedButton: {
-    backgroundColor: "#EF4444",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  protectedButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  protectedInfo: {
-    fontSize: 12,
-    color: "#065F46",
-    marginTop: 40,
-    fontStyle: "italic",
-    textAlign: "center",
-  },
 });
-
-export default AuthScreen;

@@ -1,9 +1,11 @@
 import { createGroup, getGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
 import { SwipeAction } from "@/types/SwipeAction";
+import type { SwipeDoc } from "@/types/SwipeDoc";
 import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
+  deleteDoc,
   doc,
   FirebaseFirestoreTypes,
   getDoc,
@@ -17,11 +19,6 @@ import {
   Timestamp,
   where,
 } from "@react-native-firebase/firestore";
-
-type SwipeDoc = {
-  dir: SwipeAction;
-  createdAt?: FirebaseFirestoreTypes.Timestamp | null;
-};
 
 type UserDoc = {
   name?: string;
@@ -108,7 +105,13 @@ export async function swipe(
   dir: SwipeAction,
 ): Promise<void> {
   const ref = doc(getFirestore(), "users", me, "swipes", target);
-  await setDoc(ref, { dir, createdAt: serverTimestamp() }, { merge: true });
+  const data: SwipeDoc = {
+    dir,
+    createdAt: serverTimestamp() as FirebaseFirestoreTypes.Timestamp,
+    uid: target,
+  };
+
+  await setDoc(ref, data, { merge: true });
 }
 
 /** Create match between users if mutual like*/
@@ -140,4 +143,21 @@ export async function blockUser(gid: string, uid: string): Promise<void> {
     await swipe(uid, otherUid, SwipeAction.Pass);
   }
 }
+
+export async function unblockUser(uid: string, target: string): Promise<void> {
+  const ref = doc(getFirestore(), "users", uid, "swipes", target);
+  await deleteDoc(ref);
+}
+
+export async function updateLastActive(uid: string): Promise<void> {
+  const ref = doc(getFirestore(), "users", uid);
+  await setDoc(
+    ref,
+    {
+      lastActiveAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
 export { SwipeAction };
