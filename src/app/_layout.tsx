@@ -1,42 +1,62 @@
 import useInitialNotification from "@/hooks/useInitialNotification";
 import useMessageToken from "@/hooks/useMessageToken";
 import useNotification from "@/hooks/useNotification";
-import { initializeApp } from "@react-native-firebase/app";
-import { Stack } from "expo-router";
-import { JSX } from "react";
-import { Platform } from "react-native";
+import useUser from "@/hooks/useUser";
+import { updateLastActive } from "@/services/swipe";
+import { SplashScreen, Stack } from "expo-router";
+import { useEffect, type JSX } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
 
-if (Platform.OS === "web") {
-  const firebaseConfig = {
-    apiKey: "AIzaSyCQ-uqsWqjm2GL9OazJS-sBBIu5_oES_zM",
-    authDomain: "flatfinder-5b5c8.firebaseapp.com",
-    databaseURL:
-      "https://flatfinder-5b5c8-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "flatfinder-5b5c8",
-    storageBucket: "flatfinder-5b5c8.firebasestorage.app",
-    messagingSenderId: "245824951682",
-    appId: "1:245824951682:web:793a4dda12802980ba6b9b",
-    measurementId: "G-5XEP9G2HN9",
-  };
+void SplashScreen.preventAutoHideAsync();
 
-  initializeApp(firebaseConfig);
-}
-
-export default function RootLayout(): JSX.Element {
+export default function RootLayout(): JSX.Element | null {
+  const user = useUser();
   useNotification();
   useMessageToken();
   useInitialNotification();
 
+  useEffect(() => {
+    if (user !== undefined) {
+      SplashScreen.hide();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      void updateLastActive(user.uid);
+    }
+  }, [user?.uid]);
+
+  if (user === undefined) {
+    return null;
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(modals)"
-          options={{ presentation: "modal", headerShown: false }}
-        />
-      </Stack>
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <HeaderButtonsProvider stackType={"native"}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#ECEBEC" }}>
+          <Stack>
+            {/* True if not logged in */}
+            <Stack.Protected guard={!user}>
+              <Stack.Screen
+                name="auth/AuthScreen"
+                options={{ headerShown: false }}
+              />
+            </Stack.Protected>
+
+            {/* True if logged in */}
+            <Stack.Protected guard={!!user}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="(modals)"
+                options={{ presentation: "modal", headerShown: false }}
+              />
+            </Stack.Protected>
+          </Stack>
+        </SafeAreaView>
+      </HeaderButtonsProvider>
+    </GestureHandlerRootView>
   );
 }

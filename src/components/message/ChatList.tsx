@@ -1,16 +1,27 @@
+import useIsTyping from "@/hooks/useIsTyping";
 import useMessages from "@/hooks/useMessages";
-import { sendMessage } from "@/services/message";
-import { JSX } from "react";
-import { ActivityIndicator, View } from "react-native";
+import useOnTyping from "@/hooks/useOnTyping";
+import { markMessagesAsReceived, sendMessage } from "@/services/message";
+import type { GiftedChatMessage } from "@/types/GiftedChatMessage";
+import dayjs from "dayjs";
+import "dayjs/locale/en-nz";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { type JSX, useCallback } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import {
   Bubble,
-  BubbleProps,
+  type BubbleProps,
   Day,
-  DayProps,
+  type DayProps,
   GiftedChat,
-  IMessage,
+  type IMessage,
+  Message,
+  type MessageProps,
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+dayjs.extend(relativeTime);
+dayjs.locale("en-nz");
 
 export default function ChatList({
   gid,
@@ -22,6 +33,8 @@ export default function ChatList({
   uid: string;
 }): JSX.Element {
   const { sortedMessages, loading, usercache } = useMessages(gid, gname);
+  const onTyping = useOnTyping(gid, uid);
+  const isTyping = useIsTyping(gid, uid);
 
   const insets = useSafeAreaInsets();
 
@@ -32,46 +45,113 @@ export default function ChatList({
       </View>
     );
   }
-
-  const renderBubble = (props: BubbleProps<IMessage>) => {
-    return (
-      <Bubble
-        {...props}
-        wrapperStyle={{
-          right: {
-            backgroundColor: "#4A4459",
-          },
-          left: {
-            backgroundColor: "#DADADA",
-          },
-        }}
-      />
-    );
-  };
-
-  const renderDay = (props: DayProps) => {
-    return (
-      <Day
-        {...props}
-        wrapperStyle={{ backgroundColor: "transparent" }}
-        textStyle={{ color: "#79747E" }}
-      />
-    );
-  };
-
   return (
     <GiftedChat
       messages={sortedMessages}
       onSend={(msgs) => {
-        msgs.forEach((m) => sendMessage(m, gid));
+        msgs.forEach((m) => void sendMessage(m, gid));
       }}
       renderAvatarOnTop={true}
       showUserAvatar={true}
       user={usercache.get(uid) || { _id: uid }}
       inverted={true}
       bottomOffset={-insets.bottom}
-      renderBubble={renderBubble}
-      renderDay={renderDay}
+      renderBubble={RenderBubble}
+      renderDay={RenderDay}
+      renderMessage={RenderMessage}
+      onInputTextChanged={onTyping}
+      isTyping={isTyping}
+      locale={"en-nz"}
     />
   );
 }
+
+function RenderDay(props: DayProps): JSX.Element {
+  return (
+    <Day
+      {...props}
+      wrapperStyle={{ backgroundColor: "transparent" }}
+      textStyle={{ color: "#79747E" }}
+    />
+  );
+}
+
+function RenderBubble(props: BubbleProps<IMessage>): JSX.Element {
+  const uid = props.user?._id;
+
+  const renderTicks = useCallback(
+    (currentMessage: GiftedChatMessage): JSX.Element | null => {
+      if (uid && currentMessage.user._id !== uid) {
+        return null;
+      } else if (currentMessage.received && currentMessage.seenTimestamp) {
+        const timestamp = currentMessage.seenTimestamp;
+        const dayJsObject = dayjs(timestamp.toDate());
+        const timeStr = dayJsObject.fromNow();
+
+        return (
+          <View style={styles.tickView}>
+            <Text
+              style={[styles.tick, props.tickStyle]}
+            >{`Seen: ${timeStr}`}</Text>
+          </View>
+        );
+      } else if (currentMessage.sent) {
+        return (
+          <View style={styles.tickView}>
+            <Text style={[styles.tick, props.tickStyle]}>{"✓"}</Text>
+          </View>
+        );
+      } else if (currentMessage.pending) {
+        return (
+          <View style={styles.tickView}>
+            <Text style={[styles.tick, props.tickStyle]}>{"🕓"}</Text>
+          </View>
+        );
+      }
+
+      return null;
+    },
+    [uid, props.tickStyle],
+  );
+
+  return (
+    <Bubble
+      {...props}
+      wrapperStyle={{
+        right: {
+          backgroundColor: "#4A4459",
+        },
+        left: {
+          backgroundColor: "#DADADA",
+        },
+      }}
+      renderTicks={renderTicks}
+    />
+  );
+}
+
+function RenderMessage(props: MessageProps<GiftedChatMessage>): JSX.Element {
+  if (
+    props.currentMessage.received !== true &&
+    props.currentMessage.user._id !== props.user._id
+  ) {
+    void markMessagesAsReceived(
+      props.currentMessage.gid,
+      props.currentMessage._id.toString(),
+    );
+  }
+
+  return <Message {...props} />;
+}
+
+const styles = StyleSheet.create({
+  tickView: {
+    flexDirection: "row",
+    marginRight: 10,
+  },
+  tick: {
+    fontSize: 10,
+    backgroundColor: "transparent",
+    color: "white",
+  },
+});

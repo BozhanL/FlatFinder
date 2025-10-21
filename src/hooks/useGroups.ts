@@ -1,7 +1,9 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-import { Group } from "@/types/Group";
+// react-native-firebase does not work in jest unit test environment.
+// Mocking it is possible, but it may not represent real world situation.
 import { getUserByUidAsync } from "@/services/message";
+import type { Group } from "@/types/Group";
 import {
   collection,
   FirebaseFirestoreTypes,
@@ -24,29 +26,31 @@ export default function useGroups(uid: string): Group[] {
 
     return onSnapshot(
       query(groupsRef, where("members", "array-contains", uid)),
-      async (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Group>) => {
-        const groupsData = await Promise.all(
+      (snapshot: FirebaseFirestoreTypes.QuerySnapshot<Group>) =>
+        void Promise.all(
           snapshot.docs.map(async (doc) => {
             const data = doc.data();
             if (data.name === null) {
               const other = data.members.find((m) => m !== uid);
               if (other) {
-                data.name = (await getUserByUidAsync(other))?.name || null;
+                const user = await getUserByUidAsync(other);
+                data.name = user?.name ?? null;
+                data.avatar =
+                  typeof user?.avatar === "string" ? user.avatar : null;
               }
             }
             return data;
           }),
-        );
-
-        setGroups(groupsData);
-      },
+        ).then((groupsData) => {
+          setGroups(groupsData);
+        }),
     );
   }, [uid]);
 
   const sortedGroups = useMemo(() => {
     return groups.sort((a, b) => {
-      const aTime = a.lastTimestamp?.toMillis?.() ?? 0;
-      const bTime = b.lastTimestamp?.toMillis?.() ?? 0;
+      const aTime = a.lastTimestamp.toMillis();
+      const bTime = b.lastTimestamp.toMillis();
       return bTime - aTime;
     });
   }, [groups]);

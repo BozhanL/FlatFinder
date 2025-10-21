@@ -1,53 +1,23 @@
 import HeaderLogo from "@/components/HeaderLogo";
+import PropertyMapView from "@/components/property/PropertyMapView";
 import Segmented from "@/components/Segmented";
+import SwipeDeck from "@/components/swipe/SwipeDeck";
+import useCandidates from "@/hooks/useCandidates";
+import useUser from "@/hooks/useUser";
+import { ensureMatchIfMutualLike, swipe } from "@/services/swipe";
+import type { FilterState } from "@/types/FilterState";
+import type { Property } from "@/types/Property";
+import { SwipeAction } from "@/types/SwipeAction";
 import {
-  Camera,
-  Images,
-  MapView,
-  RasterLayer,
-  RasterSource,
-  ShapeSource,
-  SymbolLayer,
-} from "@maplibre/maplibre-react-native";
-import {
-  collection,
-  FirebaseFirestoreTypes,
-  getDocs,
-  getFirestore
-} from "@react-native-firebase/firestore";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
-
-// Ignores warning from maplibre as this warning is not code based
-// but rather from OSM api limitations.
-if (__DEV__) {
-  const originalLog = console.log;
-  const originalWarn = console.warn;
-  
-  console.log = (...args) => {
-    const message = args.join(' ');
-    if (message.includes('Request failed due to a permanent error: Canceled')) {
-      return;
-    }
-    originalLog.apply(console, args);
-  };
-  
-  console.warn = (...args) => {
-    const message = args.join(' ');
-    if (message.includes('Request failed due to a permanent error: Canceled')) {
-      return;
-    }
-    originalWarn.apply(console, args);
-  };
-}
-
+  getGlobalFilters,
+  registerApplyFilter,
+  unregisterApplyFilter,
+} from "@/utils/filterStateManager";
+import { countActiveFilters } from "@/utils/propertyFilters";
+import type { OnPressEvent } from "@maplibre/maplibre-react-native";
+import { router, useFocusEffect } from "expo-router";
+import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const styles = StyleSheet.create({
   segmentedContainer: {
@@ -75,63 +45,10 @@ const styles = StyleSheet.create({
   filterBtnTextActive: {
     color: "#fff",
   },
-  map: { flex: 1 },
-  centerContent: { flex: 1, alignItems: "center", justifyContent: "center" },
-  floatingTile: {
-    position: "absolute",
-    bottom: 20,
-    left: 16,
-    right: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  tileContent: {
-    padding: 16,
-  },
-  tileHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  tileTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 4,
-  },
-  tilePrice: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2563eb",
-    marginBottom: 2,
-  },
-  tileType: {
-    fontSize: 12,
-    color: "#666",
-    textTransform: "capitalize",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  expandButton: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    padding: 12,
+  centerContent: {
+    flex: 1,
     alignItems: "center",
-  },
-  expandButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
+    justifyContent: "center",
   },
 });
 
@@ -140,190 +57,46 @@ const enum TabMode {
   Properties = "Properties",
 }
 
-// Interface for property data
-interface Property {
-  id: string;
-  title: string;
-  latitude: number;
-  longitude: number;
-  price: number;
-  type?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  contract?: number;
-}
-
-interface FilterState {
-  type: string[];
-  minPrice: string;
-  maxPrice: string;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  minContract: string;
-}
-
-// Global filter state
-let globalFilters: FilterState = {
-  type: [],
-  minPrice: "",
-  maxPrice: "",
-  bedrooms: null,
-  bathrooms: null,
-  minContract: "",
-};
-
-let globalApplyFilter: ((filters: FilterState) => void) | null = null;
-
-export const getGlobalApplyFilter = ():
-  | ((filters: FilterState) => void)
-  | null => globalApplyFilter;
-
-export default function Index(): React.JSX.Element {
+export default function Index(): JSX.Element {
+  const user = useUser();
   const [mode, setMode] = useState(TabMode.Flatmates);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
   );
   const [isVisible, setIsVisible] = useState(false);
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>(globalFilters);
+  const [filters, setFilters] = useState<FilterState>(getGlobalFilters());
 
-  // Filter function
+  // Register filter handler
   useEffect(() => {
-    globalApplyFilter = (newFilters: FilterState): void => {
+    const handleFiltersChange = (newFilters: FilterState): void => {
       console.log("Applying filters in index:", newFilters);
       setFilters(newFilters);
-      globalFilters = newFilters;
     };
+
+    registerApplyFilter(handleFiltersChange);
 
     return (): void => {
-      globalApplyFilter = null;
+      unregisterApplyFilter();
     };
   }, []);
 
-  // Using client sided filtering as firestore doesn't support complex "OR" queries
-  // Eg, both "minimum bedrooms" and "minimum bathrooms" at the same time
-  const applyFilters = (
-    properties: Property[],
-    filters: FilterState,
-  ): Property[] => {
-    return properties.filter((property) => {
-      // Property type filter - if empty, show all types
-      if (filters.type.length > 0) {
-        const propertyType = property.type || "rental";
-        if (!filters.type.includes(propertyType)) {
-          return false;
-        }
-      }
-
-      // Price filter
-      if (filters.minPrice !== "" || filters.maxPrice !== "") {
-        const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-        const maxPrice = filters.maxPrice
-          ? parseFloat(filters.maxPrice)
-          : Infinity;
-
-        if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-          if (property.price < minPrice || property.price > maxPrice) {
-            return false;
-          }
-        }
-      }
-
-      // Bedrooms filter - single selection (null means no filter)
-      if (filters.bedrooms !== null) {
-        const propertyBedrooms = property.bedrooms || 0;
-        if (propertyBedrooms < filters.bedrooms) {
-          return false;
-        }
-      }
-
-      // Bathrooms filter - single selection (null means no filter)
-      if (filters.bathrooms !== null) {
-        const propertyBathrooms = property.bathrooms || 0;
-        if (propertyBathrooms < filters.bathrooms) {
-          return false;
-        }
-      }
-
-      // Contract length filter
-      if (filters.minContract && filters.minContract !== "") {
-        const minContract = parseInt(filters.minContract);
-        if (!isNaN(minContract)) {
-          if (!property.contract || property.contract > minContract) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    });
-  };
-
-  // Apply filters whenever filters change
-  useEffect(() => {
-    const filtered = applyFilters(allProperties, filters);
-    console.log(
-      `Filtered ${filtered.length} properties from ${allProperties.length} total`,
-    );
-    console.log("Current filters:", filters);
-    setFilteredProperties(filtered);
-  }, [allProperties, filters]);
-
-  // Fetch properties from Firebase using v9+ API
-  useEffect(() => {
-    const fetchProperties = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const db = getFirestore();
-        const snapshot = await getDocs(collection(db, "properties"));
-
-        const fetchedProperties: Property[] = [];
-
-        snapshot.forEach((doc: FirebaseFirestoreTypes.DocumentSnapshot) => {
-          const data = doc.data();
-
-          if (data) {
-            // Extract coordinates from GeoPoint data
-            const coordinates = data["coordinates"];
-            const latitude = coordinates?._latitude || coordinates?.latitude;
-            const longitude = coordinates?._longitude || coordinates?.longitude;
-
-            const property: Property = {
-              id: doc.id,
-              title: data["title"] || "Untitled Property",
-              latitude: latitude,
-              longitude: longitude,
-              price: data["price"] || 0,
-              type: data["type"] || "rental",
-              bedrooms: data["bedrooms"] || undefined,
-              bathrooms: data["bathrooms"] || undefined,
-              contract: data["contract"] || undefined,
-            };
-
-            fetchedProperties.push(property);
-          }
-        });
-
-        setAllProperties(fetchedProperties);
-        console.log(
-          `Loaded ${fetchedProperties.length} properties from Firebase`,
-        );
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperties();
-  }, []);
+  // Handle properties loaded from PropertyMapView
+  const handlePropertiesLoad = useCallback(
+    (_allProps: Property[], filteredProps: Property[]) => {
+      setFilteredProperties(filteredProps);
+    },
+    [],
+  );
 
   // Handle marker press
-  const handleMarkerPress = (event: any): void => {
+  const handleMarkerPress = (event: OnPressEvent): void => {
     const feature = event.features[0];
-    const propertyId = feature.properties.id;
+    if (!feature?.properties) {
+      return;
+    }
+
+    const propertyId = feature.properties["id"];
     const property = filteredProperties.find((p) => p.id === propertyId);
 
     if (property) {
@@ -340,32 +113,29 @@ export default function Index(): React.JSX.Element {
     }, 300);
   };
 
-  // Format price for display
-  const formatPrice = (price: number, type?: string): string => {
-    if (type === "sale") {
-      return `$${price.toLocaleString()}`;
-    } else {
-      return `$${price}/week`;
-    }
-  };
+  // Close the floating tile when the route is unfocused
+  useFocusEffect(
+    useCallback(() => {
+      return (): void => {
+        closePropertyTile();
+      };
+    }, []),
+  );
 
-  // Create GeoJSON for filtered properties
-  const createPropertyData = () => ({
-    type: "FeatureCollection" as const,
-    features: filteredProperties.map((property) => ({
-      type: "Feature" as const,
-      geometry: {
-        type: "Point" as const,
-        coordinates: [property.longitude, property.latitude],
-      },
-      properties: {
-        id: property.id,
-        title: property.title,
-        type: property.type || "rental",
-        price: property.price,
-      },
-    })),
-  });
+  // Count active filters using utility function
+  const activeFilterCount: number = useMemo(
+    () => countActiveFilters(filters),
+    [filters],
+  );
+
+  // Check if any filters are active using utility function
+  const filtersActive: boolean = activeFilterCount > 0;
+
+  const { items, setItems } = useCandidates(user?.uid || null);
+
+  if (!user) {
+    return <></>;
+  }
 
   // Check if any filters are active
   const hasActiveFilters = (): boolean => {
@@ -400,154 +170,64 @@ export default function Index(): React.JSX.Element {
         <View style={{ flex: 1 }}>
           <Segmented
             options={[TabMode.Flatmates, TabMode.Properties]}
-            onChange={(val) => setMode(val as TabMode)}
+            onChange={(val) => {
+              setMode(val as TabMode);
+            }}
           />
         </View>
 
+        {/* Show filter button on both tabs */}
         <TouchableOpacity
-          onPress={() => router.push("/(modals)/filter")}
+          onPress={() => {
+            router.push("/filter");
+          }}
           activeOpacity={0.8}
-          style={[
-            styles.filterBtn,
-            hasActiveFilters() && styles.filterBtnActive,
-          ]}
+          style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
         >
           <Text
             style={[
               styles.filterBtnText,
-              hasActiveFilters() && styles.filterBtnTextActive,
+              filtersActive && styles.filterBtnTextActive,
             ]}
           >
-            Filter{" "}
-            {getActiveFilterCount() > 0 ? `(${getActiveFilterCount()})` : ""}
+            Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Main content */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, position: "relative" }}>
         {mode === TabMode.Flatmates ? (
-          <View style={styles.centerContent}>
-            <Text>Flatmate list</Text>
-          </View>
+          <SwipeDeck
+            data={items}
+            onLike={(u) => {
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+              void swipe(user.uid, u.id, SwipeAction.Like).catch(() => {
+                /* N/A */
+              });
+              void ensureMatchIfMutualLike(user.uid, u.id).catch(() => {
+                /* N/A */
+              });
+            }}
+            onPass={(u) => {
+              setItems((prev) => prev.filter((x) => x.id !== u.id));
+              void swipe(user.uid, u.id, SwipeAction.Pass).catch(() => {
+                /* N/A */
+              });
+            }}
+            onCardPress={(user) => {
+              router.push(`/profile/${user.id}`);
+            }}
+          />
         ) : (
-          <View style={{ flex: 1 }}>
-            {loading ? (
-              <View style={styles.centerContent}>
-                <ActivityIndicator size="large" color="#2563eb" />
-                <Text style={{ marginTop: 10 }}>Loading properties...</Text>
-              </View>
-            ) : allProperties.length === 0 ? (
-              <View style={styles.centerContent}>
-                <Text>No properties found</Text>
-              </View>
-            ) : filteredProperties.length === 0 ? (
-              <View style={styles.centerContent}>
-                <Text>No properties match your filters</Text>
-                <Text style={{ marginTop: 8, color: "#666" }}>
-                  Try adjusting your filter criteria
-                </Text>
-              </View>
-            ) : (
-              <MapView
-                style={styles.map}
-                testID="map-view"
-                onDidFinishLoadingMap={() =>
-                  console.log("Map finished loading")
-                }
-              >
-                {/* RasterSource for OSM tiles */}
-                <RasterSource
-                  id="osm"
-                  tileUrlTemplates={[
-                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  ]}
-                  tileSize={256}
-                >
-                  <RasterLayer id="osm-layer" sourceID="osm" />
-                </RasterSource>
-
-                {/* Camera to set initial view */}
-                <Camera
-                  zoomLevel={10}
-                  centerCoordinate={[174.7633, -36.8485]}
-                  animationDuration={2000}
-                />
-
-                {/* Images for markers */}
-                <Images
-                  images={{
-                    pin: require("../../../assets/images/pin.png"),
-                  }}
-                />
-
-                {/* Property markers */}
-                <ShapeSource
-                  id="property-markers"
-                  shape={createPropertyData()}
-                  onPress={handleMarkerPress}
-                >
-                  <SymbolLayer
-                    id="property-icons"
-                    style={{
-                      iconImage: "pin",
-                      iconSize: 0.2,
-                      iconAnchor: "bottom",
-                      iconAllowOverlap: true,
-                      iconIgnorePlacement: true,
-                    }}
-                  />
-                </ShapeSource>
-              </MapView>
-            )}
-
-            {/* Floating Property Tile */}
-            {selectedProperty && (
-              <View
-                style={[
-                  styles.floatingTile,
-                  {
-                    opacity: isVisible ? 1 : 0,
-                    transform: [{ translateY: isVisible ? 0 : 200 }],
-                  },
-                ]}
-              >
-                <View style={styles.tileContent}>
-                  <View style={styles.tileHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.tileTitle}>
-                        {selectedProperty.title}
-                      </Text>
-                      <Text style={styles.tilePrice}>
-                        {formatPrice(
-                          selectedProperty.price,
-                          selectedProperty.type,
-                        )}
-                      </Text>
-                      <Text style={styles.tileType}>
-                        {selectedProperty.type || "rental"}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={closePropertyTile}
-                      style={styles.closeButton}
-                    >
-                      <Text style={styles.closeButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.expandButton}
-                    onPress={() => {
-                      router.push(`/property/${selectedProperty.id}` as any);
-                    }}
-                  >
-                    <Text style={styles.expandButtonText}>View Details →</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
+          <PropertyMapView
+            filters={filters}
+            selectedProperty={selectedProperty}
+            isVisible={isVisible}
+            onMarkerPress={handleMarkerPress}
+            onClosePropertyTile={closePropertyTile}
+            onPropertiesLoad={handlePropertiesLoad}
+          />
         )}
       </View>
     </View>

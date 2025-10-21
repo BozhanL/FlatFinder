@@ -2,7 +2,7 @@ import Segmented from "@/components/Segmented";
 import { render, screen } from "@testing-library/react-native";
 
 describe("@/components/Segmented", () => {
-  test("Text renders correctly on Segmented", async () => {
+  test("Text renders correctly on Segmented", () => {
     render(<Segmented options={["a", "b", "c"]} />);
     {
       const elements = screen.getAllByText("a");

@@ -1,9 +1,14 @@
-import { createGroup, sendMessage } from "@/services/message";
+import {
+  createGroup,
+  markMessagesAsReceived,
+  sendMessage,
+} from "@/services/message";
 import {
   doc,
   getFirestore,
   runTransaction,
   Timestamp,
+  updateDoc,
 } from "@react-native-firebase/firestore";
 
 jest.mock("@react-native-firebase/firestore", () => {
@@ -11,19 +16,20 @@ jest.mock("@react-native-firebase/firestore", () => {
   return {
     ...orig,
     doc: jest.fn((...args) => {
-      return { id: "jestDocId", ...args };
+      return { id: "jestDocId", args };
     }),
     getDoc: jest.fn(),
     getFirestore: jest.fn(() => {
       return "db";
     }),
     collection: jest.fn((...args) => {
-      return { id: "jestCollectionId", ...args };
+      return { id: "jestCollectionId", args };
     }),
     serverTimestamp: jest.fn(() => {
       return orig.Timestamp.fromMillis(0);
     }),
     runTransaction: jest.fn(),
+    updateDoc: jest.fn(),
   };
 });
 
@@ -48,12 +54,11 @@ describe("@/services/message.ts", () => {
     expect(docs).toBe("jestDocId");
     expect(getFirestore).toHaveBeenCalled();
     expect(doc).toHaveBeenCalledWith({
-      "0": "db",
-      "1": "groups",
+      args: ["db", "groups"],
       id: "jestCollectionId",
     });
     expect(set).toHaveBeenCalledWith(
-      (doc as jest.Mock).mock.results[0]!.value,
+      (doc as jest.Mock).mock.results[0]?.value,
       {
         id: "jestDocId",
         lastSender: null,
@@ -62,6 +67,7 @@ describe("@/services/message.ts", () => {
         name: null,
         lastMessage: null,
         lastNotified: Timestamp.fromMillis(0),
+        avatar: null,
       },
     );
   });
@@ -91,20 +97,35 @@ describe("@/services/message.ts", () => {
 
     expect(getFirestore).toHaveBeenCalled();
     expect(doc).toHaveBeenCalledWith({
-      "0": "db",
-      "1": "messages",
-      "2": "gid",
-      "3": "messages",
+      args: ["db", "messages", "gid", "messages"],
       id: "jestCollectionId",
     });
     expect(set).toHaveBeenCalledWith(
-      (doc as jest.Mock).mock.results[1]!.value,
+      (doc as jest.Mock).mock.results[1]?.value,
       {
         id: "jestDocId",
         message: "test",
         sender: "uid",
+        received: null,
         timestamp: Timestamp.fromMillis(0),
       },
+    );
+  });
+
+  test("Test markMessagesAsReceived", async () => {
+    await markMessagesAsReceived("gid", "mid");
+
+    expect(getFirestore).toHaveBeenCalled();
+    expect(doc).toHaveBeenCalledWith(
+      "db",
+      "messages",
+      "gid",
+      "messages",
+      "mid",
+    );
+    expect(updateDoc).toHaveBeenCalledWith(
+      (doc as jest.Mock).mock.results[0]?.value,
+      { received: Timestamp.fromMillis(0) },
     );
   });
 });

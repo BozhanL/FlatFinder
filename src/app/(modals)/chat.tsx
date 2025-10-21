@@ -1,6 +1,7 @@
+import ChatHeaderButton from "@/components/message/ChatHeaderButton";
 import ChatList from "@/components/message/ChatList";
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { JSX } from "react";
+import type { JSX } from "react";
 
 export default function DetailsScreen(): JSX.Element {
   const { gid, gname, uid } = useLocalSearchParams<{
@@ -12,7 +13,12 @@ export default function DetailsScreen(): JSX.Element {
   return (
     <>
       <Stack.Screen
-        options={{ headerShown: true, title: gname, presentation: "modal" }}
+        options={{
+          headerShown: true,
+          title: gname,
+          presentation: "modal",
+          headerRight: () => <ChatHeaderButton gid={gid} uid={uid} />,
+        }}
       />
       <ChatList gid={gid} gname={gname} uid={uid} />
     </>

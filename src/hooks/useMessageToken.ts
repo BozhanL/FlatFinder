@@ -1,10 +1,8 @@
 /* istanbul ignore file */
 // This file mainly contains code for IO, and unable to be tested in unit tests.
-import {
-  FirebaseAuthTypes,
-  getAuth,
-  onAuthStateChanged,
-} from "@react-native-firebase/auth";
+// react-native-firebase does not work in jest unit test environment.
+// Mocking it is possible, but it may not represent real world situation.
+import useUser from "@/hooks/useUser";
 import {
   doc,
   getFirestore,
@@ -16,14 +14,10 @@ import {
   getToken,
   onTokenRefresh,
 } from "@react-native-firebase/messaging";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export default function useMessageToken() {
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-
-  useEffect(() => {
-    return onAuthStateChanged(getAuth(), setUser);
-  }, []);
+export default function useMessageToken(): void {
+  const user = useUser();
 
   useEffect(() => {
     if (!user) {
@@ -32,17 +26,13 @@ export default function useMessageToken() {
 
     const uid = user.uid;
     const m = getMessaging();
-    getToken(m).then((token) => {
-      registerToken(uid, token);
-    });
+    void getToken(m).then((token) => registerToken(uid, token));
 
-    return onTokenRefresh(m, (token) => {
-      registerToken(uid, token);
-    });
+    return onTokenRefresh(m, (token) => registerToken(uid, token));
   }, [user]);
 }
 
-async function registerToken(uid: string, token: string) {
+async function registerToken(uid: string, token: string): Promise<void> {
   const db = getFirestore();
   const docRef = doc(db, "notifications", token);
   console.log("Register token:", token, "for user:", uid);
