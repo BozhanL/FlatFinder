@@ -37,8 +37,13 @@ const PROBLEMATIC_PACKAGES: PackageConfig[] = [
   },
   {
     name: "react-native-swiper-flatlist",
-    sourceDir: "src",
-    problemPaths: ["SwiperFlatList.tsx"],
+    sourceDir: "",
+    problemPaths: [
+      "index.ts",
+      "src/components/Pagination/Pagination.tsx",
+      "src/components/SwiperFlatList/SwiperFlatList.tsx",
+      "src/components/SwiperFlatList/SwiperFlatListProps.tsx",
+    ],
   },
 ];
 
