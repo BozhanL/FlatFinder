@@ -6,7 +6,15 @@ import * as Linking from "expo-linking"; // <-- NEW: Import expo-linking for cre
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { type JSX, useEffect, useState } from "react";
 //adding share, touchableOpacity
-import { ActivityIndicator, Image, ScrollView, Share, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function PropertyDetailsPage(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,7 +22,7 @@ export default function PropertyDetailsPage(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-   //share logic --
+  //share logic --
   const handleShare = async (): Promise<void> => {
     if (!property) {
       console.error("Cannot share: Property data is missing.");
@@ -24,16 +32,16 @@ export default function PropertyDetailsPage(): JSX.Element {
     // 1. Construct the path based on Expo Router's file system structure.
     // The path is correct: /property/[id]
     const deepLinkPath = `/property/${property.id}`;
-    
+
     // 2. Use Linking.createURL() to correctly generate the shareable link.
-    // This is the definitive way to handle schemes (exp:// or custom-scheme://) 
+    // This is the definitive way to handle schemes (exp:// or custom-scheme://)
     // in Expo and React Native.
-    const shareableUrl = Linking.createURL(deepLinkPath); 
+    const shareableUrl = Linking.createURL(deepLinkPath);
 
     const message = `
 I found a great property! 🏠
 ${property.title}
-${formatPrice(property.price, property.type)} | ${property.address || 'Location Hidden'}
+${formatPrice(property.price, property.type)} | ${property.address || "Location Hidden"}
 
 Tap to view the details in the app: ${shareableUrl}
     `.trim();
@@ -56,10 +64,6 @@ Tap to view the details in the app: ${shareableUrl}
     }
   };
 
-
-
-
-  
   //unchanged
   useEffect(() => {
     const fetchPropertyDetails = async (): Promise<void> => {
@@ -176,13 +180,12 @@ Tap to view the details in the app: ${shareableUrl}
           headerShown: true,
           title: property.title,
           presentation: "modal",
-           headerRight: () => (
+          headerRight: () => (
             <TouchableOpacity onPress={handleShare} testID="share-button">
               <Ionicons name="share-social-outline" size={24} color="#2563eb" />
             </TouchableOpacity>
           ),
         }}
-
       />
 
       <ScrollView style={styles.scrollContent}>
