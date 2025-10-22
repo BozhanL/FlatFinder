@@ -87,18 +87,15 @@ export default function PostPropertyPage(): JSX.Element {
     clearSuggestions();
   };
 
-  useEffect(() => {
-    void (async (): Promise<void> => {
+  const pickImage = async (): Promise<void> => {
+    try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== ImagePicker.PermissionStatus.GRANTED) {
         console.warn("Image library permission denied");
+        return;
       }
-    })();
-  }, []);
 
-  const pickImage = async (): Promise<void> => {
-    try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 0.7,
