@@ -97,7 +97,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     void fetchPropertyDetails();
   }, [id, uid]);
 
-  // Toggle favorite status@G2CCC
+  // Toggle favorite status by @G2CCC
   const toggleFavorite = async (): Promise<void> => {
     if (!uid || !property) {
       return;
