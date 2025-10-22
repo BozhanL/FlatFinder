@@ -184,7 +184,7 @@ export default function PropertyDetailsPage(): JSX.Element {
           headerShown: true,
           title: property.title,
           presentation: "modal",
-          //Add favorite button to header @G2CCC
+          // Add favorite button to header by @G2CCC
           headerRight: () => (
             <TouchableOpacity
               onPress={() => {
