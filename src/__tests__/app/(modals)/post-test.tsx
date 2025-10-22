@@ -11,7 +11,7 @@ import { Alert } from "react-native";
 process.env["EXPO_PUBLIC_SUPABASE_URL"] = "https://mock.supabase.co";
 process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] = "mock-key";
 
-jest.mock("@/library/supabaseClient", () => ({
+jest.mock("@/lib/supabaseClient", () => ({
   supabase: {
     from: jest.fn(() => ({
       insert: jest.fn(() => ({
