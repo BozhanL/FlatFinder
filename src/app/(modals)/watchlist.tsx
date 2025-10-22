@@ -10,7 +10,7 @@ import {
   query,
 } from "@react-native-firebase/firestore";
 import { Stack, router } from "expo-router";
-import React, { useEffect, useMemo, useState, type JSX } from "react";
+import React, { useCallback, useEffect, useState, type JSX } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -55,39 +55,39 @@ export default function WatchlistModal(): JSX.Element {
   }, [uid]);
 
   // Render right action (delete button)
-  const renderRightActions = (item: WatchItem): JSX.Element => (
-    <View
-      style={{
-        width: 88,
-        height: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#fee2e2",
-        paddingRight: 14,
-        borderTopRightRadius: 10,
-        borderBottomRightRadius: 10,
-      }}
-    >
+  const renderRightActions = useCallback(
+    (item: WatchItem): JSX.Element => (
       <TouchableOpacity
         onPress={(): void => {
-          if (!uid) {
-            return;
-          }
-          const db = getFirestore();
-            void deleteDoc(doc(db, "users", uid, "watchlist", item.propertyId));
+          if (!uid) {return;}
+          void deleteDoc(
+            doc(getFirestore(), "users", uid, "watchlist", item.propertyId),
+          );
         }}
+        activeOpacity={0.7}
         style={{
-          paddingVertical: 8,
-          paddingHorizontal: 12,
-          borderRadius: 10,
-          backgroundColor: "#ef4444",
+          width: 88,
+          height: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#fb5f5fff",
+          borderTopRightRadius: 20,
+          borderBottomRightRadius: 20,
         }}
       >
-        <MaterialCommunityIcons name="delete" size={20} color="#fff" />
+        <View
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            backgroundColor: "#fb5f5fff",
+          }}
+        >
+          <MaterialCommunityIcons name="delete" size={20} color="#fff" />
+        </View>
       </TouchableOpacity>
-    </View>
+    ),
+    [uid],
   );
-
 
   if (items === null) {
     return (
@@ -98,7 +98,7 @@ export default function WatchlistModal(): JSX.Element {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View
         style={{
           flex: 1,

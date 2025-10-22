@@ -1,7 +1,7 @@
+import useUser from "@/hooks/useUser";
 import { styles } from "@/styles/property-style";
 import type { Property } from "@/types/Property";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getAuth } from "@react-native-firebase/auth";
 import {
   deleteDoc,
   doc,
@@ -22,13 +22,12 @@ import {
 } from "react-native";
 
 export default function PropertyDetailsPage(): JSX.Element {
-  const auth = getAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFav, setIsFav] = useState(false);
-  const uid = auth.currentUser?.uid ?? null;
+  const uid = useUser()?.uid ?? null;
   useEffect(() => {
     const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
@@ -70,21 +69,6 @@ export default function PropertyDetailsPage(): JSX.Element {
           };
 
           setProperty(propertyDetails);
-
-          //Load watchlist status after loading property details
-          if (uid) {
-            const favRef = doc(
-              db,
-              "users",
-              uid,
-              "watchlist",
-              propertyDetails.id,
-            );
-            const favSnap = await getDoc(favRef);
-            setIsFav(favSnap.exists());
-          } else {
-            setIsFav(false);
-          }
         }
       } catch (err) {
         console.error("Error getting details:", err);
@@ -96,6 +80,26 @@ export default function PropertyDetailsPage(): JSX.Element {
 
     void fetchPropertyDetails();
   }, [id, uid]);
+
+  //Load watchlist status by @G2CCC
+  useEffect(() => {
+    const run = async (): Promise<void> => {
+      if (!uid || !property?.id) {
+        setIsFav(false);
+        return;
+      }
+      const favRef = doc(
+        getFirestore(),
+        "users",
+        uid,
+        "watchlist",
+        property.id,
+      );
+      const favSnap = await getDoc(favRef);
+      setIsFav(favSnap.exists());
+    };
+    void run();
+  }, [uid, property?.id]);
 
   // Toggle favorite status by @G2CCC
   const toggleFavorite = async (): Promise<void> => {
