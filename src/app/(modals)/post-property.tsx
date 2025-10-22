@@ -43,18 +43,6 @@ export default function PostPropertyPage(): JSX.Element {
   const addressInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    // Fix 1: Explicitly mark async IIFE as void to indicate intentional fire-and-forget
-    void (async (): Promise<void> => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      // Fix 2: Use proper enum value for comparison
-      if (status !== ImagePicker.PermissionStatus.GRANTED) {
-        console.warn("Image library permission denied");
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
       (): void => {
@@ -99,17 +87,24 @@ export default function PostPropertyPage(): JSX.Element {
     clearSuggestions();
   };
 
+   useEffect(() => {
+    void (async (): Promise<void> => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== ImagePicker.PermissionStatus.GRANTED) {
+        console.warn("Image library permission denied");
+      }
+    })();
+  }, []);
+
   const pickImage = async (): Promise<void> => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        mediaTypes: ["images"],
         quality: 0.7,
       });
 
       if (!result.canceled) {
-        // Fix 3: Remove unnecessary optional chaining since result.assets is always defined
         const asset = result.assets[0];
         if (asset?.uri) {
           addImage(asset.uri);
@@ -218,7 +213,6 @@ export default function PostPropertyPage(): JSX.Element {
                   borderColor: "#ddd",
                   borderStyle: "dashed",
                 }}
-                // Fix 4: Wrap async function to ensure void return for onPress
                 onPress={(): void => {
                   void pickImage();
                 }}
