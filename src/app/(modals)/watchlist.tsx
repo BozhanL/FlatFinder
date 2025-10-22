@@ -74,11 +74,7 @@ export default function WatchlistModal(): JSX.Element {
             return;
           }
           const db = getFirestore();
-          void (async (): Promise<void> => {
-            await deleteDoc(
-              doc(db, "users", uid, "watchlist", item.propertyId),
-            );
-          })();
+            void deleteDoc(doc(db, "users", uid, "watchlist", item.propertyId));
         }}
         style={{
           paddingVertical: 8,
@@ -92,12 +88,6 @@ export default function WatchlistModal(): JSX.Element {
     </View>
   );
 
-  const keyExtractor = useMemo(
-    () =>
-      (it: WatchItem): string =>
-        it.propertyId,
-    [],
-  );
 
   if (items === null) {
     return (
@@ -136,7 +126,7 @@ export default function WatchlistModal(): JSX.Element {
           <FlatList
             style={{ flex: 1, backgroundColor: "#fff" }}
             data={items}
-            keyExtractor={keyExtractor}
+            keyExtractor={(it: WatchItem): string => it.propertyId}
             contentContainerStyle={{ paddingVertical: 6 }}
             initialNumToRender={6}
             windowSize={8}
@@ -149,7 +139,7 @@ export default function WatchlistModal(): JSX.Element {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => {
-                    router.replace({
+                    router.push({
                       pathname: "/property",
                       params: { id: item.propertyId },
                     });
@@ -172,7 +162,7 @@ export default function WatchlistModal(): JSX.Element {
                     minHeight: 120,
                   }}
                 >
-                  {/*to be replaced by actual image*/}
+                  {/*to be replaced by actual image @Anthony-8114 */}
                   <Image
                     source={
                       item.imageUrl
