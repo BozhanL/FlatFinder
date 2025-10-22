@@ -139,7 +139,7 @@ export default function WatchlistModal(): JSX.Element {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => {
-                    router.replace({
+                    router.push({
                       pathname: "/property",
                       params: { id: item.propertyId },
                     });
