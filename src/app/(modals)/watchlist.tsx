@@ -10,7 +10,7 @@ import {
   orderBy,
   query,
 } from "@react-native-firebase/firestore";
-import { Stack, router } from "expo-router";
+import { router, Stack } from "expo-router";
 import React, { useCallback, useEffect, useState, type JSX } from "react";
 import {
   ActivityIndicator,
@@ -47,8 +47,9 @@ export default function WatchlistModal(): JSX.Element {
       orderBy("createdAt", "desc"),
     );
     const unsub = onSnapshot(q, (snap) => {
-      const list: WatchItem[] = snap.docs.map((d: { data: () => WatchItem }) =>
-        d.data(),
+      const list: WatchItem[] = snap.docs.map(
+        (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<WatchItem>) =>
+          d.data(),
       );
       setItems(list);
     });
