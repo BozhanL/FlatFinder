@@ -74,11 +74,7 @@ export default function WatchlistModal(): JSX.Element {
             return;
           }
           const db = getFirestore();
-          void (async (): Promise<void> => {
-            await deleteDoc(
-              doc(db, "users", uid, "watchlist", item.propertyId),
-            );
-          })();
+            void deleteDoc(doc(db, "users", uid, "watchlist", item.propertyId));
         }}
         style={{
           paddingVertical: 8,
