@@ -172,7 +172,7 @@ export default function WatchlistModal(): JSX.Element {
                     minHeight: 120,
                   }}
                 >
-                  {/*to be replaced by actual image*/}
+                  {/*to be replaced by actual image @Anthony-8114 */}
                   <Image
                     source={
                       item.imageUrl
