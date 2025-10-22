@@ -88,12 +88,6 @@ export default function WatchlistModal(): JSX.Element {
     </View>
   );
 
-  const keyExtractor = useMemo(
-    () =>
-      (it: WatchItem): string =>
-        it.propertyId,
-    [],
-  );
 
   if (items === null) {
     return (
