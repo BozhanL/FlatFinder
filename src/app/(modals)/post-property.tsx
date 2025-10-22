@@ -87,7 +87,7 @@ export default function PostPropertyPage(): JSX.Element {
     clearSuggestions();
   };
 
-   useEffect(() => {
+  useEffect(() => {
     void (async (): Promise<void> => {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
