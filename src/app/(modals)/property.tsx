@@ -79,7 +79,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     };
 
     void fetchPropertyDetails();
-  }, [id, uid]);
+  }, [id]);
 
   //Load watchlist status by @G2CCC
   useEffect(() => {
