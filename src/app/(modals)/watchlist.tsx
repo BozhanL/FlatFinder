@@ -126,7 +126,7 @@ export default function WatchlistModal(): JSX.Element {
           <FlatList
             style={{ flex: 1, backgroundColor: "#fff" }}
             data={items}
-            keyExtractor={keyExtractor}
+            keyExtractor={(it: WatchItem): string => it.propertyId}
             contentContainerStyle={{ paddingVertical: 6 }}
             initialNumToRender={6}
             windowSize={8}
