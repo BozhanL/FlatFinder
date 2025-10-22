@@ -1,5 +1,5 @@
+import useUser from "@/hooks/useUser";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getAuth } from "@react-native-firebase/auth";
 import {
   collection,
   deleteDoc,
@@ -33,7 +33,7 @@ type WatchItem = {
 };
 
 export default function WatchlistModal(): JSX.Element {
-  const uid = getAuth().currentUser?.uid ?? null;
+  const uid = useUser()?.uid ?? null;
   const [items, setItems] = useState<WatchItem[] | null>(null);
 
   useEffect(() => {
