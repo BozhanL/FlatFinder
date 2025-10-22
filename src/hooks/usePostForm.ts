@@ -187,6 +187,9 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         } else if (!Number.isInteger(contractNum)) {
           newErrors["minContractLength"] =
             "Contract length must be whole weeks";
+        } else if (contractNum < 0) {
+          newErrors["minContractLength"] =
+            "Contract length must be positive number";
         } else if (contractNum > 520) {
           newErrors["minContractLength"] = "Maximum 520 weeks (10 years)";
         }
