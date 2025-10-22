@@ -94,7 +94,7 @@ export default function Profile(): JSX.Element {
   const avatar =
     profile.avatarUrl && profile.avatarUrl.trim() !== ""
       ? { uri: profile.avatarUrl }
-      : require("../../../assets/images/react-logo.png");
+      : require("assets/images/react-logo.png");
 
   return (
     <ScrollView

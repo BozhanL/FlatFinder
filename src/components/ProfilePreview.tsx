@@ -96,13 +96,15 @@ export default function ProfilePreview(props: Props): JSX.Element {
     [live?.avatarUrl, live?.avatar],
   );
 
-  const pics = live
-    ? live.photoUrls?.length
-      ? live.photoUrls
-      : live.avatarUrl
-        ? [live.avatarUrl]
-        : []
-    : [];
+  let pics: string[] = [];
+
+  if (live) {
+    if (live.photoUrls?.length) {
+      pics = live.photoUrls;
+    } else if (live.avatarUrl) {
+      pics = [live.avatarUrl];
+    }
+  }
 
   const resolved = avatarSource
     ? Image.resolveAssetSource(avatarSource)
