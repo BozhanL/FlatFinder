@@ -106,8 +106,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     if (!uid || !property) {
       return;
     }
-    const db = getFirestore();
-    const favRef = doc(db, "users", uid, "watchlist", property.id);
+    const favRef = doc(getFirestore(), "users", uid, "watchlist", property.id);
 
     if (isFav) {
       await deleteDoc(favRef);

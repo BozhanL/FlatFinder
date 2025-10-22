@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  FirebaseFirestoreTypes,
   getFirestore,
   onSnapshot,
   orderBy,
@@ -29,7 +30,7 @@ type WatchItem = {
   type: string;
   address: string;
   imageUrl: string;
-  createdAt?: unknown;
+  createdAt?: FirebaseFirestoreTypes.Timestamp;
 };
 
 export default function WatchlistModal(): JSX.Element {
