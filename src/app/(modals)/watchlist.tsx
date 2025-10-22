@@ -170,7 +170,7 @@ export default function WatchlistModal(): JSX.Element {
                     source={
                       item.imageUrl
                         ? { uri: item.imageUrl }
-                        : require("../../../assets/images/react-logo.png")
+                        : require("assets/images/react-logo.png")
                     }
                     style={{
                       width: 100,
