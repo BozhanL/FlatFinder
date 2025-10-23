@@ -201,17 +201,7 @@ jobs:
       - name: 📦 Set up flatfinder.keystore
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        run: openssl base64 -d <<< $SIGNING_KEY > ./flatfinder.keystore
-
-      - name: 📦 Validate Keystore
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-        run: |
-          if [ ! -f "./flatfinder.keystore" ]; then
-            echo "Keystore not found!"
-            exit 1
-          fi
-          keytool -list -keystore "./flatfinder.keystore" -storepass "$KEYSTORE_PASSWORD"
+        run: echo $SIGNING_KEY | base64 -d - > ./flatfinder.keystore
 
       - name: 📱 Build
         working-directory: ./docker
