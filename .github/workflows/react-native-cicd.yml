@@ -203,11 +203,19 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: openssl base64 -d <<< $SIGNING_KEY > ./flatfinder.keystore
 
+      - name: 📦 Validate Keystore
+        run: |
+          if [ ! -f "$KEYSTORE_PATH" ]; then
+            echo "Keystore not found!"
+            exit 1
+          fi
+          keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD"
+
       - name: 📱 Build
         working-directory: ./docker
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-        run: docker compose up apk --build
+        run: docker compose up --build --exit-code-from apk apk
 
       - name: 📦 Upload build artifacts to GitHub
         uses: actions/upload-artifact@v4
