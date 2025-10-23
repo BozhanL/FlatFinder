@@ -11,7 +11,9 @@ set -x
 npm ci
 npm run prebuild:android:clean
 
-./android/gradlew assembleRelease
+cd ./android
+./gradlew assembleRelease
+cd ./..
 
 APK_PATH=$(find ./android/app/build/outputs/apk/release -name "*-release.apk" | head -n 1)
 
