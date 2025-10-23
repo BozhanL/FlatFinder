@@ -1,7 +1,7 @@
 FROM cimg/android:2025.02-node
 
 WORKDIR /app
-COPY ./../ /app/
+COPY --chown=root:root ./../ /app/
 
 RUN chmod +x ./docker/entrypoint.sh
 
