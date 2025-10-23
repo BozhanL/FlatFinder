@@ -201,7 +201,7 @@ jobs:
       - name: 📦 Set up compose.yaml
         env:
           COMPOSE_FILE_DATA: ${{ secrets.COMPOSE_FILE_DATA }}
-        run: openssl base64 -d $COMPOSE_FILE_DATA > ./compose.yaml
+        run: openssl base64 -d <<< $COMPOSE_FILE_DATA > ./compose.yaml
 
       - name: 📦 Set up flatfinder.keystore
         env:
