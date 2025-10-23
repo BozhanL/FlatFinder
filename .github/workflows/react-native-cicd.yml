@@ -199,6 +199,8 @@ jobs:
         uses: docker/setup-compose-action@v1
 
       - name: 📦 Set up compose.yaml
+        env:
+          COMPOSE_FILE_DATA: ${{ secrets.COMPOSE_FILE_DATA }}
         run: echo $COMPOSE_FILE_DATA > ./compose.yaml
 
       - name: 📦 Set up flatfinder.keystore
