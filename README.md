@@ -30,3 +30,5 @@ You can download the latest APK from the [releases page](https://github.com/Bozh
 
 1. Filename longer than 260 characters error on Windows
    - Solution: follow this [comment](https://github.com/BozhanL/FlatFinder/pull/25#issuecomment-3253028690)
+2. Could not GET '<https://www.jitpack.io/app/notifee/core/202108261754/core-202108261754.pom>'. Received status code 500 from server: Internal Server Error
+   - Solution: Compile the project again.
