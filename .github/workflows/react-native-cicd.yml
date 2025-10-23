@@ -204,12 +204,14 @@ jobs:
         run: openssl base64 -d <<< $SIGNING_KEY > ./flatfinder.keystore
 
       - name: 📦 Validate Keystore
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
         run: |
-          if [ ! -f "$KEYSTORE_PATH" ]; then
+          if [ ! -f "./flatfinder.keystore" ]; then
             echo "Keystore not found!"
             exit 1
           fi
-          keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD"
+          keytool -list -keystore "./flatfinder.keystore" -storepass "$KEYSTORE_PASSWORD"
 
       - name: 📱 Build
         working-directory: ./docker
