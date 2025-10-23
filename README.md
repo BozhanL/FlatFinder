@@ -7,83 +7,22 @@
 
 You can download the latest APK from the [releases page](https://github.com/BozhanL/FlatFinder/releases).
 
-## Setup for Your Own Use
+## Build it Locally
 
-### 1. Firebase Configuration
+### 1. Build the APK
 
-To use this project, you need to set up your own Firebase project.
+1. Install [Docker and Docker Compose](https://docs.docker.com/engine/install/) on a Linux machine.
+2. Decompress the archive from the Resources column on the Trello board.
+3. Navigate to the decompressed folder in your terminal.
+4. Run `docker compose up --build apk` to build the APK.
+5. The built APK will be located in the `./apk/output` folder.
 
-Features that require Firebase:
+### 2. Enable Notifications
 
-- Authentication
-- Firestore Database
-- Cloud Messaging (Notifications)
-
-#### Authentication
-
-Enabled Sign-in methods:
-
-- Email/Password
-- Google
-
-Set up Google Sign-In by following this [guide](https://react-native-google-signin.github.io/docs/setting-up/get-config-file?firebase-or-not=firebase#step-2).
-
-#### Firestore Database
-
-Please check the `firestore.rules` and `firestore.indexes.json`
-
-#### Cloud Messaging
-
-No additional setup is required for Cloud Messaging.
-
-### 2. Build
-
-To build this project for your own use
-
-#### Build Prerequisites
-
-- Node.js (v22)
-- npm (v10)
-- Java (Temurin v21)
-- Android Studio (Narwhal Feature Drop | 2025.1.2 or later)
-- Ninja (v1.13.1 or later)
-- Firebase
-
-Follow this [expo guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local) to set up Android Studio. (DO NOT install JAVA from this guide)
-
-Follow this [Temurin guide](https://adoptium.net/en-GB/temurin/releases?version=21&os=any&arch=any) to install Java.
-
-Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js and npm.
-
-#### Build Steps
-
-1. Clone this repository by `git clone https://github.com/BozhanL/FlatFinder.git`
-2. Navigate to the project directory `cd FlatFinder`
-3. Replace the `google-services.json`, android `package` name and `firebaseWebConfig` in `app.config.ts` with your own Firebase project configuration.
-4. Install dependencies by `npm ci`
-5. Prebuild the project by `npx expo prebuild --platform android --clean`
-6. Navigate to the android directory `cd android`
-7. Build the project by `./gradlew assembleRelease`
-8. Final APK can be found in `app/build/outputs/apk/release/app-release.apk`
-9. To enable Google Sign-In, sign the APK with your own keystore. Follow this [guide](https://developer.android.com/tools/apksigner#usage-sign).
-
-### 3. Enable Notifications
-
-#### Notification Prerequisites
-
-- Docker (latest)
-- Docker Compose (latest)
-- Firebase
-- An SMTP server (e.g., Gmail, Outlook, etc.)
-
-To get Firebase service account key file, follow [this guide](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments).
-
-#### Steps
-
-- Download the `compose.yaml` from [FlatFinderNotification](https://github.com/BozhanL/FlatFinderNotification/blob/main/compose.yaml)
-- Replace `SMTP_HOST`, `SMTP_FROM`,`SMTP_USER`, and `SMTP_PASS` with your own SMTP server configuration.
-- Replace `secrets.serviceAccountKey.file` with the path to your own Firebase service account key file.
-- Run `docker compose up -d` to start the notification server.
+1. Install [Docker and Docker Compose](https://docs.docker.com/engine/install/) on a Linux machine.
+2. Decompress the archive from the Resources column on the Trello board.
+3. Navigate to the decompressed folder in your terminal.
+4. Run `docker compose up --build notification` to start the notification server.
 
 ### Common Issues
 
