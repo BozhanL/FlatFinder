@@ -7,11 +7,10 @@ COPY ./../ /app/
 RUN apt update && \
     apt install -y ninja-build && \
     mkdir -p /root/.gradle && \
-    cp ./docker/gradle.properties /root/.gradle/gradle.properties && \
     chmod +x ./docker/entrypoint.sh
 
 ENV PATH="${ANDROID_HOME}/build-tools/35.0.0:${PATH}"
-ENV GRADLE_HOME="~/.gradle"
+ENV GRADLE_HOME="/root/.gradle"
 VOLUME [ "/output" ]
 
 ENTRYPOINT [ "./docker/entrypoint.sh" ]

@@ -1,0 +1,17 @@
+services:
+  apk:
+    build:
+      context: ./../
+      dockerfile: ./docker/Dockerfile
+    secrets:
+      - keystore
+    environment:
+      KEYSTORE_PATH: /run/secrets/keystore
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+      CI: ${CI}
+    volumes:
+      - ./apk/output:/output:rw
+
+secrets:
+  keystore:
+    file: ./../flatfinder.keystore

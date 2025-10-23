@@ -198,17 +198,15 @@ jobs:
       - name: 🏗 Set up Docker Compose
         uses: docker/setup-compose-action@v1
 
-      - name: 📦 Set up compose.yaml
-        env:
-          COMPOSE_FILE_DATA: ${{ secrets.COMPOSE_FILE_DATA }}
-        run: openssl base64 -d <<< $COMPOSE_FILE_DATA > ./compose.yaml
-
       - name: 📦 Set up flatfinder.keystore
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: openssl base64 -d <<< $SIGNING_KEY > ./flatfinder.keystore
 
       - name: 📱 Build
+        working-directory: ./docker
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
         run: docker compose up apk --build
 
       - name: 📦 Upload build artifacts to GitHub
