@@ -10,7 +10,7 @@ services:
       KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
       CI: ${CI}
     volumes:
-      - ./apk/output:/output:rw
+      - ./../output:/output:rw
 
 secrets:
   keystore:
