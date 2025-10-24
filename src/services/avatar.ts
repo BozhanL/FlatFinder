@@ -37,7 +37,11 @@ function storagePathFromPublicUrl(publicUrl: string): string | null {
     if (idx === -1) {
       return null;
     }
-    return publicUrl.substring(idx + marker.length); // => "uid/xxx.jpg"
+    const pathWithQuery = publicUrl.substring(idx + marker.length); // => "uid/xxx.jpg?width=1024&height=1024"
+    const queryIdx = pathWithQuery.indexOf("?");
+    return queryIdx === -1
+      ? pathWithQuery
+      : pathWithQuery.substring(0, queryIdx); // => "uid/xxx.jpg"
   } catch {
     return null;
   }
@@ -161,6 +165,7 @@ export async function deleteUserPhoto(index: number): Promise<string[]> {
 
   return next;
 }
+
 export async function syncAvatarFromPhotos(
   photos: string[],
   setForm: Dispatch<SetStateAction<{ avatarUrl?: string | null } | null>>,

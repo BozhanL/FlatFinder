@@ -26,7 +26,7 @@ type UserDoc = {
   budget?: number | null;
   location?: string | null;
   tags?: unknown;
-  avatarUrl?: string | null;
+  avatarUrl?: string | null; // avatarUrl === photoUrls[0]
   photoUrls?: string[];
 };
 
