@@ -61,7 +61,9 @@ export default function WatchlistModal(): JSX.Element {
     imageUrl: string | string[] | undefined,
   ): string | null => {
     // No image in Firebase
-    if (!imageUrl) {return null;}
+    if (!imageUrl) {
+      return null;
+    }
 
     // If it's an array, get the first image
     if (Array.isArray(imageUrl)) {
