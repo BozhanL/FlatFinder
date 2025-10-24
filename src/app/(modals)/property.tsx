@@ -1,16 +1,33 @@
+import useUser from "@/hooks/useUser";
 import { styles } from "@/styles/property-style";
 import type { Property } from "@/types/Property";
-import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+} from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { type JSX, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function PropertyDetailsPage(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [isFav, setIsFav] = useState(false);
+  const uid = useUser()?.uid ?? null;
   useEffect(() => {
     const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
@@ -63,6 +80,50 @@ export default function PropertyDetailsPage(): JSX.Element {
 
     void fetchPropertyDetails();
   }, [id]);
+
+  //Load watchlist status by @G2CCC
+  useEffect(() => {
+    const run = async (): Promise<void> => {
+      if (!uid || !property?.id) {
+        setIsFav(false);
+        return;
+      }
+      const favRef = doc(
+        getFirestore(),
+        "users",
+        uid,
+        "watchlist",
+        property.id,
+      );
+      const favSnap = await getDoc(favRef);
+      setIsFav(favSnap.exists());
+    };
+    void run();
+  }, [uid, property?.id]);
+
+  // Toggle favorite status by @G2CCC
+  const toggleFavorite = async (): Promise<void> => {
+    if (!uid || !property) {
+      return;
+    }
+    const favRef = doc(getFirestore(), "users", uid, "watchlist", property.id);
+
+    if (isFav) {
+      await deleteDoc(favRef);
+      setIsFav(false);
+    } else {
+      await setDoc(favRef, {
+        propertyId: property.id,
+        title: property.title,
+        price: property.price,
+        type: property.type ?? "rental",
+        address: property.address ?? "",
+        imageUrl: property.imageUrl ?? "",
+        createdAt: serverTimestamp(),
+      });
+      setIsFav(true);
+    }
+  };
 
   const formatPrice = (price: number, type?: string): string => {
     if (type === "sale") {
@@ -126,6 +187,24 @@ export default function PropertyDetailsPage(): JSX.Element {
           headerShown: true,
           title: property.title,
           presentation: "modal",
+          // Add favorite button to header by @G2CCC
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                void toggleFavorite();
+              }}
+              accessibilityLabel={
+                isFav ? "Remove from watchlist" : "Add to watchlist"
+              }
+              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+            >
+              <MaterialCommunityIcons
+                name={isFav ? "heart" : "heart-outline"}
+                size={24}
+                color={isFav ? "#ef4444" : "#444"}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
 
