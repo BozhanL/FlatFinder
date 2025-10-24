@@ -153,23 +153,25 @@ export default function Index(): JSX.Element {
           />
         </View>
 
-        {/* Show filter button on both tabs */}
-        <TouchableOpacity
-          onPress={() => {
-            router.push("/filter");
-          }}
-          activeOpacity={0.8}
-          style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
-        >
-          <Text
-            style={[
-              styles.filterBtnText,
-              filtersActive && styles.filterBtnTextActive,
-            ]}
+        {/* Show filter button only on Properties tab */}
+        {mode === TabMode.Properties && (
+          <TouchableOpacity
+            onPress={() => {
+              router.push("/filter");
+            }}
+            activeOpacity={0.8}
+            style={[styles.filterBtn, filtersActive && styles.filterBtnActive]}
           >
-            Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.filterBtnText,
+                filtersActive && styles.filterBtnTextActive,
+              ]}
+            >
+              Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Main content */}
