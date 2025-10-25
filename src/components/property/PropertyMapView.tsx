@@ -15,7 +15,7 @@ import {
   type OnPressEvent,
 } from "@maplibre/maplibre-react-native";
 import { router } from "expo-router";
-import { useEffect, useMemo, type JSX } from "react";
+import { useCallback, useEffect, useMemo, type JSX } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 // Ignores warning from maplibre as this warning is not code based
@@ -56,24 +56,39 @@ export default function PropertyMapView({
 }: PropertyMapViewProps): JSX.Element {
   const { properties: allProperties, loading, error } = useProperties();
 
-  // Apply filters to properties
   const filteredProperties = useMemo(
     () => applyPropertyFilters(allProperties, filters),
     [allProperties, filters],
   );
 
-  // Notify parent component when properties are loaded/filtered
   useEffect(() => {
     if (onPropertiesLoad && !loading) {
       onPropertiesLoad(allProperties, filteredProperties);
     }
   }, [allProperties, filteredProperties, loading, onPropertiesLoad]);
 
-  // Create GeoJSON for filtered properties with memoization
-  const createPropertyData: GeoJSON.FeatureCollection = useMemo(
-    () => ({
+  const rentalProperties = useMemo(
+    () => filteredProperties.filter((p) => p.type !== "sale"),
+    [filteredProperties],
+  );
+
+  const saleProperties = useMemo(
+    () => filteredProperties.filter((p) => p.type === "sale"),
+    [filteredProperties],
+  );
+
+  const formatPrice = (price: number, type?: string): string => {
+    if (type === "sale") {
+      return `$${price.toLocaleString()}`;
+    } else {
+      return `$${price}/wk`;
+    }
+  };
+
+  const createPropertyData = useCallback(
+    (properties: Property[]): GeoJSON.FeatureCollection => ({
       type: "FeatureCollection" as const,
-      features: filteredProperties.map((property) => ({
+      features: properties.map((property) => ({
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
@@ -84,28 +99,27 @@ export default function PropertyMapView({
           title: property.title,
           type: property.type || "rental",
           price: property.price,
+          priceLabel: formatPrice(property.price, property.type),
         },
       })),
     }),
-    [filteredProperties],
+    [],
   );
 
-  // Format price for display
-  const formatPrice = (price: number, type?: string): string => {
-    if (type === "sale") {
-      return `$${price.toLocaleString()}`;
-    } else {
-      return `$${price}/week`;
-    }
-  };
+  const rentalData = useMemo(
+    () => createPropertyData(rentalProperties),
+    [rentalProperties, createPropertyData],
+  );
 
-  // Handle post button press
+  const saleData = useMemo(
+    () => createPropertyData(saleProperties),
+    [saleProperties, createPropertyData],
+  );
+
   const handlePostProperty = (): void => {
-    // Updated to use the correct route format based on your post-property.tsx file
     router.push("/post-property");
   };
 
-  // Show error state
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -123,7 +137,6 @@ export default function PropertyMapView({
           console.log("Map finished loading");
         }}
       >
-        {/* RasterSource for OSM tiles */}
         <RasterSource
           id="osm"
           tileUrlTemplates={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
@@ -132,43 +145,91 @@ export default function PropertyMapView({
           <RasterLayer id="osm-layer" sourceID="osm" />
         </RasterSource>
 
-        {/* Camera to set initial view */}
         <Camera
           defaultSettings={{
             zoomLevel: 10,
             centerCoordinate: [174.7633, -36.8485],
           }}
+          maxBounds={{
+            ne: [179.0, -34.0],
+            sw: [166.0, -47.5],
+          }}
+          minZoomLevel={5}
+          maxZoomLevel={18}
         />
 
-        {/* Images for markers */}
         <Images
           images={{
-            pin: require("assets/images/pin.png"),
+            "rental-marker": require("assets/images/rental-marker.png"),
+            "rental-marker-selected": require("assets/images/rental-marker-selected.png"),
+            "sale-marker": require("assets/images/sale-marker.png"),
+            "sale-marker-selected": require("assets/images/sale-marker-selected.png"),
           }}
         />
 
-        {/* Property markers - only show if data is loaded */}
         {!loading && (
-          <ShapeSource
-            id="property-markers"
-            shape={createPropertyData}
-            onPress={onMarkerPress}
-          >
-            <SymbolLayer
-              id="property-icons"
-              style={{
-                iconImage: "pin",
-                iconSize: 0.2,
-                iconAnchor: "bottom",
-                iconAllowOverlap: true,
-                iconIgnorePlacement: true,
-              }}
-            />
-          </ShapeSource>
+          <>
+            <ShapeSource
+              id="rental-markers"
+              shape={rentalData}
+              onPress={onMarkerPress}
+            >
+              <SymbolLayer
+                id="rental-icons"
+                style={{
+                  iconImage: [
+                    "case",
+                    ["==", ["get", "id"], selectedProperty?.id ?? ""],
+                    "rental-marker-selected",
+                    "rental-marker",
+                  ],
+                  iconSize: 0.1,
+                  iconAnchor: "bottom",
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: true,
+                }}
+              />
+              <SymbolLayer
+                id="rental-price-labels"
+                style={{
+                  textField: ["get", "priceLabel"],
+                  textSize: 10,
+                  textColor: "#FFFFFF",
+                  textHaloColor: "#000000",
+                  textHaloWidth: 1.5,
+                  textAnchor: "center",
+                  textOffset: [0, -2],
+                  textAllowOverlap: true,
+                  textIgnorePlacement: true,
+                }}
+              />
+            </ShapeSource>
+
+            <ShapeSource
+              id="sale-markers"
+              shape={saleData}
+              onPress={onMarkerPress}
+            >
+              <SymbolLayer
+                id="sale-icons"
+                style={{
+                  iconImage: [
+                    "case",
+                    ["==", ["get", "id"], selectedProperty?.id ?? ""],
+                    "sale-marker-selected",
+                    "sale-marker",
+                  ],
+                  iconSize: 0.1,
+                  iconAnchor: "bottom",
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: true,
+                }}
+              />
+            </ShapeSource>
+          </>
         )}
       </MapView>
 
-      {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
@@ -178,7 +239,6 @@ export default function PropertyMapView({
         </View>
       )}
 
-      {/* Floating Property Tile */}
       {selectedProperty && (
         <View
           style={[
@@ -223,7 +283,6 @@ export default function PropertyMapView({
         </View>
       )}
 
-      {/* Floating Post Button */}
       <TouchableOpacity
         style={[
           styles.postButton,
