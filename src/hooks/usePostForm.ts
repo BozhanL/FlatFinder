@@ -76,7 +76,7 @@ export default function usePropertyForm(): UsePropertyFormReturn {
   ): Promise<string | null> => {
     try {
       console.log(`Starting upload ${index + 1} for:`, imageUri);
-      // Can be improved by using the same logic as the posting avatar to keep things consistant next sprint.
+      // IMPROVE: Can be improved by using the same logic as the posting avatar to keep things consistant next sprint. @Anthony-8114
       const response = await fetch(imageUri);
       const blob = await response.blob();
       const arrayBuffer = await new Response(blob).arrayBuffer();
