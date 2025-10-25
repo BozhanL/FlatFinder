@@ -14,5 +14,5 @@ export type Property = {
   contract?: number;
   description?: string;
   address?: string;
-  imageUrl?: string;
+  imageUrl?: string | string[];
 };
