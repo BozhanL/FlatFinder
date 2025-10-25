@@ -195,7 +195,7 @@ export default function PropertyMapView({
                   textHaloColor: "#000000",
                   textHaloWidth: 1.5,
                   textAnchor: "center",
-                  textOffset: [0, -3],
+                  textOffset: [0, -2],
                   textAllowOverlap: true,
                   textIgnorePlacement: true,
                 }}
@@ -216,9 +216,8 @@ export default function PropertyMapView({
                     "sale-marker-selected",
                     "sale-marker",
                   ],
-                  iconSize: 0.05,
-                  iconRotate: 180,
-                  iconAnchor: "top",
+                  iconSize: 0.1,
+                  iconAnchor: "bottom",
                   iconAllowOverlap: true,
                   iconIgnorePlacement: true,
                 }}
