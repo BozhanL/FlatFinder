@@ -147,6 +147,12 @@ export default function PropertyMapView({
             zoomLevel: 10,
             centerCoordinate: [174.7633, -36.8485],
           }}
+          maxBounds={{
+            ne: [179.0, -34.0],
+            sw: [166.0, -47.5],
+          }}
+          minZoomLevel={5}
+          maxZoomLevel={18}
         />
 
         <Images
