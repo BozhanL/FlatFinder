@@ -3,7 +3,7 @@
 // react-native-firebase does not work in jest unit test environment.
 // Mocking it is possible, but it may not represent real world situation.
 import useUser from "@/hooks/useUser";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 import type { FormData, FormErrors } from "@/types/PostProperty";
 import {
   GeoPoint,
