@@ -8,7 +8,6 @@ import {
 } from "@react-native-firebase/firestore";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system";
-//Improvement: Find a better Image picker with no text issue.
 import * as ImagePicker from "expo-image-picker";
 import mime from "mime";
 import type { Dispatch, SetStateAction } from "react";
@@ -76,7 +75,6 @@ export async function uploadUserPhoto(): Promise<string | null> {
 
   const picked = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ["images"],
-    allowsEditing: true,
     aspect: [1, 1],
     quality: 0.92,
   });
