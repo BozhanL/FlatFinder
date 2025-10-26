@@ -101,7 +101,6 @@ export default function PropertyMapView({
 
   // Handle post button press
   const handlePostProperty = (): void => {
-    // Updated to use the correct route format based on your post-property.tsx file
     router.push("/post-property");
   };
 
