@@ -63,4 +63,4 @@ You can download the latest APK from the [releases page](https://github.com/Bozh
 - maplibre-react-native warnings fix from [@ferdicus](https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852)
 - Address search from [Nominatim OpenStreetMap](https://nominatim.openstreetmap.org/ui/search.html)
 - Default Avatar from [UI Avatars](https://ui-avatars.com/)
-- Other open source libraries listed in `package.json`
+- Other open source libraries listed in [package.json](./package.json)
