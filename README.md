@@ -47,8 +47,8 @@ You can download the latest APK from the [releases page](https://github.com/Bozh
 | --------------- | -------- |
 | Anthony Yao     | 23215906 |
 | Bozhan Liang    | 23209715 |
-| Gary Zhang      |          |
-| Pulupoi Kaufusi |          |
+| Gary Zhang      | 21155263 |
+| Pulupoi Kaufusi | 21155263 |
 
 ## Credits
 
