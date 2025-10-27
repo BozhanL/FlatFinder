@@ -12,7 +12,7 @@ FlatFinder is a mobile application designed to help users find rental apartments
 
 ## Download
 
-You can download the latest APK from the [releases page](https://github.com/BozhanL/FlatFinder/releases).
+You can download the latest APK from the [releases page](https://github.com/BozhanL/FlatFinder/releases) or [CI/CD page](https://github.com/BozhanL/FlatFinder/actions/workflows/react-native-cicd.yml?query=branch%3Amain+is%3Acompleted+event%3Apush).
 
 ## Build it Locally
 
