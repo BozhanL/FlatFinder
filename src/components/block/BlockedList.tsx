@@ -1,6 +1,6 @@
 import useBlocked from "@/hooks/useBlocked";
 import useUser from "@/hooks/useUser";
-import useUserMap from "@/hooks/useUserList";
+import useUserMap from "@/hooks/useUserMap";
 import { unblockUser } from "@/services/swipe";
 import type { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import dayjs from "dayjs";
@@ -34,7 +34,7 @@ export default function BlockedList(): JSX.Element | null {
         return {
           uid: b.uid,
           name: user?.name || "Unknown",
-          avatar: user?.avatar ?? null,
+          avatar: user?.avatar ?? { uri: user?.avatarUrl },
           blockedAt: b.createdAt ?? null,
         };
       }),
