@@ -34,7 +34,7 @@ export default function BlockedList(): JSX.Element | null {
         return {
           uid: b.uid,
           name: user?.name || "Unknown",
-          avatar: user?.avatar ?? { uri: user?.avatarUrl },
+          avatar: user?.avatar ?? { uri: user?.avatarUrl ?? undefined },
           blockedAt: b.createdAt ?? null,
         };
       }),
