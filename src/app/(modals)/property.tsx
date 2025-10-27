@@ -1,17 +1,45 @@
+import useUser from "@/hooks/useUser";
 import { styles } from "@/styles/property-style";
 import type { Property } from "@/types/Property";
-import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+} from "@react-native-firebase/firestore";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { type JSX, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import { type JSX, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function PropertyDetailsPage(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFav, setIsFav] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const uid = useUser()?.uid ?? null;
 
+  // Fetches property details from database
   useEffect(() => {
+    // Returns error if property ID is not found
     const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
         setError("Property ID not found");
@@ -53,6 +81,7 @@ export default function PropertyDetailsPage(): JSX.Element {
 
           setProperty(propertyDetails);
         }
+        // Catches error if details failed to load.
       } catch (err) {
         console.error("Error getting details:", err);
         setError("Failed to load property details");
@@ -63,6 +92,50 @@ export default function PropertyDetailsPage(): JSX.Element {
 
     void fetchPropertyDetails();
   }, [id]);
+
+  // Load watchlist status by @G2CCC
+  useEffect(() => {
+    const run = async (): Promise<void> => {
+      if (!uid || !property?.id) {
+        setIsFav(false);
+        return;
+      }
+      const favRef = doc(
+        getFirestore(),
+        "users",
+        uid,
+        "watchlist",
+        property.id,
+      );
+      const favSnap = await getDoc(favRef);
+      setIsFav(favSnap.exists());
+    };
+    void run();
+  }, [uid, property?.id]);
+
+  // Toggle favorite status by @G2CCC
+  const toggleFavorite = async (): Promise<void> => {
+    if (!uid || !property) {
+      return;
+    }
+    const favRef = doc(getFirestore(), "users", uid, "watchlist", property.id);
+
+    if (isFav) {
+      await deleteDoc(favRef);
+      setIsFav(false);
+    } else {
+      await setDoc(favRef, {
+        propertyId: property.id,
+        title: property.title,
+        price: property.price,
+        type: property.type ?? "rental",
+        address: property.address ?? "",
+        imageUrl: property.imageUrl ?? "",
+        createdAt: serverTimestamp(),
+      });
+      setIsFav(true);
+    }
+  };
 
   const formatPrice = (price: number, type?: string): string => {
     if (type === "sale") {
@@ -78,6 +151,38 @@ export default function PropertyDetailsPage(): JSX.Element {
     }
     return `${weeks} weeks`;
   };
+
+  const handleScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ): void => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / SCREEN_WIDTH);
+    setCurrentImageIndex(index);
+  };
+
+  // Gets the images on firebase, which was uploaded to supabase
+  // uses a URL
+  const getImageUrls = (): string[] => {
+    if (!property?.imageUrl) {
+      return [];
+    }
+
+    if (Array.isArray(property.imageUrl)) {
+      return property.imageUrl;
+    }
+
+    return [property.imageUrl];
+  };
+
+  const renderImageItem = ({ item }: { item: string }): JSX.Element => (
+    <View style={{ width: SCREEN_WIDTH }}>
+      <Image
+        source={{ uri: item }}
+        style={styles.propertyImage}
+        resizeMode="cover"
+      />
+    </View>
+  );
 
   if (loading) {
     return (
@@ -100,6 +205,7 @@ export default function PropertyDetailsPage(): JSX.Element {
     );
   }
 
+  // Displays error messages
   if (error || !property) {
     return (
       <View style={styles.container}>
@@ -119,6 +225,9 @@ export default function PropertyDetailsPage(): JSX.Element {
     );
   }
 
+  // Gets the images
+  const imageUrls = getImageUrls();
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -126,17 +235,96 @@ export default function PropertyDetailsPage(): JSX.Element {
           headerShown: true,
           title: property.title,
           presentation: "modal",
+          // Add favorite button to header by @G2CCC
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                void toggleFavorite();
+              }}
+              accessibilityLabel={
+                isFav ? "Remove from watchlist" : "Add to watchlist"
+              }
+              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+            >
+              <MaterialCommunityIcons
+                name={isFav ? "heart" : "heart-outline"}
+                size={24}
+                color={isFav ? "#ef4444" : "#444"}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
 
       <ScrollView style={styles.scrollContent}>
         <View style={styles.imageContainer}>
-          {property.imageUrl ? (
-            <Image
-              source={{ uri: property.imageUrl }}
-              style={styles.propertyImage}
-              testID="property-image"
-            />
+          {imageUrls.length > 0 ? (
+            <>
+              <FlatList
+                ref={flatListRef}
+                data={imageUrls}
+                renderItem={renderImageItem}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                testID="property-image-carousel"
+              />
+
+              {/* Image Counter */}
+              {imageUrls.length > 1 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 16,
+                    right: 16,
+                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 16,
+                  }}
+                >
+                  <Text
+                    style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}
+                  >
+                    {currentImageIndex + 1} / {imageUrls.length}
+                  </Text>
+                </View>
+              )}
+
+              {/* Pagination Dots */}
+              {imageUrls.length > 1 && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "absolute",
+                    bottom: 16,
+                    left: 0,
+                    right: 0,
+                  }}
+                >
+                  {imageUrls.map((_, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor:
+                          index === currentImageIndex
+                            ? "#fff"
+                            : "rgba(255, 255, 255, 0.4)",
+                        marginHorizontal: 4,
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
           ) : (
             <Text
               style={styles.placeholderImage}
@@ -147,6 +335,7 @@ export default function PropertyDetailsPage(): JSX.Element {
           )}
         </View>
 
+        {/* Property details */}
         <View style={styles.contentSection}>
           <Text style={styles.propertyTitle} testID="property-title">
             {property.title}

@@ -2,7 +2,6 @@ import { createGroup, getGroup } from "@/services/message";
 import type { Flatmate } from "@/types/Flatmate";
 import { SwipeAction } from "@/types/SwipeAction";
 import type { SwipeDoc } from "@/types/SwipeDoc";
-import { pickAvatarFor } from "@/utils/avatar";
 import {
   collection,
   deleteDoc,
@@ -27,7 +26,8 @@ type UserDoc = {
   budget?: number | null;
   location?: string | null;
   tags?: unknown;
-  avatarUrl?: string | null;
+  avatarUrl?: string | null; // avatarUrl === photoUrls[0]
+  photoUrls?: string[];
 };
 
 /** Set of swiped users */
@@ -75,23 +75,26 @@ export async function loadCandidates(
   const s = await getDocs(qBuild);
 
   const list: Flatmate[] = s.docs
-    .map(
-      (d: FirebaseFirestoreTypes.QueryDocumentSnapshot<UserDoc>): Flatmate => {
-        const data = d.data();
-        return {
-          id: d.id,
-          name: data.name ?? "",
-          dob: data.dob ?? null,
-          bio: data.bio ?? "",
-          budget: data.budget ?? null,
-          location: data.location ?? null,
-          tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
-          avatar: data.avatarUrl
-            ? { uri: data.avatarUrl }
-            : pickAvatarFor(d.id),
-        };
-      },
-    )
+    .map((d: FirebaseFirestoreTypes.QueryDocumentSnapshot<UserDoc>) => {
+      const data = d.data();
+
+      const mainPhoto =
+        Array.isArray(data.photoUrls) && data.photoUrls.length > 0
+          ? data.photoUrls[0]
+          : (data.avatarUrl ?? null);
+
+      return {
+        id: d.id,
+        name: data.name ?? "",
+        dob: data.dob ?? null,
+        bio: data.bio ?? "",
+        budget: data.budget ?? null,
+        location: data.location ?? null,
+        tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+        avatarUrl: mainPhoto,
+        photoUrls: Array.isArray(data.photoUrls) ? data.photoUrls : [],
+      } as Flatmate;
+    })
     .filter((u: { id: string }) => u.id !== uid)
     .filter((u: { id: string }) => !swiped.has(u.id));
 

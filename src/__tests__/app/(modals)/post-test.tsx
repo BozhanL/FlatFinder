@@ -1,4 +1,3 @@
-// Mock useUser FIRST before any imports
 import PostPropertyPage from "@/app/(modals)/post-property";
 import {
   fireEvent,
@@ -8,23 +7,90 @@ import {
 } from "@testing-library/react-native";
 import { act } from "react";
 import { Alert } from "react-native";
+
+process.env["EXPO_PUBLIC_SUPABASE_URL"] = "https://mock.supabase.co";
+process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] = "mock-key";
+
+jest.mock("@/lib/supabase", () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      insert: jest.fn(() => ({
+        select: jest.fn(() =>
+          Promise.resolve({ data: [{ id: "test-id" }], error: null }),
+        ),
+      })),
+    })),
+    storage: {
+      from: jest.fn(() => ({
+        upload: jest.fn(() =>
+          Promise.resolve({ data: { path: "test.jpg" }, error: null }),
+        ),
+        getPublicUrl: jest.fn(() => ({
+          data: { publicUrl: "https://example.com/test.jpg" },
+        })),
+      })),
+    },
+  },
+}));
+
+jest.mock("@supabase/supabase-js", () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      insert: jest.fn(() => ({
+        select: jest.fn(() =>
+          Promise.resolve({ data: [{ id: "test-id" }], error: null }),
+        ),
+      })),
+    })),
+    storage: {
+      from: jest.fn(() => ({
+        upload: jest.fn(() =>
+          Promise.resolve({ data: { path: "test.jpg" }, error: null }),
+        ),
+        getPublicUrl: jest.fn(() => ({
+          data: { publicUrl: "https://example.com/test.jpg" },
+        })),
+      })),
+    },
+  })),
+}));
+
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(() =>
+    Promise.resolve({
+      status: "granted",
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    }),
+  ),
+  launchImageLibraryAsync: jest.fn(() =>
+    Promise.resolve({
+      canceled: false,
+      assets: [
+        {
+          uri: "test-image-uri",
+          width: 100,
+          height: 100,
+        },
+      ],
+    }),
+  ),
+  MediaTypeOptions: {
+    Images: "Images",
+    Videos: "Videos",
+    All: "All",
+  },
+  PermissionStatus: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    UNDETERMINED: "undetermined",
+  },
+}));
+
 jest.mock("@/hooks/useUser", () => ({
   __esModule: true,
   default: () => ({ uid: "test-user-123" }),
-}));
-
-jest.mock("@react-native-firebase/firestore", () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    collection: jest.fn(() => ({
-      add: jest.fn(() => Promise.resolve({ id: "test-doc-id" })),
-    })),
-  })),
-  collection: jest.fn(() => ({})),
-  addDoc: jest.fn(() => Promise.resolve({ id: "test-doc-id" })),
-  GeoPoint: jest.fn((lat, lon) => ({ latitude: lat, longitude: lon })),
-  getFirestore: jest.fn(() => ({})),
-  serverTimestamp: jest.fn(() => new Date()),
 }));
 
 jest.mock("expo-router", () => ({
@@ -37,7 +103,6 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-// Mock fetch for geocoding
 global.fetch = jest.fn(() =>
   Promise.resolve({
     ok: true,
@@ -259,20 +324,18 @@ describe("PostPropertyPage", () => {
 
       expect(await screen.findByText(/123 Test St, Auckland/)).toBeTruthy();
 
-      // Clear the address
       fireEvent.changeText(addressInput, "");
 
       act(() => {
         jest.runAllTimers();
       });
 
-      // Suggestions should be cleared
       expect(screen.queryByText(/123 Test St, Auckland/)).toBeNull();
     });
   });
 
   describe("Form Submission", () => {
-    it("should successfully submit property data to Firestore", async () => {
+    it("should successfully submit property data to Supabase", async () => {
       render(<PostPropertyPage />);
 
       fireEvent.changeText(screen.getByTestId("title-input"), "Test Property");
@@ -373,17 +436,13 @@ describe("Field Validation", () => {
     const suggestion = await screen.findByText(/123 Test St, Auckland/);
     fireEvent.press(suggestion);
 
-    // Button should be enabled with valid data
     await waitFor(() => {
       const submitButton = screen.getByTestId("submit-button");
       expect(submitButton.props.accessibilityState.disabled).toBe(false);
     });
 
-    // Now set invalid bedrooms
     fireEvent.changeText(screen.getByTestId("bedrooms-input"), "51");
 
-    // Button should still be enabled (isFormValid only checks if fields are filled)
-    // But validation will fail on submit
     const submitButton = screen.getByTestId("submit-button");
     fireEvent.press(submitButton);
 
