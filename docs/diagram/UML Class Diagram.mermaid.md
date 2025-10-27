@@ -4,7 +4,7 @@
 classDiagram
     note "Our implementation mainly uses procedural or functional concepts; thus, the class diagram cannot accurately represent our project."
 
-    class ElementClass {
+    class React.JSX.ElementClass {
         <<Interface>>
         +render() React.ReactNode
     }
@@ -25,7 +25,7 @@ classDiagram
         +render() React.ReactNode
     }
 
-    class TabsLayout {
+    class TabLayout {
         +render() React.ReactNode
     }
 
@@ -87,22 +87,22 @@ classDiagram
         +render() React.ReactNode
     }
 
-    RootLayout --|> ElementClass
-    AuthScreen --|> ElementClass
-    TabsLayout --|> ElementClass
-    Index --|> ElementClass
-    Message --|> ElementClass
-    Profile --|> ElementClass
-    MessageList --|> ElementClass
-    SwipeDeck --|> ElementClass
-    PropertyMapView --|> ElementClass
+    RootLayout --|> React.JSX.ElementClass
+    AuthScreen --|> React.JSX.ElementClass
+    TabLayout --|> React.JSX.ElementClass
+    Index --|> React.JSX.ElementClass
+    Message --|> React.JSX.ElementClass
+    Profile --|> React.JSX.ElementClass
+    MessageList --|> React.JSX.ElementClass
+    SwipeDeck --|> React.JSX.ElementClass
+    PropertyMapView --|> React.JSX.ElementClass
 
-    AuthScreen -- RootLayout
-    TabsLayout -- RootLayout
+    AuthScreen --* RootLayout
+    TabLayout --* RootLayout
 
-    Index -- TabsLayout
-    Message -- TabsLayout
-    Profile -- TabsLayout
+    Index --* TabLayout
+    Message --* TabLayout
+    Profile --* TabLayout
 
     SwipeDeck --* Index
     PropertyMapView --* Index
