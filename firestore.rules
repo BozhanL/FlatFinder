@@ -50,7 +50,7 @@ service cloud.firestore {
         }
 
         match /watchlist/{propertyId} {
-          allow get, list, create, delete: if request.auth != null && request.auth.uid == uid;
+          allow read, create, delete: if request.auth != null && request.auth.uid == uid;
         }
 		}
     
