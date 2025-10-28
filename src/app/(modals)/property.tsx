@@ -386,12 +386,14 @@ export default function PropertyDetailsPage(): JSX.Element {
               </View>
             )}
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Minimum Contract</Text>
-              <Text style={styles.detailValue} testID="property-contract">
-                {formatContractLength(property.contract)}
-              </Text>
-            </View>
+            {property.type === "rental" && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Minimum Contract</Text>
+                <Text style={styles.detailValue} testID="property-contract">
+                  {formatContractLength(property.contract)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
