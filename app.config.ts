@@ -8,12 +8,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
-  scheme: "flatfinder",
+  scheme: "flatfinder", //Local Deep Link Scheme
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-  },
+  }, 
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
@@ -23,6 +23,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: "com.flatfinder",
     googleServicesFile: "./google-services.json",
     permissions: ["android.permission.POST_NOTIFICATIONS"],
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [
+          // 1. Handles the custom deep link scheme (flatfinder://)
+          { scheme: "flatfinder" },
+          // 2. Handles the HTTPS App Link (https://flatfinder.io)
+          {
+            scheme: "https",
+            host: "flatfinder.io", // Replace with your actual domain
+            pathPrefix: "/" // Handles all paths on the domain
+          }
+        ],
+        category: [
+          "BROWSABLE",
+          "DEFAULT"
+        ]
+      }
+    ],
   },
   web: {
     bundler: "metro",

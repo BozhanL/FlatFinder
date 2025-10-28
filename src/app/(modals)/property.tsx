@@ -1,16 +1,15 @@
 import { styles } from "@/styles/property-style";
 import type { Property } from "@/types/Property";
+import { shareProperty } from "@/utils/shareProperty";
 import { Ionicons } from "@expo/vector-icons"; //for the share logic
 import { doc, getDoc, getFirestore } from "@react-native-firebase/firestore";
-import * as Linking from "expo-linking"; // <-- NEW: Import expo-linking for creating robust URLs
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { type JSX, useEffect, useState } from "react";
-//adding share, touchableOpacity
+import React, { type JSX, useCallback, useEffect, useState } from "react";
+
 import {
   ActivityIndicator,
   Image,
   ScrollView,
-  Share,
   Text,
   TouchableOpacity,
   View,
@@ -21,50 +20,9 @@ export default function PropertyDetailsPage(): JSX.Element {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
 
-  //share logic --
-  const handleShare = async (): Promise<void> => {
-    if (!property) {
-      console.error("Cannot share: Property data is missing.");
-      return;
-    }
 
-    // 1. Construct the path based on Expo Router's file system structure.
-    // The path is correct: /property/[id]
-    const deepLinkPath = `/property/${property.id}`;
-
-    // 2. Use Linking.createURL() to correctly generate the shareable link.
-    // This is the definitive way to handle schemes (exp:// or custom-scheme://)
-    // in Expo and React Native.
-    const shareableUrl = Linking.createURL(deepLinkPath);
-
-    const message = `
-I found a great property! 🏠
-${property.title}
-${formatPrice(property.price, property.type)} | ${property.address || "Location Hidden"}
-
-Tap to view the details in the app: ${shareableUrl}
-    `.trim();
-
-    try {
-      // 3. Call the native Share API
-      const result = await Share.share({
-        message: message,
-        title: `Check out: ${property.title}`,
-        url: shareableUrl, // The URL is often required for social apps
-      });
-
-      if (result.action === Share.sharedAction) {
-        console.log("Property shared successfully with URL:", shareableUrl);
-      } else {
-        console.log("Share dialog dismissed.");
-      }
-    } catch (error) {
-      console.error("Error sharing property:", error);
-    }
-  };
-
-  //unchanged
   useEffect(() => {
     const fetchPropertyDetails = async (): Promise<void> => {
       if (!id) {
@@ -115,16 +73,27 @@ Tap to view the details in the app: ${shareableUrl}
       }
     };
 
+
     void fetchPropertyDetails();
   }, [id]);
 
-  const formatPrice = (price: number, type?: string): string => {
+  const formatPrice = useCallback((price: number, type?: string): string => {
     if (type === "sale") {
       return `$${price.toLocaleString()}`;
     } else {
       return `$${price}/week`;
     }
-  };
+  }, []);
+
+  // Use useCallback for the share handler
+  const handleShare = useCallback(async (): Promise<void> => {
+    if (!property) {
+      console.error("Cannot share: Property data is missing.");
+      return;
+    }
+
+    await shareProperty({ property, formatPrice });
+  }, [property, formatPrice]); // Dependencies on property and formatPrice
 
   const formatContractLength = (weeks?: number): string => {
     if (!weeks) {
@@ -180,9 +149,9 @@ Tap to view the details in the app: ${shareableUrl}
           headerShown: true,
           title: property.title,
           presentation: "modal",
-          headerRight: () => (
+headerRight: () => (
             <TouchableOpacity
-              onPress={() => void handleShare()}
+              onPress={() => void handleShare()} // Calls the new handler
               testID="share-button"
             >
               {/* The fix is applying the wrapper: () => void handleShare() */}
