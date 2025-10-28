@@ -116,14 +116,25 @@ export async function getUserByUidAsync(uid: string): Promise<User | null> {
   if (!userDoc.exists()) {
     return null;
   }
-  const data = userDoc.data() as { name: string };
+  const data = userDoc.data() as {
+    name: string;
+    avatarUrl?: string | null;
+    photoUrls?: string[] | null;
+  };
+
+  const mainPhoto =
+    Array.isArray(data.photoUrls) && data.photoUrls.length > 0
+      ? data.photoUrls[0]
+      : (data.avatarUrl ?? null);
 
   const user: User = {
     _id: uid,
     name: data.name,
     avatar:
-      "https://ui-avatars.com/api/?background=0dbc3f&color=FFF&name=" +
-      encodeURIComponent(data.name),
+      typeof mainPhoto === "string" && mainPhoto.trim()
+        ? mainPhoto
+        : "https://ui-avatars.com/api/?background=0dbc3f&color=FFF&name=" +
+          encodeURIComponent(data.name),
   };
 
   return user;

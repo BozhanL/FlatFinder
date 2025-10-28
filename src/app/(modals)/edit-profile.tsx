@@ -3,6 +3,12 @@ import NZLocationPickerField from "@/components/profile/NZLocationPickerField";
 import TagInputField from "@/components/profile/TagInputField";
 import ProfilePreview from "@/components/ProfilePreview";
 import useUser from "@/hooks/useUser";
+import {
+  deleteUserPhoto,
+  listUserPhotos,
+  syncAvatarFromPhotos,
+  uploadUserPhoto,
+} from "@/services/avatar";
 import type { Flatmate } from "@/types/Flatmate";
 import { formatDDMMYYYY, parseDDMMYYYY } from "@/utils/date";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -239,6 +245,74 @@ export default function EditProfileModal(): JSX.Element {
     return "";
   }, [form?.dob]);
 
+  const showError = (title: string, e: unknown): void => {
+    const msg = e instanceof Error ? e.message : String(e);
+    Alert.alert(title, msg);
+  };
+
+  const handleUpload = (
+    setPhotos: React.Dispatch<React.SetStateAction<string[]>>,
+    setForm: React.Dispatch<React.SetStateAction<Draft | null>>,
+  ): void => {
+    void (async (): Promise<void> => {
+      try {
+        const url = await uploadUserPhoto();
+        if (!url) {
+          return;
+        }
+        const list = await listUserPhotos();
+        setPhotos(list);
+        await syncAvatarFromPhotos(list, setForm);
+      } catch (e) {
+        showError("upload failed", e);
+      }
+    })();
+  };
+
+  const confirmDelete = (
+    index: number,
+    photos: string[],
+    setPhotos: React.Dispatch<React.SetStateAction<string[]>>,
+    setForm: React.Dispatch<React.SetStateAction<Draft | null>>,
+  ): void => {
+    if (!photos[index]) {
+      return;
+    }
+
+    Alert.alert(
+      "Confirm delete",
+      "Are you sure you want to delete this photo?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: (): void => {
+            void (async (): Promise<void> => {
+              try {
+                setPhotos((prev) => prev.filter((_, i) => i !== index));
+
+                const next = await deleteUserPhoto(index);
+
+                setForm((prev) =>
+                  prev ? { ...prev, avatarUrl: next[0] ?? null } : prev,
+                );
+              } catch (e) {
+                showError("Delete failed", e);
+                try {
+                  const list = await listUserPhotos();
+                  setPhotos(list);
+                } catch (inner) {
+                  showError("Reload failed", inner);
+                }
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
+
   const dobInitialDate = useMemo(() => {
     if (form?.dob instanceof Timestamp) {
       return form.dob.toDate();
@@ -254,17 +328,24 @@ export default function EditProfileModal(): JSX.Element {
       return;
     }
 
-    const alive = { current: true };
+    let alive = true;
 
     const run = async (): Promise<void> => {
       try {
         const snap = await getDoc(doc(getFirestore(), "users", uid));
-        if (!alive.current) {
+        if (!alive) {
           return;
         }
         const d = toDraft(uid, snap.data() as UserDocData | undefined);
         setForm(d);
-        setPhotos([d.avatarUrl || "", "", ""]);
+
+        const list = await listUserPhotos();
+        setPhotos(list);
+        setForm((prev) =>
+          prev
+            ? { ...prev, avatarUrl: list[0] ?? prev.avatarUrl ?? null }
+            : prev,
+        );
       } catch (err) {
         console.error(err);
       }
@@ -273,19 +354,9 @@ export default function EditProfileModal(): JSX.Element {
     void run();
 
     return (): void => {
-      alive.current = false;
+      alive = false;
     };
   }, [uid]);
-
-  const avatarSource: ImageSourcePropType | undefined = useMemo(
-    () =>
-      form?.avatarUrl
-        ? { uri: form.avatarUrl }
-        : (form?.avatar ?? {
-            uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=U",
-          }),
-    [form?.avatarUrl, form?.avatar],
-  );
 
   async function onSave(): Promise<void> {
     if (!uid || !form) {
@@ -404,149 +475,223 @@ export default function EditProfileModal(): JSX.Element {
             contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           >
             <View>
-              {/* Photos */}
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: "700" }}>
-                  Photos{" "}
-                  <Text style={{ fontSize: 12, color: "#777" }}>
-                    (Maximum of 3)
-                  </Text>
+              <Text style={styles.sectionTitle}>
+                Photos{" "}
+                <Text style={{ fontSize: 12, color: "#777" }}>
+                  (Maximum of 3)
                 </Text>
-                {/* TODO: actual avatar upload */}
-                <View
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 16,
+                  marginTop: 10,
+                  paddingHorizontal: 16,
+                }}
+              >
+                {/* left side: 1st photo display larger */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={(): void => {
+                    if (photos[0]) {
+                      return;
+                    }
+                    handleUpload(setPhotos, setForm);
+                  }}
+                  onLongPress={(): void => {
+                    confirmDelete(0, photos, setPhotos, setForm);
+                  }}
                   style={{
-                    flexDirection: "row",
+                    width: 210,
+                    height: 230,
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    backgroundColor: "#F0F0F0",
                     alignItems: "center",
-                    gap: 16,
-                    marginTop: 12,
+                    justifyContent: "center",
                   }}
                 >
-                  <TouchableOpacity activeOpacity={0.8}>
-                    <Image source={avatarSource} style={styles.bigAvatar} />
-                  </TouchableOpacity>
+                  {photos[0] ? (
+                    <Image
+                      source={{ uri: photos[0] }}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="plus"
+                      size={30}
+                      color="#777"
+                    />
+                  )}
+                </TouchableOpacity>
 
-                  <View style={{ gap: 12 }}>
-                    <View style={{ flexDirection: "row", gap: 12 }}>
-                      <CircleThumb
-                        uri={photos[1] ?? ""}
-                        onPress={() => void 0}
+                {/* right side photos */}
+                <View style={{ gap: 12 }}>
+                  {/* 2nd at right top */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={(): void => {
+                      if (photos[1]) {
+                        return;
+                      }
+                      handleUpload(setPhotos, setForm);
+                    }}
+                    onLongPress={(): void => {
+                      confirmDelete(1, photos, setPhotos, setForm);
+                    }}
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      backgroundColor: "#F0F0F0",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {photos[1] ? (
+                      <Image
+                        source={{ uri: photos[1] }}
+                        style={{ width: "100%", height: "100%" }}
                       />
-                      <CircleThumb
-                        uri={photos[2] ?? ""}
-                        onPress={() => void 0}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      style={styles.addCircle}
-                      onPress={() => void 0}
-                      activeOpacity={0.8}
-                    >
+                    ) : (
                       <MaterialCommunityIcons
                         name="plus"
-                        size={22}
-                        color="#555"
+                        size={30}
+                        color="#777"
                       />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-
-              {/* About me */}
-              <View style={{ marginTop: 20, paddingBottom: 100 }}>
-                <Text style={styles.sectionTitle}>About me</Text>
-
-                {/* Username */}
-                <FieldInput
-                  label="Username"
-                  value={form.name ?? ""}
-                  placeholder="yourname"
-                  onChangeText={(t) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, name: t.trim() } : prev,
-                    );
-                  }}
-                />
-                {/* Date of Birth */}
-                <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "700",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Date of Birth
-                  </Text>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      setDobPickerOpen(true);
-                    }}
-                    activeOpacity={0.8}
-                    style={styles.input}
-                  >
-                    <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
-                      {dobDisplay || "DD-MM-YYYY"}
-                    </Text>
+                    )}
                   </TouchableOpacity>
 
-                  <DateTimePickerModal
-                    isVisible={dobPickerOpen}
-                    mode="date"
-                    date={dobInitialDate}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1900, 0, 1)}
-                    onConfirm={(date) => {
-                      const str = formatDDMMYYYY(date);
-                      setForm((prev) => (prev ? { ...prev, dob: str } : prev));
-                      setDobPickerOpen(false);
+                  {/* 3rd at right bottom */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={(): void => {
+                      if (photos[2]) {
+                        return;
+                      }
+                      handleUpload(setPhotos, setForm);
                     }}
-                    onCancel={() => {
-                      setDobPickerOpen(false);
+                    onLongPress={(): void => {
+                      confirmDelete(2, photos, setPhotos, setForm);
                     }}
-                  />
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      backgroundColor: "#F0F0F0",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {photos[2] ? (
+                      <Image
+                        source={{ uri: photos[2] }}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={30}
+                        color="#777"
+                      />
+                    )}
+                  </TouchableOpacity>
                 </View>
-
-                {/* Budget */}
-                <BudgetField
-                  value={form.budget ?? null}
-                  onChange={(n) => {
-                    setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+              </View>
+              {/* Form fields */}
+              {/* Username */}
+              <FieldInput
+                label="Username"
+                value={form.name ?? ""}
+                placeholder="yourname"
+                onChangeText={(t) => {
+                  setForm((prev) =>
+                    prev ? { ...prev, name: t.trim() } : prev,
+                  );
+                }}
+              />
+              {/* Date of Birth */}
+              <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    marginBottom: 8,
                   }}
-                  min={50}
-                  max={2000}
-                  step={10}
-                />
+                >
+                  Date of Birth
+                </Text>
 
-                {/* Preferred Location */}
-                <NZLocationPickerField
-                  value={form.location ?? ""}
-                  onChange={(loc) => {
-                    setForm((prev) =>
-                      prev ? { ...prev, location: loc } : prev,
-                    );
+                <TouchableOpacity
+                  onPress={() => {
+                    setDobPickerOpen(true);
                   }}
-                />
+                  activeOpacity={0.8}
+                  style={styles.input}
+                >
+                  <Text style={{ color: dobDisplay ? "#111" : "#999" }}>
+                    {dobDisplay || "DD-MM-YYYY"}
+                  </Text>
+                </TouchableOpacity>
 
-                {/* Tag */}
-                <TagInputField
-                  value={form.tags ?? []}
-                  onChange={(tags) => {
-                    setForm((prev) => (prev ? { ...prev, tags } : prev));
+                <DateTimePickerModal
+                  isVisible={dobPickerOpen}
+                  mode="date"
+                  date={dobInitialDate}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  onConfirm={(date) => {
+                    const str = formatDDMMYYYY(date);
+                    setForm((prev) => (prev ? { ...prev, dob: str } : prev));
+                    setDobPickerOpen(false);
                   }}
-                />
-
-                {/* Bio */}
-                <FieldInput
-                  label="Bio"
-                  placeholder="Tell the world about YOU.."
-                  value={form.bio ?? ""}
-                  onChangeText={(t) => {
-                    setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                  onCancel={() => {
+                    setDobPickerOpen(false);
                   }}
-                  multiline
                 />
               </View>
+
+              {/* Budget */}
+              <BudgetField
+                value={form.budget ?? null}
+                onChange={(n) => {
+                  setForm((prev) => (prev ? { ...prev, budget: n } : prev));
+                }}
+                min={50}
+                max={2000}
+                step={10}
+              />
+
+              {/* Preferred Location */}
+              <NZLocationPickerField
+                value={form.location ?? ""}
+                onChange={(loc) => {
+                  setForm((prev) => (prev ? { ...prev, location: loc } : prev));
+                }}
+              />
+
+              {/* Tag */}
+              <TagInputField
+                value={form.tags ?? []}
+                onChange={(tags) => {
+                  setForm((prev) => (prev ? { ...prev, tags } : prev));
+                }}
+              />
+
+              {/* Bio */}
+              <FieldInput
+                label="Bio"
+                placeholder="Tell the world about YOU.."
+                value={form.bio ?? ""}
+                onChangeText={(t) => {
+                  setForm((prev) => (prev ? { ...prev, bio: t } : prev));
+                }}
+                multiline
+              />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -578,6 +723,7 @@ export default function EditProfileModal(): JSX.Element {
                     } as ImageSourcePropType),
                   avatarUrl: null,
                 }),
+            photoUrls: photos,
           }}
         />
       )}
@@ -605,29 +751,6 @@ function TabButton({
       </Text>
       <View
         style={[styles.tabUnderline, active && { backgroundColor: "#6B46FF" }]}
-      />
-    </TouchableOpacity>
-  );
-}
-
-function CircleThumb({
-  uri,
-  onPress,
-}: {
-  uri?: string;
-  onPress: () => void;
-}): JSX.Element {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Image
-        source={
-          uri
-            ? { uri }
-            : {
-                uri: "https://ui-avatars.com/api/?background=EAEAEA&color=111&name=+",
-              }
-        }
-        style={styles.smallAvatar}
       />
     </TouchableOpacity>
   );

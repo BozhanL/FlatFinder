@@ -3,6 +3,7 @@
 // react-native-firebase does not work in jest unit test environment.
 // Mocking it is possible, but it may not represent real world situation.
 import useUser from "@/hooks/useUser";
+import { supabase } from "@/lib/supabase";
 import type { FormData, FormErrors } from "@/types/PostProperty";
 import {
   GeoPoint,
@@ -33,18 +34,80 @@ type UsePropertyFormReturn = {
   errors: FormErrors;
   isSubmitting: boolean;
   isFormValid: boolean;
+  selectedImages: string[];
   updateField: (field: keyof FormData, value: string) => void;
+  addImage: (uri: string) => void;
+  removeImage: (uri: string) => void;
   handleSubmit: () => Promise<void>;
 };
+
+const MAX_IMAGES = 5;
 
 export default function usePropertyForm(): UsePropertyFormReturn {
   const user = useUser();
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const updateField = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addImage = (uri: string): void => {
+    if (selectedImages.length >= MAX_IMAGES) {
+      Alert.alert(
+        "Maximum Images",
+        `You can only upload up to ${MAX_IMAGES} images.`,
+      );
+      return;
+    }
+    setSelectedImages((prev) => [...prev, uri]);
+  };
+
+  const removeImage = (uri: string): void => {
+    setSelectedImages((prev) => prev.filter((img) => img !== uri));
+  };
+
+  const uploadImageToSupabase = async (
+    imageUri: string,
+    userId: string,
+    index: number,
+  ): Promise<string | null> => {
+    try {
+      console.log(`Starting upload ${index + 1} for:`, imageUri);
+      // IMPROVE: Can be improved by using the same logic as the posting avatar to keep things consistant next sprint. @Anthony-8114
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      const timestamp = Date.now();
+      const filename = `${userId}/${timestamp}_${index}.jpg`;
+      console.log("Uploading to:", filename);
+
+      const { data, error } = await supabase.storage
+        .from("property-images")
+        .upload(filename, arrayBuffer, {
+          contentType: "image/jpeg",
+          cacheControl: "3600",
+        });
+
+      if (error) {
+        console.error("Supabase upload error:", error);
+        return null;
+      }
+
+      console.log(`Upload ${index + 1} successful:`, data);
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("property-images").getPublicUrl(filename);
+
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading image ${index + 1}:`, error);
+      return null;
+    }
   };
 
   const validateForm = (): boolean => {
@@ -124,9 +187,9 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         } else if (!Number.isInteger(contractNum)) {
           newErrors["minContractLength"] =
             "Contract length must be whole weeks";
-        } else if (contractNum <= 0) {
+        } else if (contractNum < 0) {
           newErrors["minContractLength"] =
-            "Contract length must be greater than 0";
+            "Contract length must be positive number";
         } else if (contractNum > 520) {
           newErrors["minContractLength"] = "Maximum 520 weeks (10 years)";
         }
@@ -163,13 +226,38 @@ export default function usePropertyForm(): UsePropertyFormReturn {
       return;
     }
 
+    const userId = user.uid;
     setIsSubmitting(true);
 
     try {
+      const imageUrls: string[] = [];
+
+      // Upload all images to Supabase
+      if (selectedImages.length > 0) {
+        for (let i = 0; i < selectedImages.length; i++) {
+          const imageUri = selectedImages[i];
+          if (!imageUri) {
+            continue;
+          }
+
+          const imageUrl = await uploadImageToSupabase(imageUri, userId, i);
+
+          if (!imageUrl) {
+            Alert.alert(
+              "Error",
+              `Failed to upload image ${i + 1}. Please try again.`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
+
+          imageUrls.push(imageUrl);
+        }
+      }
+
       const db = getFirestore();
       const propertiesCollection = collection(db, "properties");
 
-      // At this point, validation guarantees these are valid numbers
       const propertyData = {
         title: formData.title.trim(),
         type: formData.type,
@@ -187,7 +275,8 @@ export default function usePropertyForm(): UsePropertyFormReturn {
         ...(formData.type === "rental" && {
           contract: Number(formData.minContractLength),
         }),
-        createdBy: user.uid,
+        imageUrl: imageUrls,
+        createdBy: userId,
         createdAt: serverTimestamp(),
       };
 
@@ -228,7 +317,10 @@ export default function usePropertyForm(): UsePropertyFormReturn {
     errors,
     isSubmitting,
     isFormValid,
+    selectedImages,
     updateField,
+    addImage,
+    removeImage,
     handleSubmit,
   };
 }

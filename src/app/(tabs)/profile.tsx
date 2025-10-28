@@ -29,6 +29,7 @@ type UserDocData = {
   budget?: number;
   location?: string;
   tags?: unknown;
+  avatarUrl?: string | null;
 };
 
 export default function Profile(): JSX.Element {
@@ -60,6 +61,7 @@ export default function Profile(): JSX.Element {
           budget: d.budget ?? 0,
           location: d.location ?? "",
           tags: Array.isArray(d.tags) ? (d.tags as string[]) : [],
+          avatarUrl: d.avatarUrl ?? null,
         });
         setLoading(false);
       },
@@ -88,9 +90,11 @@ export default function Profile(): JSX.Element {
     );
   }
 
-  // avatar place holder
-
-  const avatar = require("../../../assets/images/react-logo.png");
+  // use uploaded avatar if available
+  const avatar =
+    profile.avatarUrl && profile.avatarUrl.trim() !== ""
+      ? { uri: profile.avatarUrl }
+      : require("assets/images/react-logo.png");
 
   return (
     <ScrollView
@@ -143,7 +147,9 @@ export default function Profile(): JSX.Element {
           <MenuItem
             icon="star-outline"
             title="Watchlist"
-            onPress={() => undefined}
+            onPress={() => {
+              router.push("/watchlist");
+            }}
           />
           <MenuItem
             icon="cog-outline"
