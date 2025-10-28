@@ -4,7 +4,7 @@
 
 ![UML Component Diagram](UML%20Component%20Diagram.svg)
 
-## Class Diagram (By Jason)
+## Class Diagram (By Bozhan)
 
 ![UML Class Diagram](UML%20Class%20Diagram.svg)
 

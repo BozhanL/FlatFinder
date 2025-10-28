@@ -182,11 +182,39 @@ jobs:
           BUILD_TOOLS_VERSION: 36.0.0
 
       - name: 📦 Upload build artifacts to GitHub
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.build.name }}
           if-no-files-found: error
           path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          retention-days: 7
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v5
+
+      - name: 🏗 Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: 📦 Set up flatfinder.keystore
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: echo $SIGNING_KEY | base64 -d - > ./flatfinder.keystore
+
+      - name: 📱 Build
+        working-directory: ./docker
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+        run: docker compose up --build --exit-code-from apk apk
+
+      - name: 📦 Upload build artifacts to GitHub
+        uses: actions/upload-artifact@v5
+        with:
+          name: docker-release-apk
+          if-no-files-found: error
+          path: ./output/app-release-signed.apk
           retention-days: 7
 
   collect:
@@ -199,6 +227,7 @@ jobs:
       - format
       - coverage
       - build
+      - docker
     steps:
       - name: 📦 Install jq
         run: "sudo apt-get update && sudo apt-get install jq"

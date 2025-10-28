@@ -1,91 +1,66 @@
 # FlatFinder
 
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/BozhanL/8fcf597ef6922a83da15d24d7aff8fe8/raw/FlatFinderCoverageBadge.json)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/BozhanL/8fcf597ef6922a83da15d24d7aff8fe8/raw/FlatFinderCoverageBadge.json)](https://github.com/BozhanL/FlatFinder/actions/workflows/react-native-cicd.yml)
 [![React Native CI/CD](https://github.com/BozhanL/FlatFinder/actions/workflows/react-native-cicd.yml/badge.svg)](https://github.com/BozhanL/FlatFinder/actions/workflows/react-native-cicd.yml)
+
+## Description
+
+FlatFinder is a mobile application designed to help users find rental apartments and flat mates easily. It provides a user-friendly interface to search for apartments based on various criteria such as location and price range. The app also offers features like saving favorite listings, receiving notifications for new messages, and viewing detailed information about each apartment.
+
+> [!NOTE]
+> User must register an account and log in to use the application.
 
 ## Download
 
-You can download the latest APK from the [releases page](https://github.com/BozhanL/FlatFinder/releases).
+You can download the latest APK from the [releases page](https://github.com/BozhanL/FlatFinder/releases) or [CI/CD page](https://github.com/BozhanL/FlatFinder/actions/workflows/react-native-cicd.yml?query=branch%3Amain+is%3Acompleted+event%3Apush).
 
-## Setup for Your Own Use
+## Build it Locally
 
-### 1. Firebase Configuration
+### 1. Build the APK
 
-To use this project, you need to set up your own Firebase project.
+1. Install [Docker and Docker Compose](https://docs.docker.com/engine/install/) and [Git](https://git-scm.com/install/linux) on a Linux machine.
+2. Decompress the archive from the Resources column on the Trello board.
+3. Navigate to the decompressed folder in your terminal.
+4. Run `git clone https://github.com/BozhanL/FlatFinder.git ./apk/src` to clone the source code into the `./apk/src` folder.
+5. Run `docker compose up --build --exit-code-from apk apk` to build the APK.
+6. When the build is complete, stop the Docker containers by running `docker compose down apk`.
+7. The built APK will be located in the `./apk/output` folder.
 
-Features that require Firebase:
+### 2. Enable Notifications
 
-- Authentication
-- Firestore Database
-- Cloud Messaging (Notifications)
-
-#### Authentication
-
-Enabled Sign-in methods:
-
-- Email/Password
-- Google
-
-Set up Google Sign-In by following this [guide](https://react-native-google-signin.github.io/docs/setting-up/get-config-file?firebase-or-not=firebase#step-2).
-
-#### Firestore Database
-
-Please check the `firestore.rules` and `firestore.indexes.json`
-
-#### Cloud Messaging
-
-No additional setup is required for Cloud Messaging.
-
-### 2. Build
-
-To build this project for your own use
-
-#### Build Prerequisites
-
-- Node.js (v22)
-- npm (v10)
-- Java (Temurin v21)
-- Android Studio (Narwhal Feature Drop | 2025.1.2 or later)
-- Ninja (v1.13.1 or later)
-- Firebase
-
-Follow this [expo guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local) to set up Android Studio. (DO NOT install JAVA from this guide)
-
-Follow this [Temurin guide](https://adoptium.net/en-GB/temurin/releases?version=21&os=any&arch=any) to install Java.
-
-Follow this [Node.js guide](https://nodejs.org/en/download) to install Node.js and npm.
-
-#### Build Steps
-
-1. Clone this repository by `git clone https://github.com/BozhanL/FlatFinder.git`
-2. Navigate to the project directory `cd FlatFinder`
-3. Replace the `google-services.json`, android `package` name and `firebaseWebConfig` in `app.config.ts` with your own Firebase project configuration.
-4. Install dependencies by `npm ci`
-5. Prebuild the project by `npx expo prebuild --platform android --clean`
-6. Navigate to the android directory `cd android`
-7. Build the project by `./gradlew assembleRelease`
-8. Final APK can be found in `app/build/outputs/apk/release/app-release.apk`
-9. To enable Google Sign-In, sign the APK with your own keystore. Follow this [guide](https://developer.android.com/tools/apksigner#usage-sign).
-
-### 3. Enable Notifications
-
-#### Notification Prerequisites
-
-- Docker (latest)
-- Docker Compose (latest)
-- Firebase
-- An SMTP server (e.g., Gmail, Outlook, etc.)
-
-To get Firebase service account key file, follow [this guide](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments).
-
-#### Steps
-
-- Download the `compose.yaml` from [FlatFinderNotification](https://github.com/BozhanL/FlatFinderNotification/blob/main/compose.yaml)
-- Replace `SMTP_HOST`, `SMTP_FROM`,`SMTP_USER`, and `SMTP_PASS` with your own SMTP server configuration.
-- Replace `secrets.serviceAccountKey.file` with the path to your own Firebase service account key file.
-- Run `docker compose up -d` to start the notification server.
+1. Install [Docker and Docker Compose](https://docs.docker.com/engine/install/) and [Git](https://git-scm.com/install/linux) on a Linux machine. (Same as Build the APK step 1)
+2. Decompress the archive from the Resources column on the Trello board. (Same as Build the APK step 2)
+3. Navigate to the decompressed folder in your terminal. (Same as Build the APK step 3)
+4. Run `git clone https://github.com/BozhanL/FlatFinderNotification.git ./notification/src` to clone the source code into the `./notification/src` folder.
+5. Run `docker compose up --build notification` to start the notification server.
 
 ### Common Issues
 
 1. Filename longer than 260 characters error on Windows
    - Solution: follow this [comment](https://github.com/BozhanL/FlatFinder/pull/25#issuecomment-3253028690)
+2. Could not GET '<https://www.jitpack.io/app/notifee/core/202108261754/core-202108261754.pom>'. Received status code 500 from server: Internal Server Error
+   - Solution: Compile the project again.
+
+## Author
+
+| Author          | ID       |
+| --------------- | -------- |
+| Anthony Yao     | 23215906 |
+| Bozhan Liang    | 23209715 |
+| Gary Zhang      | 21155263 |
+| Pulupoi Kaufusi | 21155263 |
+
+## Credits
+
+- Notifee compile fix from [@Tomsons](https://github.com/invertase/notifee/issues/1226#issuecomment-3228701613)
+- ESLint configuration from [expo](https://docs.expo.dev/guides/using-eslint/) and [typescript-eslint](https://typescript-eslint.io/troubleshooting/typed-linting/performance#eslint-plugin-import)
+- Jest mock setup from [react-native-firebase](https://github.com/invertase/react-native-firebase/blob/main/jest.setup.ts)
+- Metro configuration from [@jamespb97](https://github.com/invertase/react-native-firebase/issues/7921#issuecomment-3102680871)
+- React Native GitHub workflow from [Tanay Kedia](https://www.expobuilder.app/)
+- Expo ABI filter from [@Randall71](https://gist.github.com/Randall71/695f5ced1123dcce484b985484a2a167)
+- Typescript fix library type errors from [@borisrakovan](https://github.com/microsoft/TypeScript/issues/40426#issuecomment-2522221597)
+- FCM setup from [@MartinHarkins](https://github.com/expo/expo/issues/29757#issuecomment-2264715009)
+- maplibre-react-native warnings fix from [@ferdicus](https://github.com/rnmapbox/maps/issues/943#issuecomment-759220852)
+- Address search from [Nominatim OpenStreetMap](https://nominatim.openstreetmap.org/ui/search.html)
+- Default Avatar from [UI Avatars](https://ui-avatars.com/)
+- Other open source libraries listed in [package.json](./package.json)
